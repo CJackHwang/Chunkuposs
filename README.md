@@ -1,4 +1,4 @@
-# 编程猫对象存储-分块上传
+# FCD微型网盘-流式分块上传
 [![GitHub](https://img.shields.io/badge/GitHub-CJackHwang-100000?style=flat&logo=github&logoColor=white)](https://github.com/CJackHwang)
 [![GPL-3.0 License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel)](https://vercel.com)
@@ -13,7 +13,8 @@
 ## 功能特性
 
 - **文件选择和信息展示**：用户可以选择文件并查看文件大小信息。
-- **分块上传**：支持启用或禁用分块上传模式，自动计算每块大小及总上传块数。
+- **流式分块上传**：支持启用或禁用分块上传模式，自动计算每块大小及总上传块数。
+v2.0开始采用流式处理文件，拥有更好的处理效率和速度
 - **文件上传**：用户可以将文件上传至指定的服务器，并获得文件的下载链接。
 - **上传历史记录**：记录每次上传的时间和链接，方便用户随时查看。
 - **操作日志**：实时记录上传过程中的操作信息，便于调试和错误追踪。
@@ -33,6 +34,10 @@
 1. 下载或克隆项目代码。
 2. 在项目目录中打开 `index.html` 文件。
 3. 使用现代浏览器（如 Chrome、Firefox）打开该文件。
+
+### （可选）Vercel部署
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/CJackHwang/Fuck-Codemao-Detection)
 
 ### 上传文件
 
