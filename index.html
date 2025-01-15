@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>编程猫CDN - 分块上传</title>
+    <title>编程猫CDN-分块上传</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://ik.imagekit.io/cjack/OPPO%20Sans%20Medium/result.css?updatedAt=1733565886168" media="print" onload="this.media='all'">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -12,6 +12,7 @@
     <div id="app">
         <header>
             <h2>Fuck Codemao Detection</h2>
+            <a>v1.0</a>
             <p>
                 使用Vue开发；分块上传文件至编程猫对象存储，以避免超过20MB被删除，同时还有意想不到的好处哦
             </p>
@@ -27,7 +28,7 @@
                     <span id="totalChunks" style="margin-left: 10px;">总上传块数: {{ totalChunks }}</span>
                 </div>
                 <label>
-                    <input type="checkbox" v-model="isChunkedMode"> 启用分块上传模式
+                    <input type="checkbox" v-model="isChunkedMode"> 【启用分块上传模式】
                 </label>
             </div>
             <div class="button-group">
@@ -71,7 +72,19 @@
         </main>
         <footer>
             <p>
-                © CJackHwang.保留所有权利. | 博客链接: <a href="http://www.cjack.cfd" target="_blank">www.cjack.cfd</a>
+                © CJackHwang.保留所有权利.
+            </p>
+            <p>
+                项目仓库: <a href="https://github.com/CJackHwang/Fuck-Codemao-Detection" target="_blank">Fuck-Codemao-Detection</a>
+            </p>
+            <p>
+                <a href="https://github.com/CJackHwang">
+                    <img src="https://img.shields.io/badge/GitHub-CJackHwang-100000?style=flat&logo=github&logoColor=white" alt="GitHub Badge">
+                </a>
+                <a href="https://www.gnu.org/licenses/gpl-3.0.html">
+                    <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat" alt="GPL-3.0 License Badge">
+                </a>
+
             </p>
         </footer>
     </div>
