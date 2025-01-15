@@ -3,7 +3,9 @@
 [![GPL-3.0 License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel)](https://vercel.com)
 
-根据此功能开发的简单白嫖网盘
+根据此功能开发的微型网盘
+## 郑重声明
+我作为编程猫老用户，本开源项目目的仅作为学习交流用途，开放的api接口仅合法使用。任何第三者使用本项目时都应该注意不能过于滥用接口！任何因违规使用造成的任何法律责任本人概不负责！』
 ## 项目简介
 
 该项目是一个基于 Vue.js 开发的文件上传工具，旨在帮助用户将文件分块上传到编程猫的对象存储，从而避免因文件过大（超过 20MB）而被编程猫服务器删除，以达到白嫖效果（划去）。此外，该工具还提供了文件下载链接、上传历史记录和操作日志等功能。
