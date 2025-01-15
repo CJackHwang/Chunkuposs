@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>编程猫CDN-分块上传</title>
+    <title>F.C.D file-流式分块上传</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://ik.imagekit.io/cjack/OPPO%20Sans%20Medium/result.css?updatedAt=1733565886168" media="print" onload="this.media='all'">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -12,9 +12,9 @@
     <div id="app">
         <header>
             <h2>Fuck Codemao Detection</h2>
-            <a>v1.0</a>
+            <a>Version：2.0</a>
             <p>
-                使用Vue开发；分块上传文件至编程猫对象存储，以避免超过20MB被删除，同时还有意想不到的好处哦
+                使用Vue3开发；上传时流式读取文件分块提交至编程猫对象存储，以避免大于20MB容易被删除，支持断点续传。分块上传还可以绕过云端api内容检查哦~
             </p>
         </header>
         <main>
@@ -24,11 +24,11 @@
                     {{ fileInfo }}
                 </div>
                 <div id="chunkSize" v-if="chunkSizeVisible" class="chunk-info">
-                    <span id="chunkValue">每块大小（自动）: {{ chunkValue }} MB</span>
+                    <span id="chunkValue">每块大小（自动设置）: {{ chunkValue }} MB</span>
                     <span id="totalChunks" style="margin-left: 10px;">总上传块数: {{ totalChunks }}</span>
                 </div>
                 <label>
-                    <input type="checkbox" v-model="isChunkedMode"> 【启用分块上传模式】
+                    <input type="checkbox" v-model="isChunkedMode"> 启用分块上传
                 </label>
             </div>
             <div class="button-group">
@@ -38,7 +38,7 @@
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接下载；上传链接也会显示在此">
             <div class="action-buttons">
                 <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
-                <button v-if="sjurl" @click="downloadFiles">下载文件</button>
+                <button v-if="sjurl" @click="downloadFiles" :disabled="downloadButtonDisabled" ref="downloadButton">下载文件</button>
             </div>
             <div id="status" class="status-message">
                 {{ status }}
@@ -67,7 +67,7 @@
             </div>
             <div class="history-buttons">
                 <button @click="clearHistory">清除历史</button>
-                <button @click="exportHistory">导出历史</button>
+                <button @click="exportHistory">导出为txt</button>
             </div>
         </main>
         <footer>
@@ -84,7 +84,6 @@
                 <a href="https://www.gnu.org/licenses/gpl-3.0.html">
                     <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat" alt="GPL-3.0 License Badge">
                 </a>
-
             </p>
         </footer>
     </div>
@@ -110,6 +109,9 @@
                 const uploadHistory = ref([]);
                 const isChunkedMode = ref(false);
                 const chunkSizeVisible = ref(true);
+                const uploadedChunks = ref(new Set());
+                const downloadButtonDisabled = ref(false);
+                const downloadButton = ref(null);
 
                 onMounted(loadLog);
 
@@ -122,49 +124,77 @@
                         chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
                         totalChunks.value = Math.ceil(file.value.size / chunkSize.value);
                         chunkSizeVisible.value = true;
+                        uploadedChunks.value.clear(); // Reset uploaded chunks
                     }
                 }
 
                 async function uploadFile() {
                     if (!file.value) return alert('请选择文件!');
-                    const formData = new FormData();
-                    formData.append('file', file.value, file.value.name);
-                    formData.append('path', 'pickduck');
+                    status.value = "上传处理中...";
+                    addDebugOutput("开始上传任务，请耐心等待...");
 
-                    status.value = "上传中...";
-                    addDebugOutput("开始上传...");
+                    if (!isChunkedMode.value) {
+                        const formData = new FormData();
+                        formData.append('file', file.value, file.value.name);
+                        formData.append('path', 'pickduck');
 
-                    try {
-                        if (!isChunkedMode.value) {
+                        try {
                             const response = await fetch('https://api.pgaot.com/user/up_cat_file', {
                                 method: 'POST',
                                 body: formData
                             });
                             const data = await response.json();
                             handleUploadResponse(data);
-                        } else {
-                            await uploadChunks();
+                        } catch (error) {
+                            alert('上传发生错误');
+                            addDebugOutput(`上传失败: ${error.message}`);
                         }
-                    } catch (error) {
-                        alert('上传发生错误');
-                        addDebugOutput(`上传失败: ${error.message}`);
+                    } else {
+                        await uploadChunks();
                     }
                 }
 
                 async function uploadChunks() {
-                    const chunks = Math.ceil(file.value.size / chunkSize.value);
+                    const reader = file.value.stream().getReader();
+                    let index = 0;
                     const urls = [];
-                    for (let i = 0; i < chunks; i++) {
-                        await uploadChunkWithRetry(i, urls);
-                        status.value = `上传中...（${i + 1}/${chunks}）`;
+                    let byteArray = []; // 存储读取字节的数组
+                    let currentChunkSize = 0; // 当前块的大小
+
+                    async function readAndUpload() {
+                        const {
+                            done,
+                            value
+                        } = await reader.read();
+                        if (done) {
+                            // 最后处理剩余的字节
+                            if (currentChunkSize > 0) {
+                                await uploadChunkWithRetry(index, new Blob(byteArray), urls);
+                            }
+                            handleChunkUploadCompletion(urls);
+                            return;
+                        }
+
+                        // 将当前读取的值添加到字节数组中
+                        byteArray.push(value);
+                        currentChunkSize += value.byteLength;
+
+                        // 检查是否达到块大小
+                        if (currentChunkSize >= chunkSize.value) {
+                            await uploadChunkWithRetry(index, new Blob(byteArray), urls);
+                            index++;
+                            byteArray = []; // 清空字节数组
+                            currentChunkSize = 0; // 重置当前块大小
+                        }
+
+                        status.value = `上传中...（已上传 ${index} 块）`;
+                        readAndUpload(); // 继续读取下一个块
                     }
-                    handleChunkUploadCompletion(urls);
+
+                    readAndUpload(); // 开始读取和上传
                 }
 
-                async function uploadChunkWithRetry(i, urls) {
-                    const start = i * chunkSize.value;
-                    const end = Math.min(start + chunkSize.value, file.value.size);
-                    const chunk = file.value.slice(start, end);
+                async function uploadChunkWithRetry(i, chunk, urls) {
                     const formData = new FormData();
                     formData.append('file', chunk, file.value.name);
                     formData.append('path', 'pickduck');
@@ -178,6 +208,7 @@
                             });
                             const data = await response.json();
                             handleUploadResponse(data, i, urls);
+                            uploadedChunks.value.add(i); // Mark chunk as uploaded
                             return;
                         } catch (error) {
                             retries--;
@@ -225,7 +256,9 @@
                 }
 
                 function resetAll() {
-                    location.reload();
+                    if (confirm('确定要刷新网页吗？')) {
+                        location.reload();
+                    }
                 }
 
                 async function downloadFiles() {
@@ -239,7 +272,7 @@
                     }
 
                     const matches = longUrl.match(/^\[(.+?)\](.+)$/);
-                    if (!matches) return alert('输入格式不正确，请确保格式为 "[文件名]url1,url2,..."');
+                    if (!matches) return alert('输入格式不正确，请确保格式为 "[文件名]xxx?xxx,xxx2?xxx,..."');
 
                     const filename = matches[1];
                     const urls = matches[2].split(',').map(url => {
@@ -253,6 +286,7 @@
                     try {
                         const blobs = await Promise.all(urls.map(fetchBlob));
                         await mergeAndDownload(blobs, filename);
+                        downloadButtonDisabled.value = true; // 禁用下载按钮
                     } catch (error) {
                         alert('下载发生错误：' + error.message);
                         status.value = "下载失败!";
@@ -278,20 +312,26 @@
                     URL.revokeObjectURL(downloadUrl);
                     status.value = "下载完成!";
                     addDebugOutput("下载完成!");
+                    alert('温馨提示：下载任务已完成，按钮已自动禁用。原因是受浏览器限制，后续下载操作进行后都需要点击重置或刷新网页才可以继续');
                 }
 
                 function addDebugOutput(message) {
                     const timestamp = new Date().toLocaleString();
                     debugOutput.value += `[${timestamp}] ${message}\n---------\n`;
-                    localStorage.setItem('uploadLog', debugOutput.value);
+                    const history = JSON.parse(localStorage.getItem('uploadLog')) || [];
+                    history.push(`[${timestamp}] ${message}`);
+                    localStorage.setItem('uploadLog', JSON.stringify(history));
                 }
 
                 function saveUploadHistory(urls) {
                     const history = JSON.parse(localStorage.getItem('uploadHistory')) || [];
-                    history.push({
-                        time: new Date().toLocaleString(), link: sjurl.value
-                    });
-                    localStorage.setItem('uploadHistory', JSON.stringify(history));
+                    const existing = history.find(entry => entry.link === sjurl.value);
+                    if (!existing) {
+                        history.push({
+                            time: new Date().toLocaleString(), link: sjurl.value
+                        });
+                        localStorage.setItem('uploadHistory', JSON.stringify(history));
+                    }
                     uploadHistory.value = history;
                 }
 
@@ -318,14 +358,18 @@
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    alert('上传历史已导出为 upload_history.txt');
+                    alert('上传历史已导出为 upload_history.txt：受浏览器限制，后续下载操作进行都需要点击重置或刷新网页才可以继续噢');
                 }
 
                 function loadLog() {
                     const log = localStorage.getItem('uploadLog');
-                    if (log) debugOutput.value = log;
+                    if (log) {
+                        const logEntries = JSON.parse(log);
+                        debugOutput.value = logEntries.join('\n'); // 逐行显示
+                    }
                     loadUploadHistory();
                 }
+
 
                 function loadUploadHistory() {
                     uploadHistory.value = JSON.parse(localStorage.getItem('uploadHistory')) || [];
@@ -341,6 +385,7 @@
                     uploadHistory,
                     isChunkedMode,
                     chunkSizeVisible,
+                    downloadButtonDisabled,
                     updateFileInfo,
                     uploadFile,
                     copyToClipboard,

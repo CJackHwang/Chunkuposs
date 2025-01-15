@@ -4,6 +4,10 @@
     --font-size-base: 16px;
     --font-size-small: 12px;
     --font-size-large: 24px;
+    --button-hover-color: #0056b3;
+    --button-padding: 10px 15px;
+    --button-margin: 10px;
+    /* 按钮间隙 */
 }
 
 * {
@@ -17,7 +21,6 @@ body {
     background-color: var(--secondary-color);
     font-size: var(--font-size-base);
     line-height: 1.6;
-    /* 提升可读性 */
 }
 
 header {
@@ -60,11 +63,11 @@ input[type="file"], #sjurl {
 }
 
 .button-group, .action-buttons, .history-buttons {
-    margin: 10px 0;
+    margin: 15px 0;
 }
 
 button {
-    padding: 10px 15px;
+    padding: var(--button-padding);
     cursor: pointer;
     background-color: var(--primary-color);
     color: #ffffff;
@@ -72,27 +75,30 @@ button {
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.2s;
     font-size: var(--font-size-base);
+    margin-right: var(--button-margin);
+    /* 按钮间隙 */
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: var(--button-hover-color);
     transform: scale(1.05);
 }
 
-.status-message {
+.button-group button:last-child,
+.history-buttons button:last-child {
+    margin-right: 0;
+    /* 最后一个按钮不添加间隙 */
+}
+
+.status-message, .debug-output {
     margin: 10px 0;
     padding: 10px;
-    background-color: #e2e3e5;
-    border: 1px solid #d6d8db;
     border-radius: 4px;
 }
 
 .debug-output {
-    margin-top: 10px;
-    padding: 10px;
     background-color: var(--secondary-color);
     border: 1px solid #ccc;
-    border-radius: 4px;
     white-space: pre-wrap;
     max-height: 200px;
     overflow-y: auto;
@@ -100,7 +106,7 @@ button:hover {
 }
 
 h3 {
-    margin-top: 20px;
+    margin: 20px 0 0;
     font-size: 20px;
 }
 
