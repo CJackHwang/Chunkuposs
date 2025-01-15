@@ -1,4 +1,6 @@
 # 编程猫对象存储-分块上传
+[![GitHub](https://img.shields.io/badge/GitHub-CJackHwang-100000?style=flat&logo=github&logoColor=white)](https://github.com/CJackHwang)
+[![GPL-3.0 License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 根据此功能开发的简单白嫖网盘
 ## 项目简介
 
