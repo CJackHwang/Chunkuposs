@@ -1,0 +1,140 @@
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #f8f9fa;
+    --font-size-base: 16px;
+    --font-size-small: 12px;
+    --font-size-large: 24px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'OPPO Sans Medium', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--secondary-color);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    /* 提升可读性 */
+}
+
+header {
+    background: var(--primary-color);
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin: 0;
+    font-size: var(--font-size-large);
+}
+
+main {
+    background: linear-gradient(to bottom, #ffffff, #f1f1f1);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.file-upload {
+    margin-bottom: 20px;
+}
+
+input[type="file"], #sjurl {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: var(--font-size-base);
+}
+
+.chunk-info {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.button-group, .action-buttons, .history-buttons {
+    margin: 10px 0;
+}
+
+button {
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: var(--font-size-base);
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.status-message {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #e2e3e5;
+    border: 1px solid #d6d8db;
+    border-radius: 4px;
+}
+
+.debug-output {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: var(--secondary-color);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: var(--font-size-small);
+}
+
+h3 {
+    margin-top: 20px;
+    font-size: 20px;
+}
+
+#uploadHistory {
+    margin-top: 10px;
+    overflow-x: auto;
+}
+
+#uploadHistoryTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-small);
+}
+
+#uploadHistoryTable th,
+#uploadHistoryTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#uploadHistoryTable th {
+    background-color: #f1f1f1;
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}

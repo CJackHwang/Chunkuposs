@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编程猫CDN - 分块上传</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://ik.imagekit.io/cjack/OPPO%20Sans%20Medium/result.css?updatedAt=1733565886168" media="print" onload="this.media='all'">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h2>Fuck Codemao Detection</h2>
+            <p>
+                使用Vue开发；分块上传文件至编程猫对象存储，以避免超过20MB被删除，同时还有意想不到的好处哦
+            </p>
+        </header>
+        <main>
+            <div class="file-upload">
+                <input type="file" @change="updateFileInfo">
+                <div id="fileInfo">
+                    {{ fileInfo }}
+                </div>
+                <div id="chunkSize" v-if="chunkSizeVisible" class="chunk-info">
+                    <span id="chunkValue">每块大小（自动）: {{ chunkValue }} MB</span>
+                    <span id="totalChunks" style="margin-left: 10px;">总上传块数: {{ totalChunks }}</span>
+                </div>
+                <label>
+                    <input type="checkbox" v-model="isChunkedMode"> 启用分块上传模式
+                </label>
+            </div>
+            <div class="button-group">
+                <button @click="uploadFile">提交并转链接</button>
+                <button @click="resetAll">重置全部</button>
+            </div>
+            <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接下载；上传链接也会显示在此">
+            <div class="action-buttons">
+                <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
+                <button v-if="sjurl" @click="downloadFiles">下载文件</button>
+            </div>
+            <div id="status" class="status-message">
+                {{ status }}
+            </div>
+            <h3>操作日志</h3>
+            <div id="debugOutput" class="debug-output">
+                {{ debugOutput }}
+            </div>
+            <button @click="clearLog">清除日志</button>
+            <h3>上传历史</h3>
+            <div id="uploadHistory">
+                <table id="uploadHistoryTable">
+                    <thead>
+                        <tr>
+                            <th>上传时间</th>
+                            <th>文件链接</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="entry in uploadHistory" :key="entry.time">
+                            <td>{{ entry.time }}</td>
+                            <td>{{ entry.link }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="history-buttons">
+                <button @click="clearHistory">清除历史</button>
+                <button @click="exportHistory">导出历史</button>
+            </div>
+        </main>
+        <footer>
+            <p>
+                © CJackHwang.保留所有权利. | 博客链接: <a href="http://www.cjack.cfd" target="_blank">www.cjack.cfd</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const {
+            createApp,
+            ref,
+            onMounted
+        } = Vue;
+
+        createApp({
+            setup() {
+                const file = ref(null);
+                const chunkSize = ref(0);
+                const maxChunkSize = 20 * 1024 * 1024; // 20 MB
+                const fileInfo = ref('');
+                const chunkValue = ref(0);
+                const totalChunks = ref(0);
+                const sjurl = ref('');
+                const status = ref('');
+                const debugOutput = ref('');
+                const uploadHistory = ref([]);
+                const isChunkedMode = ref(false);
+                const chunkSizeVisible = ref(true);
+
+                onMounted(loadLog);
+
+                function updateFileInfo(event) {
+                    file.value = event.target.files[0];
+                    if (file.value) {
+                        const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+                        fileInfo.value = `文件大小: ${fileSizeMB} MB`;
+                        chunkSize.value = Math.min(file.value.size / 2, maxChunkSize);
+                        chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
+                        totalChunks.value = Math.ceil(file.value.size / chunkSize.value);
+                        chunkSizeVisible.value = true;
+                    }
+                }
+
+                async function uploadFile() {
+                    if (!file.value) return alert('请选择文件!');
+                    const formData = new FormData();
+                    formData.append('file', file.value, file.value.name);
+                    formData.append('path', 'pickduck');
+
+                    status.value = "上传中...";
+                    addDebugOutput("开始上传...");
+
+                    try {
+                        if (!isChunkedMode.value) {
+                            const response = await fetch('https://api.pgaot.com/user/up_cat_file', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const data = await response.json();
+                            handleUploadResponse(data);
+                        } else {
+                            await uploadChunks();
+                        }
+                    } catch (error) {
+                        alert('上传发生错误');
+                        addDebugOutput(`上传失败: ${error.message}`);
+                    }
+                }
+
+                async function uploadChunks() {
+                    const chunks = Math.ceil(file.value.size / chunkSize.value);
+                    const urls = [];
+                    for (let i = 0; i < chunks; i++) {
+                        await uploadChunkWithRetry(i, urls);
+                        status.value = `上传中...（${i + 1}/${chunks}）`;
+                    }
+                    handleChunkUploadCompletion(urls);
+                }
+
+                async function uploadChunkWithRetry(i, urls) {
+                    const start = i * chunkSize.value;
+                    const end = Math.min(start + chunkSize.value, file.value.size);
+                    const chunk = file.value.slice(start, end);
+                    const formData = new FormData();
+                    formData.append('file', chunk, file.value.name);
+                    formData.append('path', 'pickduck');
+
+                    let retries = 3;
+                    while (retries > 0) {
+                        try {
+                            const response = await fetch('https://api.pgaot.com/user/up_cat_file', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const data = await response.json();
+                            handleUploadResponse(data, i, urls);
+                            return;
+                        } catch (error) {
+                            retries--;
+                            addDebugOutput(`上传块 ${i + 1} 失败，尝试重新上传中...`);
+                        }
+                    }
+                    addDebugOutput(`最终上传块 ${i + 1} 失败，已达最大重试次数`);
+                }
+
+                function handleChunkUploadCompletion(urls) {
+                    const formattedUrls = urls.map(url => {
+                        const filename = url.split('/').pop().split('?')[0];
+                        const hash = url.split('hash=')[1];
+                        return `${filename}?hash=${hash}`;
+                    }).join(',');
+
+                    sjurl.value = `[${file.value.name}]${formattedUrls}`;
+                    addDebugOutput(`上传完成: [${file.value.name}]${formattedUrls}`);
+                    status.value = "上传完成!";
+                    saveUploadHistory(formattedUrls);
+                }
+
+                function handleUploadResponse(data, i, urls) {
+                    if (data.url) {
+                        if (i !== undefined) {
+                            urls[i] = data.url;
+                            addDebugOutput(`上传块 ${i + 1} 成功: ${data.url}`);
+                        } else {
+                            sjurl.value = data.url;
+                            status.value = "上传完成!";
+                            addDebugOutput("上传完成!");
+                            saveUploadHistory(data.url);
+                        }
+                    } else {
+                        alert(data.msg);
+                        throw new Error(data.msg);
+                    }
+                }
+
+                function copyToClipboard() {
+                    const urlField = document.getElementById('sjurl');
+                    urlField.select();
+                    document.execCommand('copy');
+                    alert('链接已复制到剪贴板');
+                }
+
+                function resetAll() {
+                    location.reload();
+                }
+
+                async function downloadFiles() {
+                    const longUrl = sjurl.value;
+                    if (!longUrl) return alert('请先上传文件并生成链接。');
+
+                    const isNormalUrl = /^https?:\/\/.+/.test(longUrl);
+                    if (isNormalUrl) {
+                        window.open(longUrl, '_blank');
+                        return;
+                    }
+
+                    const matches = longUrl.match(/^\[(.+?)\](.+)$/);
+                    if (!matches) return alert('输入格式不正确，请确保格式为 "[文件名]url1,url2,..."');
+
+                    const filename = matches[1];
+                    const urls = matches[2].split(',').map(url => {
+                        const [filename, hash] = url.split('?');
+                        return `https://static.codemao.cn/pickduck/${filename}?hash=${hash}`;
+                    });
+
+                    status.value = "下载中...";
+                    addDebugOutput("开始下载...");
+
+                    try {
+                        const blobs = await Promise.all(urls.map(fetchBlob));
+                        await mergeAndDownload(blobs, filename);
+                    } catch (error) {
+                        alert('下载发生错误：' + error.message);
+                        status.value = "下载失败!";
+                        addDebugOutput(`下载失败: ${error.message}`);
+                    }
+                }
+
+                async function fetchBlob(url) {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`无法获取 ${url}: ${res.statusText}`);
+                    return res.blob();
+                }
+
+                async function mergeAndDownload(blobs, filename) {
+                    const mergedBlob = new Blob(blobs);
+                    const downloadUrl = URL.createObjectURL(mergedBlob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(downloadUrl);
+                    status.value = "下载完成!";
+                    addDebugOutput("下载完成!");
+                }
+
+                function addDebugOutput(message) {
+                    const timestamp = new Date().toLocaleString();
+                    debugOutput.value += `[${timestamp}] ${message}\n---------\n`;
+                    localStorage.setItem('uploadLog', debugOutput.value);
+                }
+
+                function saveUploadHistory(urls) {
+                    const history = JSON.parse(localStorage.getItem('uploadHistory')) || [];
+                    history.push({
+                        time: new Date().toLocaleString(), link: sjurl.value
+                    });
+                    localStorage.setItem('uploadHistory', JSON.stringify(history));
+                    uploadHistory.value = history;
+                }
+
+                function clearLog() {
+                    debugOutput.value = '';
+                    localStorage.removeItem('uploadLog');
+                }
+
+                function clearHistory() {
+                    uploadHistory.value = [];
+                    localStorage.removeItem('uploadHistory');
+                }
+
+                function exportHistory() {
+                    const links = uploadHistory.value.map(entry => entry.link).join('\n');
+                    const blob = new Blob([links], {
+                        type: 'text/plain'
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'upload_history.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    alert('上传历史已导出为 upload_history.txt');
+                }
+
+                function loadLog() {
+                    const log = localStorage.getItem('uploadLog');
+                    if (log) debugOutput.value = log;
+                    loadUploadHistory();
+                }
+
+                function loadUploadHistory() {
+                    uploadHistory.value = JSON.parse(localStorage.getItem('uploadHistory')) || [];
+                }
+
+                return {
+                    fileInfo,
+                    chunkValue,
+                    totalChunks,
+                    sjurl,
+                    status,
+                    debugOutput,
+                    uploadHistory,
+                    isChunkedMode,
+                    chunkSizeVisible,
+                    updateFileInfo,
+                    uploadFile,
+                    copyToClipboard,
+                    resetAll,
+                    downloadFiles,
+                    clearLog,
+                    clearHistory,
+                    exportHistory
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
