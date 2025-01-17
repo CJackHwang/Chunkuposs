@@ -12,7 +12,7 @@
     <div id="app">
         <header>
             <h2>Fuck Codemao Detection</h2>
-            <a>Version：3.0</a>
+            <a>Version：3.1</a>
             <p>
                 基于Vue3开发；上传时流式读取文件分块提交至编程猫对象存储，以避免大于30MB容易被删除。支持断点续传。
             </p>
@@ -97,11 +97,9 @@
             </p>
         </footer>
     </div>
-    <!--script src="https://unpkg.com/vue@3/dist/vue.global.js"></script-->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        // 在这里填入你的 Vue.js 逻辑
         const {
             createApp,
             ref,
@@ -115,8 +113,7 @@
             setup() {
                 const file = ref(null);
                 const chunkSize = ref(0);
-                const chunkSizeVisible = ref(false); // 新增此行
-
+                const chunkSizeVisible = ref(false);
                 const fileInfo = ref('');
                 const chunkValue = ref(0);
                 const totalChunks = ref(0);
@@ -138,9 +135,9 @@
                         gravity: "bottom",
                         position: 'right',
                         style: {
-                            background: "linear-gradient(to right, #FF4C4C, #FFB2B2)", // 红色渐变
-                            borderRadius: "10px", // 添加圆角
-                            padding: "20px", // 添加内边距
+                            background: "linear-gradient(to right, #FF4C4C, #FFB2B2)",
+                            borderRadius: "10px",
+                            padding: "20px",
                             color: "#fff"
                         }
                     }).showToast();
@@ -148,7 +145,7 @@
 
                 function updateFileInfo(event) {
                     file.value = event.target.files[0];
-                    chunkSizeVisible.value = !!file.value; // 更新块大小可见性
+                    chunkSizeVisible.value = !!file.value;
                     if (file.value) {
                         const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
                         fileInfo.value = `文件大小: ${fileSizeMB} MB`;
@@ -301,17 +298,15 @@
                 }
 
                 function updateEstimatedCompletionTime(uploadTime, remainingChunks) {
-                    let estimatedSeconds = Math.ceil((uploadTime * remainingChunks) / 1000); // 将 const 改为 let
+                    let estimatedSeconds = Math.ceil((uploadTime * remainingChunks) / 1000);
 
-                    console.log('Estimated Seconds:', estimatedSeconds); // 调试输出
-
-                    if (intervalId) clearInterval(intervalId); // 清除上一个定时器
+                    if (intervalId) clearInterval(intervalId);
 
                     estimatedCompletionTime.value = `预计完成还需: ${Math.floor(estimatedSeconds / 60)} 分 ${estimatedSeconds % 60} 秒`;
 
                     intervalId = setInterval(() => {
                         if (estimatedSeconds > 0) {
-                            estimatedSeconds--; // 递减
+                            estimatedSeconds--;
                             const minutes = Math.floor(estimatedSeconds / 60);
                             const seconds = estimatedSeconds % 60;
                             estimatedCompletionTime.value = `预计完成还需: ${minutes} 分 ${seconds} 秒`;
@@ -399,7 +394,7 @@
                     status.value = "下载完成!";
                     addDebugOutput("下载完成!");
                     downloadButtonDisabled.value = true;
-                    showToast('温馨提示：下载完成，请点击重置按钮或刷新页面以继续下载。');
+                    showToast('温馨提示：下载完成，请点击重置按钮或刷新页面以继续使用下载或导出功能。');
                 }
 
                 function addDebugOutput(message) {
@@ -456,7 +451,7 @@
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     downloadButtonDisabled.value = true;
-                    showToast(`${filename} 已导出，请点击重置按钮或刷新页面以继续使用下载功能`);
+                    showToast(`${filename} 已导出，请点击重置按钮或刷新页面以继续使用下载或导出功能`);
                 }
 
                 function loadLog() {

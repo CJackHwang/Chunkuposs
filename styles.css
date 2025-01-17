@@ -7,7 +7,6 @@
     --button-hover-color: #0056b3;
     --button-padding: 10px 15px;
     --button-margin: 10px;
-    /* 按钮间隙 */
 }
 
 * {
@@ -16,11 +15,12 @@
 
 body {
     font-family: 'OPPO Sans Medium', sans-serif;
-    margin: 0;
-    padding: 20px;
+    margin: 0 auto;
+    padding: 1rem 20px;
     background-color: var(--secondary-color);
     font-size: var(--font-size-base);
     line-height: 1.6;
+    max-width: 800px;
 }
 
 header {
@@ -48,7 +48,8 @@ main {
     margin-bottom: 20px;
 }
 
-input[type="file"], #sjurl {
+input[type="file"],
+#sjurl {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -62,7 +63,9 @@ input[type="file"], #sjurl {
     font-size: 14px;
 }
 
-.button-group, .action-buttons, .history-buttons {
+.button-group,
+.action-buttons,
+.history-buttons {
     margin: 15px 0;
 }
 
@@ -76,7 +79,6 @@ button {
     transition: background-color 0.3s, transform 0.2s;
     font-size: var(--font-size-base);
     margin-right: var(--button-margin);
-    /* 按钮间隙 */
 }
 
 button:hover {
@@ -87,20 +89,21 @@ button:hover {
 .button-group button:last-child,
 .history-buttons button:last-child {
     margin-right: 0;
-    /* 最后一个按钮不添加间隙 */
 }
 
-.status-message, .debug-output {
+.status-message {
     margin: 10px 0;
-    padding: 10px;
-    border-radius: 4px;
+    color: #666;
 }
 
 .debug-output {
-    background-color: var(--secondary-color);
+    margin: 10px 0;
+    background-color: #f4f4f4;
     border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
     white-space: pre-wrap;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
     font-size: var(--font-size-small);
 }
