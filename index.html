@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F.C.D file-流式分块上传</title>
+    <title>F.C.D_file-流式分块上传</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://ik.imagekit.io/cjack/OPPO%20Sans%20Medium/result.css?updatedAt=1733565886168" media="print" onload="this.media='all'">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <div id="app">
         <header>
             <h2>Fuck Codemao Detection</h2>
-            <a>Version：2.0</a>
+            <a>Version：3.0</a>
             <p>
-                使用Vue3开发；上传时流式读取文件分块提交至编程猫对象存储，以避免大于20MB容易被删除，支持断点续传。分块上传还可以绕过云端api内容检查哦~
+                基于Vue3开发；上传时流式读取文件分块提交至编程猫对象存储，以避免大于30MB容易被删除。支持断点续传。
             </p>
         </header>
         <main>
@@ -24,8 +24,14 @@
                     {{ fileInfo }}
                 </div>
                 <div id="chunkSize" v-if="chunkSizeVisible" class="chunk-info">
-                    <span id="chunkValue">每块大小（自动设置）: {{ chunkValue }} MB</span>
-                    <span id="totalChunks" style="margin-left: 10px;">总上传块数: {{ totalChunks }}</span>
+                    <div>
+                        <p>
+                            每块大小（自动设置）: {{ chunkValue }} MB
+                        </p>
+                        <p>
+                            总上传块数: {{ totalChunks }}
+                        </p>
+                    </div>
                 </div>
                 <label>
                     <input type="checkbox" v-model="isChunkedMode"> 启用分块上传
@@ -38,16 +44,20 @@
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接下载；上传链接也会显示在此">
             <div class="action-buttons">
                 <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
-                <button v-if="sjurl" @click="downloadFiles" :disabled="downloadButtonDisabled" ref="downloadButton">下载文件</button>
+                <button v-if="sjurl && !downloadButtonDisabled" @click="downloadFiles">下载文件</button>
             </div>
             <div id="status" class="status-message">
                 {{ status }}
+                <p>
+                    {{ estimatedCompletionTime }}
+                </p>
             </div>
             <h3>操作日志</h3>
             <div id="debugOutput" class="debug-output">
                 {{ debugOutput }}
             </div>
             <button @click="clearLog">清除日志</button>
+            <button @click="exportLog">导出日志</button>
             <h3>上传历史</h3>
             <div id="uploadHistory">
                 <table id="uploadHistoryTable">
@@ -87,19 +97,26 @@
             </p>
         </footer>
     </div>
-
+    <!--script src="https://unpkg.com/vue@3/dist/vue.global.js"></script-->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
+        // 在这里填入你的 Vue.js 逻辑
         const {
             createApp,
             ref,
             onMounted
         } = Vue;
 
+        const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
+        const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file';
+
         createApp({
             setup() {
                 const file = ref(null);
                 const chunkSize = ref(0);
-                const maxChunkSize = 20 * 1024 * 1024; // 20 MB
+                const chunkSizeVisible = ref(false); // 新增此行
+
                 const fileInfo = ref('');
                 const chunkValue = ref(0);
                 const totalChunks = ref(0);
@@ -108,49 +125,68 @@
                 const debugOutput = ref('');
                 const uploadHistory = ref([]);
                 const isChunkedMode = ref(false);
-                const chunkSizeVisible = ref(true);
-                const uploadedChunks = ref(new Set());
                 const downloadButtonDisabled = ref(false);
-                const downloadButton = ref(null);
+                const estimatedCompletionTime = ref('');
+                let intervalId = null;
 
                 onMounted(loadLog);
 
+                function showToast(message) {
+                    Toastify({
+                        text: message,
+                        duration: 5000,
+                        gravity: "bottom",
+                        position: 'right',
+                        style: {
+                            background: "linear-gradient(to right, #FF4C4C, #FFB2B2)", // 红色渐变
+                            borderRadius: "10px", // 添加圆角
+                            padding: "20px", // 添加内边距
+                            color: "#fff"
+                        }
+                    }).showToast();
+                }
+
                 function updateFileInfo(event) {
                     file.value = event.target.files[0];
+                    chunkSizeVisible.value = !!file.value; // 更新块大小可见性
                     if (file.value) {
                         const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
                         fileInfo.value = `文件大小: ${fileSizeMB} MB`;
-                        chunkSize.value = Math.min(file.value.size / 2, maxChunkSize);
+                        chunkSize.value = Math.min(file.value.size / 2, MAX_CHUNK_SIZE);
                         chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
                         totalChunks.value = Math.ceil(file.value.size / chunkSize.value);
-                        chunkSizeVisible.value = true;
-                        uploadedChunks.value.clear(); // Reset uploaded chunks
                     }
                 }
 
                 async function uploadFile() {
-                    if (!file.value) return alert('请选择文件!');
+                    if (!file.value) {
+                        showToast('请选择文件!');
+                        return;
+                    }
                     status.value = "上传处理中...";
                     addDebugOutput("开始上传任务，请耐心等待...");
 
                     if (!isChunkedMode.value) {
-                        const formData = new FormData();
-                        formData.append('file', file.value, file.value.name);
-                        formData.append('path', 'pickduck');
-
-                        try {
-                            const response = await fetch('https://api.pgaot.com/user/up_cat_file', {
-                                method: 'POST',
-                                body: formData
-                            });
-                            const data = await response.json();
-                            handleUploadResponse(data);
-                        } catch (error) {
-                            alert('上传发生错误');
-                            addDebugOutput(`上传失败: ${error.message}`);
-                        }
+                        await uploadSingleFile();
                     } else {
                         await uploadChunks();
+                    }
+                }
+
+                async function uploadSingleFile() {
+                    const formData = new FormData();
+                    formData.append('file', file.value, file.value.name);
+                    formData.append('path', 'pickduck');
+
+                    try {
+                        const response = await fetchWithRetry(UPLOAD_URL, {
+                            method: 'POST', body: formData
+                        });
+                        const data = await response.json();
+                        handleUploadResponse(data);
+                    } catch (error) {
+                        showToast('上传发生错误，确保文件≤ 30 MB 和检查网络并重试');
+                        addDebugOutput(`上传失败: ${error.message}`);
                     }
                 }
 
@@ -158,8 +194,8 @@
                     const reader = file.value.stream().getReader();
                     let index = 0;
                     const urls = [];
-                    let byteArray = []; // 存储读取字节的数组
-                    let currentChunkSize = 0; // 当前块的大小
+                    let byteArray = [];
+                    let currentChunkSize = 0;
 
                     async function readAndUpload() {
                         const {
@@ -167,7 +203,6 @@
                             value
                         } = await reader.read();
                         if (done) {
-                            // 最后处理剩余的字节
                             if (currentChunkSize > 0) {
                                 await uploadChunkWithRetry(index, new Blob(byteArray), urls);
                             }
@@ -175,23 +210,27 @@
                             return;
                         }
 
-                        // 将当前读取的值添加到字节数组中
                         byteArray.push(value);
                         currentChunkSize += value.byteLength;
 
-                        // 检查是否达到块大小
-                        if (currentChunkSize >= chunkSize.value) {
+                        while (currentChunkSize >= chunkSize.value && index < totalChunks.value) {
+                            const startTime = Date.now();
                             await uploadChunkWithRetry(index, new Blob(byteArray), urls);
+                            const endTime = Date.now();
+
+                            const uploadTime = endTime - startTime;
+                            updateEstimatedCompletionTime(uploadTime, totalChunks.value - index - 1);
+
                             index++;
-                            byteArray = []; // 清空字节数组
-                            currentChunkSize = 0; // 重置当前块大小
+                            byteArray = [];
+                            currentChunkSize = 0;
                         }
 
                         status.value = `上传中...（已上传 ${index} 块）`;
-                        readAndUpload(); // 继续读取下一个块
+                        readAndUpload();
                     }
 
-                    readAndUpload(); // 开始读取和上传
+                    readAndUpload();
                 }
 
                 async function uploadChunkWithRetry(i, chunk, urls) {
@@ -202,13 +241,11 @@
                     let retries = 3;
                     while (retries > 0) {
                         try {
-                            const response = await fetch('https://api.pgaot.com/user/up_cat_file', {
-                                method: 'POST',
-                                body: formData
+                            const response = await fetchWithRetry(UPLOAD_URL, {
+                                method: 'POST', body: formData
                             });
                             const data = await response.json();
                             handleUploadResponse(data, i, urls);
-                            uploadedChunks.value.add(i); // Mark chunk as uploaded
                             return;
                         } catch (error) {
                             retries--;
@@ -218,17 +255,16 @@
                     addDebugOutput(`最终上传块 ${i + 1} 失败，已达最大重试次数`);
                 }
 
-                function handleChunkUploadCompletion(urls) {
-                    const formattedUrls = urls.map(url => {
-                        const filename = url.split('/').pop().split('?')[0];
-                        const hash = url.split('hash=')[1];
-                        return `${filename}?hash=${hash}`;
-                    }).join(',');
-
-                    sjurl.value = `[${file.value.name}]${formattedUrls}`;
-                    addDebugOutput(`上传完成: [${file.value.name}]${formattedUrls}`);
-                    status.value = "上传完成!";
-                    saveUploadHistory(formattedUrls);
+                async function fetchWithRetry(url, options, retries = 3) {
+                    while (retries > 0) {
+                        try {
+                            return await fetch(url, options);
+                        } catch (error) {
+                            retries--;
+                            addDebugOutput(`Fetch error, retries left: ${retries}`);
+                        }
+                    }
+                    throw new Error('最大重试次数已达到');
                 }
 
                 function handleUploadResponse(data, i, urls) {
@@ -241,18 +277,63 @@
                             status.value = "上传完成!";
                             addDebugOutput("上传完成!");
                             saveUploadHistory(data.url);
+                            showToast('上传成功');
                         }
                     } else {
-                        alert(data.msg);
+                        showToast(data.msg);
                         throw new Error(data.msg);
                     }
                 }
 
+                function handleChunkUploadCompletion(urls) {
+                    const formattedUrls = urls.map(url => {
+                        const filename = url.split('/').pop().split('?')[0];
+                        const hash = url.split('hash=')[1];
+                        return `${filename}?${hash}`;
+                    }).join(',');
+
+                    sjurl.value = `[${file.value.name}]${formattedUrls}`;
+                    showToast('上传完成');
+                    addDebugOutput(`上传完成: [${file.value.name}]${formattedUrls}`);
+                    status.value = "上传完成!";
+                    saveUploadHistory(formattedUrls);
+                    resetEstimatedCompletionTime();
+                }
+
+                function updateEstimatedCompletionTime(uploadTime, remainingChunks) {
+                    let estimatedSeconds = Math.ceil((uploadTime * remainingChunks) / 1000); // 将 const 改为 let
+
+                    console.log('Estimated Seconds:', estimatedSeconds); // 调试输出
+
+                    if (intervalId) clearInterval(intervalId); // 清除上一个定时器
+
+                    estimatedCompletionTime.value = `预计完成还需: ${Math.floor(estimatedSeconds / 60)} 分 ${estimatedSeconds % 60} 秒`;
+
+                    intervalId = setInterval(() => {
+                        if (estimatedSeconds > 0) {
+                            estimatedSeconds--; // 递减
+                            const minutes = Math.floor(estimatedSeconds / 60);
+                            const seconds = estimatedSeconds % 60;
+                            estimatedCompletionTime.value = `预计完成还需: ${minutes} 分 ${seconds} 秒`;
+                        } else {
+                            clearInterval(intervalId);
+                            estimatedCompletionTime.value = '';
+                        }
+                    },
+                        1000);
+                }
+
+                function resetEstimatedCompletionTime() {
+                    clearInterval(intervalId);
+                    estimatedCompletionTime.value = '';
+                }
+
                 function copyToClipboard() {
-                    const urlField = document.getElementById('sjurl');
-                    urlField.select();
-                    document.execCommand('copy');
-                    alert('链接已复制到剪贴板');
+                    navigator.clipboard.writeText(sjurl.value).then(() => {
+                        showToast('链接已复制到剪贴板');
+                    }).catch(err => {
+                        console.error('复制失败:', err);
+                    });
                 }
 
                 function resetAll() {
@@ -263,7 +344,10 @@
 
                 async function downloadFiles() {
                     const longUrl = sjurl.value;
-                    if (!longUrl) return alert('请先上传文件并生成链接。');
+                    if (!longUrl) {
+                        showToast('请先上传文件并生成链接。');
+                        return;
+                    }
 
                     const isNormalUrl = /^https?:\/\/.+/.test(longUrl);
                     if (isNormalUrl) {
@@ -272,7 +356,10 @@
                     }
 
                     const matches = longUrl.match(/^\[(.+?)\](.+)$/);
-                    if (!matches) return alert('输入格式不正确，请确保格式为 "[文件名]xxx?xxx,xxx2?xxx,..."');
+                    if (!matches) {
+                        showToast('输入格式不正确，请确保格式为标准链接或分块链接 "[文件名]xxx?xxx,xxx2?xxx,..."');
+                        return;
+                    }
 
                     const filename = matches[1];
                     const urls = matches[2].split(',').map(url => {
@@ -286,9 +373,8 @@
                     try {
                         const blobs = await Promise.all(urls.map(fetchBlob));
                         await mergeAndDownload(blobs, filename);
-                        downloadButtonDisabled.value = true; // 禁用下载按钮
                     } catch (error) {
-                        alert('下载发生错误：' + error.message);
+                        showToast('下载发生错误：' + error.message);
                         status.value = "下载失败!";
                         addDebugOutput(`下载失败: ${error.message}`);
                     }
@@ -312,7 +398,8 @@
                     URL.revokeObjectURL(downloadUrl);
                     status.value = "下载完成!";
                     addDebugOutput("下载完成!");
-                    alert('温馨提示：下载任务已完成，按钮已自动禁用。原因是受浏览器限制，后续下载操作进行后都需要点击重置或刷新网页才可以继续');
+                    downloadButtonDisabled.value = true;
+                    showToast('温馨提示：下载完成，请点击重置按钮或刷新页面以继续下载。');
                 }
 
                 function addDebugOutput(message) {
@@ -347,29 +434,39 @@
 
                 function exportHistory() {
                     const links = uploadHistory.value.map(entry => entry.link).join('\n');
-                    const blob = new Blob([links], {
+                    downloadFile('upload_history.txt', links);
+                }
+
+                function exportLog() {
+                    const log = localStorage.getItem('uploadLog');
+                    const logEntries = log ? JSON.parse(log).join('\n'): '没有日志记录。';
+                    downloadFile('upload_log.txt', logEntries);
+                }
+
+                function downloadFile(filename, content) {
+                    const blob = new Blob([content], {
                         type: 'text/plain'
                     });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'upload_history.txt';
+                    a.download = filename;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    alert('上传历史已导出为 upload_history.txt：受浏览器限制，后续下载操作进行都需要点击重置或刷新网页才可以继续噢');
+                    downloadButtonDisabled.value = true;
+                    showToast(`${filename} 已导出，请点击重置按钮或刷新页面以继续使用下载功能`);
                 }
 
                 function loadLog() {
                     const log = localStorage.getItem('uploadLog');
                     if (log) {
                         const logEntries = JSON.parse(log);
-                        debugOutput.value = logEntries.join('\n'); // 逐行显示
+                        debugOutput.value = logEntries.join('\n');
                     }
                     loadUploadHistory();
                 }
-
 
                 function loadUploadHistory() {
                     uploadHistory.value = JSON.parse(localStorage.getItem('uploadHistory')) || [];
@@ -378,13 +475,13 @@
                 return {
                     fileInfo,
                     chunkValue,
+                    chunkSizeVisible,
                     totalChunks,
                     sjurl,
                     status,
                     debugOutput,
                     uploadHistory,
                     isChunkedMode,
-                    chunkSizeVisible,
                     downloadButtonDisabled,
                     updateFileInfo,
                     uploadFile,
@@ -393,7 +490,9 @@
                     downloadFiles,
                     clearLog,
                     clearHistory,
-                    exportHistory
+                    exportHistory,
+                    exportLog,
+                    estimatedCompletionTime
                 };
             }
         }).mount('#app');
