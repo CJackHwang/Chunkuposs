@@ -112,6 +112,7 @@ h3 {
 
 #uploadHistory {
     margin-top: 10px;
+    max-height: 200px;
     overflow-x: auto;
 }
 
