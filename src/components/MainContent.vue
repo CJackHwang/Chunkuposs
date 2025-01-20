@@ -26,7 +26,7 @@
         <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接下载；上传链接也会显示在此">
         <div class="action-buttons">
             <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
-            <button v-if="sjurl && !downloadButtonDisabled" @click="downloadFiles">下载文件</button>
+            <button v-if="sjurl" @click="downloadFiles">下载文件</button>
         </div>
         <div id="status" class="status-message">
             {{ status }}
@@ -82,7 +82,6 @@ const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
 const isChunkedMode = ref(false);
-const downloadButtonDisabled = ref(false);
 const estimatedCompletionTime = ref('');
 let intervalId = null;
 
@@ -353,8 +352,6 @@ async function mergeAndDownload(blobs, filename) {
     URL.revokeObjectURL(downloadUrl);
     status.value = "下载完成!";
     addDebugOutput("下载完成!");
-    downloadButtonDisabled.value = true;
-    showToast('温馨提示：下载完成，可能需要点击重置按钮或刷新页面以继续使用下载或导出功能');
 }
 
 function addDebugOutput(message) {
@@ -410,7 +407,6 @@ function downloadFile(filename, content) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    downloadButtonDisabled.value = true;
     showToast(`${filename} 已导出，可能需要点击重置按钮或刷新页面以继续使用下载或导出功能`);
 }
 
