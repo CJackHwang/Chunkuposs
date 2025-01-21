@@ -23,7 +23,7 @@
             <button @click="uploadFile">提交并转链接</button>
             <button @click="resetAll">重置全部</button>
         </div>
-        <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接下载；上传链接也会显示在此">
+        <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接；上传链接也会显示在此">
         <div class="action-buttons">
             <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
             <button v-if="sjurl" @click="downloadFiles">下载文件</button>
@@ -233,7 +233,7 @@ function handleUploadResponse(data, i, urls) {
             status.value = "上传完成!";
             addDebugOutput("上传完成!");
             saveUploadHistory(data.url);
-            showToast('上传成功');
+            showToast('上传完成, 请复制链接并保存');
         }
     } else {
         showToast(data.msg);
@@ -249,7 +249,7 @@ function handleChunkUploadCompletion(urls) {
     }).join(',');
 
     sjurl.value = `[${file.value.name}]${formattedUrls}`;
-    showToast('上传完成');
+    showToast('上传完成, 请复制链接并保存');
     addDebugOutput(`上传完成: [${file.value.name}]${formattedUrls}`);
     status.value = "上传完成!";
     saveUploadHistory(formattedUrls);
@@ -299,7 +299,7 @@ function resetAll() {
 async function downloadFiles() {
     const longUrl = sjurl.value;
     if (!longUrl) {
-        showToast('请先上传文件并生成链接。');
+        showToast('请先上传文件或输入链接');
         return;
     }
 
@@ -323,6 +323,7 @@ async function downloadFiles() {
 
     status.value = "下载中...";
     addDebugOutput("开始下载...");
+    showToast('下载已开始，请耐心等待');
 
     try {
         const blobs = await Promise.all(urls.map(fetchBlob));
@@ -352,6 +353,7 @@ async function mergeAndDownload(blobs, filename) {
     URL.revokeObjectURL(downloadUrl);
     status.value = "下载完成!";
     addDebugOutput("下载完成!");
+    showToast(`下载成功，请检查是否已经保存`);
 }
 
 function addDebugOutput(message) {
@@ -407,7 +409,7 @@ function downloadFile(filename, content) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast(`${filename} 已导出，可能需要点击重置按钮或刷新页面以继续使用下载或导出功能`);
+    showToast(`${filename} 导出执行成功，请检查是否已经保存`);
 }
 
 function loadLog() {
