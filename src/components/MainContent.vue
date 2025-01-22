@@ -66,7 +66,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Toastify from 'toastify-js'
+import { showToast } from '@/services/toast'
 
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
@@ -87,21 +87,6 @@ let intervalId = null;
 
 onMounted(loadLog);
 
-function showToast(message) {
-    Toastify({
-        text: message,
-        duration: 5000,
-        gravity: "bottom",
-        position: 'right',
-        style: {
-            background: "linear-gradient(to right, #FF4C4C, #FFB2B2)",
-            borderRadius: "10px",
-            padding: "20px",
-            color: "#fff"
-        }
-    }).showToast();
-}
-
 function updateFileInfo(event) {
     file.value = event.target.files[0];
     chunkSizeVisible.value = !!file.value;
@@ -120,7 +105,8 @@ async function uploadFile() {
         return;
     }
     status.value = "上传处理中...";
-    addDebugOutput("开始上传任务，请耐心等待...");
+    showToast('正在提交...');
+    addDebugOutput("已开始上传任务，请耐心等待...");
 
     if (!isChunkedMode.value) {
         await uploadSingleFile();
@@ -364,7 +350,7 @@ function addDebugOutput(message) {
     localStorage.setItem('uploadLog', JSON.stringify(history));
 }
 
-function saveUploadHistory(urls) {
+function saveUploadHistory(_urls) {
     const history = JSON.parse(localStorage.getItem('uploadHistory')) || [];
     const existing = history.find(entry => entry.link === sjurl.value);
     if (!existing) {

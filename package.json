@@ -1,6 +1,6 @@
 {
-  "name": "cfd.cjack.fcd",
-  "version": "3.5.5",
+  "name": "cfd.cjack.file",
+  "version": "4.0+",
   "private": true,
   "type": "module",
   "scripts": {
