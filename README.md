@@ -4,7 +4,7 @@
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
 
-> 专为绕过大文件限制设计的智能分块上传系统，保障文件安全性与传输可靠性
+> 专为绕过编程猫大文件限制设计的分块上传工具，保障文件传输可靠性
 
 ---
 
@@ -18,12 +18,12 @@
   - **分块模式**：流式切割大文件（`uploadChunks`）
 - **本地持久化**：
   - 操作日志（`localStorage`存储，支持导出）
-  - 上传历史（时间戳+链接，自动去重）
+  - 上传历史（时间戳+链接，带自动去重）
 
 ### 交互特性
 - **实时状态监控**：
-  - 分块统计（`总块数: {{ totalChunks }}`）
-  - 预估完成时间（动态倒计时）
+  - 上传分块统计（`总块数: {{ totalChunks }}`）
+  - 预估完成时间（动态计算倒计时）
 - **主题系统**：
   - 深色/浅色模式切换（`ThemeToggle.vue`）
   - Material Design 3风格（`styles.css`）
@@ -67,7 +67,7 @@ npm run dev
 ### 其他操作
 - **日志管理**：清除/导出操作记录（`debugOutput`）
 - **历史记录**：查看/导出上传历史（`uploadHistory`）
-- **主题切换**：点击月亮/太阳图标切换模式
+- **主题切换**：点击月亮/太阳图标切换主题
 
 ---
 
@@ -119,10 +119,10 @@ graph LR
 1. **许可证**：GPL-3.0（`package.json`声明）
 2. **数据安全**：
    - 所有操作记录仅存于本地（`localStorage`）
-   - 无远程数据收集
+   - 无远程数据收集，项目开源可查
 3. **使用限制**：
-   - 禁止上传违法内容
-   - 分块模式需手动启用
+   - 禁止上传违法内容（云端自带屏蔽）
+   - 分块模式需手动选择
 
 ---
 
