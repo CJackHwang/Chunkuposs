@@ -135,9 +135,20 @@
     box-shadow: var(--shadow-2);
 }
 
-/* 过渡优化 */
-.dark-theme * {
+/* 替换原 * 选择器 */
+.dark-theme {
     transition: background-color 0.3s var(--ease-standard),
+        color 0.3s var(--ease-standard);
+}
+
+.dark-theme header,
+.dark-theme main,
+.dark-theme .file-upload,
+.dark-theme footer,
+.dark-theme button {
+    transition:
+        background-color 0.3s var(--ease-standard),
         color 0.3s var(--ease-standard),
-        border-color 0.3s var(--ease-standard);
+        border-color 0.3s var(--ease-standard),
+        box-shadow 0.3s var(--ease-standard);
 }
