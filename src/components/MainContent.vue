@@ -24,7 +24,7 @@
             <span class="custom-checkbox"></span>
             <span class="label-text">启用分块上传</span>
         </label>
-        <div>
+        <div class="url-container">
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接；上传链接也会显示在此">
         </div>
         <div class="action-buttons">
@@ -300,7 +300,7 @@ async function downloadFiles() {
         return;
     }
 
-    const matches = longUrl.match(/^\[(.+?)\](.+)$/);
+    const matches = longUrl.match(/^\[(.*)\](.+)$/);
     if (!matches) {
         showToast('输入格式不正确，请确保格式为标准链接或分块链接 "[文件名]xxx?xxx,xxx2?xxx,..."');
         return;

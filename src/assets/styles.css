@@ -1,6 +1,5 @@
 /* ========== Material Design 风格重构 ========== */
 :root {
-    /* Material 颜色系统 */
     --primary-color: #6750A4;
     --primary-hover: #7F67BE;
     --surface-color: #FEF7FF;
@@ -9,27 +8,20 @@
     --text-primary: #1C1B1F;
     --text-secondary: #4A4458;
 
-    /* 间距系统 */
     --spacing-1: 4px;
     --spacing-2: 8px;
     --spacing-3: 12px;
     --spacing-4: 16px;
     --spacing-5: 24px;
 
-    /* 圆角 */
     --border-radius-sm: 4px;
-    /* 小元素 */
     --border-radius-md: 12px;
-    /* 卡片/面板 */
     --border-radius-lg: 16px;
-    /* 大组件 */
 
-    /* M3 阴影系统 */
     --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12);
     --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.15);
     --shadow-3: 0 4px 8px rgba(0, 0, 0, 0.18);
 
-    /* 动画曲线 */
     --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -45,16 +37,19 @@ body {
     min-height: 100vh;
 }
 
+/* ===== 通用阴影和圆角样式 ===== */
+header, main, .file-upload, footer {
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 3px 1px rgba(0, 0, 0, 0.07);
+}
+
 /* ===== Material Header ===== */
 header {
     background: var(--primary-color);
     color: var(--surface-color);
     padding: var(--spacing-4) var(--spacing-5);
-    border-radius: var(--border-radius-lg);
     border: 1.5px solid rgba(255, 255, 255, 0.1);
-    /* 统一1.5px描边 */
     margin-bottom: var(--spacing-5);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.2s var(--ease-standard);
 }
 
@@ -73,12 +68,7 @@ h2 {
 main {
     background: var(--surface-color);
     padding: var(--spacing-5);
-    border-radius: var(--border-radius-md);
-    box-shadow: 
-        0 1px 2px rgba(0, 0, 0, 0.03),  /* 基础阴影 */
-        0 1px 3px 1px rgba(0, 0, 0, 0.07); /* M3卡片标准阴影 */
-    border: none; /* 移除旧版边框 */
-    position: relative; /* 实现层级叠加 */
+    position: relative;
     z-index: 1;
 }
 
@@ -88,14 +78,7 @@ main {
     --highlight-color: #6750A4;
     --info-bg: var(--background-color);
     background: var(--surface-color);
-
     border: 1.5px dashed var(--border-color);
-    border-radius: var(--border-radius-md);
-    border-width: 1.5px;
-    /* 加粗描边 */
-    box-shadow: 
-        0 1px 3px rgba(0, 0, 0, 0.05),
-        0 2px 6px 1px rgba(0, 0, 0, 0.08);
     padding: 2rem;
     text-align: center;
     position: relative;
@@ -107,7 +90,6 @@ main {
 .file-upload:hover {
     border-color: var(--highlight-color);
     background: rgba(103, 80, 164, 0.03);
-    /* 同步M3主色透明度 */
 }
 
 .hidden-input {
@@ -122,7 +104,6 @@ main {
 
 .upload-area {
     pointer-events: none;
-    /* 防止遮挡点击事件 */
 }
 
 .icon {
@@ -138,90 +119,78 @@ main {
     margin-left: 4px;
 }
 
-.file-info {
+.file-info,
+.chunk-info {
     margin-top: 1rem;
     color: var(--text-secondary);
     font-size: 0.9em;
 }
 
 .chunk-info {
-    margin-top: 1rem;
     padding: 1rem;
     background: var(--info-bg);
     border-radius: 6px;
-    font-size: 0.9em;
 }
 
-@media (max-width: 480px) {
-    .file-upload {
-        padding: 1rem;
-    }
-}
-
+/* ===== URL输入框 ===== */
 #sjurl {
     width: 100%;
     height: 40px;
-    border: 1px solid var(--divider-color);
-    border-radius: 4px;
+    border: 1.5px solid var(--divider-color);
+    border-radius: var(--border-radius-sm);
     transition: border-color 0.2s var(--ease-standard);
     background: var(--surface-color);
+    box-sizing: border-box;
+    padding: 8px 12px;
 }
 
 #sjurl:focus {
     border-color: var(--primary-color);
     outline: 2px solid rgba(103, 80, 164, 0.2);
-    outline-color: rgba(103, 80, 164, 0.2); /* 同步M3主色系 */
 }
 
+.url-container {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+/* ===== 分片开关组件 ===== */
 .chunk-toggle {
     --active-color: #6750A4;
-    /* M3主色 */
     --border-color: #79747E;
-    /* M3中性边框色 */
     --hover-bg: rgba(103, 80, 164, 0.08);
-    /* M3悬停态背景 */
-
     display: inline-flex;
     align-items: center;
     cursor: pointer;
     gap: 8px;
     margin: 1rem 0;
     font-size: 14px;
-    padding: 6px 12px;
-    /* 增加点击热区 */
+    padding: 6px 12px 6px 34px;
     border-radius: var(--border-radius-sm);
-    /* M3小圆角 */
     transition: background 0.2s var(--ease-standard);
+    position: relative;
 }
 
-/* 悬停状态增强 */
 .chunk-toggle:hover {
     background: var(--hover-bg);
 }
 
-/* 聚焦状态指示 */
 .chunk-toggle:focus-within {
     box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
 }
 
-.label-text {
-    color: var(--text-secondary);
-    /* 使用全局文本次级色 */
-    transition: color 0.2s var(--ease-standard);
-}
-
-/* 选中态标签颜色加深 */
-.toggle-input:checked~.label-text {
-    color: var(--text-primary);
-}
-
-/* 同步修改custom-checkbox */
 .custom-checkbox {
+    display: inline-block;
+    left: 12px;
+    width: 18px;
+    height: 18px;
     border: 1.5px solid var(--border-color);
-    /* 加粗描边 */
-    transition:
-        border-color 0.2s var(--ease-standard),
-        background 0.2s var(--ease-standard);
+    border-radius: var(--border-radius-sm);
+    position: absolute;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .toggle-input:checked+.custom-checkbox {
@@ -229,32 +198,6 @@ main {
     background: var(--active-color);
 }
 
-.toggle-input {
-    position: absolute;
-    opacity: 0;
-    height: 0;
-    width: 0;
-}
-
-.custom-checkbox {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    border-width: 1.5px;
-    /* 加粗描边 */
-    position: relative;
-    transition: all 0.2s ease;
-}
-
-/* 选中状态 */
-.toggle-input:checked+.custom-checkbox {
-    border-color: var(--active-color);
-    background-color: var(--active-color);
-}
-
-/* 对勾图标 */
 .toggle-input:checked+.custom-checkbox::after {
     content: "";
     position: absolute;
@@ -267,26 +210,20 @@ main {
     transform: rotate(45deg);
 }
 
-/* 悬停效果 */
-.chunk-toggle:hover .custom-checkbox {
-    border-color: var(--active-color);
+.toggle-input {
+    position: absolute !important;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
-/* 聚焦状态 */
-.toggle-input:focus-visible+.custom-checkbox {
-    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
-}
-
-.label-text {
-    color: #666;
-    transition: color 0.2s ease;
-}
-
-.chunk-toggle:hover .label-text {
-    color: #333;
-}
-
-/* ===== Material 按钮系统 ===== */
+/* ===== 按钮系统 ===== */
 .button-group,
 .debug-buttons,
 .action-buttons,
@@ -302,17 +239,12 @@ button {
     background: var(--primary-color);
     color: var(--surface-color);
     border: 1px solid rgba(103, 80, 164, 0.3);
-    /* 新增半透明描边 */
     border-radius: var(--border-radius-lg);
-    /* 原20px改为lg变量 */
     box-shadow: var(--shadow-1);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition:
-        background 0.2s var(--ease-standard),
-        box-shadow 0.2s var(--ease-standard);
-    letter-spacing: 0.25px;
+    transition: background 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
     height: 40px;
     display: inline-flex;
     align-items: center;
@@ -324,11 +256,10 @@ button:hover {
     box-shadow: var(--shadow-2);
 }
 
-/* ===== Material 表格系统 ===== */
+/* ===== 表格系统 ===== */
 #uploadHistory {
     margin-top: var(--spacing-4);
     border: 1.5px solid var(--divider-color);
-    /* 加粗线条 */
     border-radius: var(--border-radius-sm);
     overflow-x: auto;
 }
@@ -348,7 +279,6 @@ button:hover {
     font-weight: 500;
     text-align: left;
     border-bottom: 1.5px solid var(--divider-color);
-    /* 加粗表头线条 */
 }
 
 #uploadHistoryTable td {
@@ -361,7 +291,6 @@ button:hover {
 .debug-output {
     background: var(--surface-color);
     border: 1.5px solid var(--divider-color);
-    /* 加粗描边 */
     border-radius: var(--border-radius-sm);
     padding: var(--spacing-3);
     margin: var(--spacing-3) 0;
@@ -373,39 +302,12 @@ button:hover {
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* ===== 响应式优化 ===== */
-@media (max-width: 350px) {
-    body {
-        padding: var(--spacing-3);
-    }
-
-    header {
-        padding: var(--spacing-3);
-    }
-
-    main {
-        padding: var(--spacing-3);
-    }
-
-    button {
-        width: 100%;
-        justify-content: center;
-    }
-
-    #uploadHistoryTable {
-        min-width: 100%;
-    }
-}
-
-/* ===== Material 3 页脚样式 ===== */
+/* ===== 页脚样式 ===== */
 footer {
     background: var(--surface-color);
-    border-top: 1.5px solid var(--divider-color);
     margin-top: var(--spacing-5);
-    padding: var(--spacing-4) 0;
-    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
-        box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.08); /* 上方阴影更柔和 */
-    }
+    padding: var(--spacing-4);
+}
 
 footer p {
     max-width: 800px;
@@ -436,24 +338,34 @@ footer a {
 footer a:hover {
     color: var(--primary-hover);
     background: rgba(103, 80, 164, 0.08);
-    /* M3悬停态背景 */
 }
 
-footer img {
-    vertical-align: middle;
-    border: 1.5px solid var(--divider-color);
-    border-radius: var(--border-radius-sm);
-    transition:
-        border-color 0.2s var(--ease-standard),
-        box-shadow 0.2s var(--ease-standard);
+/* ===== 响应式优化 ===== */
+@media (max-width: 480px) {
+    .file-upload {
+        padding: 1rem;
+    }
 }
 
-footer img:hover {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-1);
+@media (max-width: 350px) {
+    body {
+        padding: var(--spacing-3);
+    }
+
+    header, main {
+        padding: var(--spacing-3);
+    }
+
+    button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #uploadHistoryTable {
+        min-width: 100%;
+    }
 }
 
-/* 响应式优化 */
 @media (max-width: 600px) {
     footer {
         padding: var(--spacing-3);
