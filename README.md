@@ -1,18 +1,16 @@
-# 🚀 FCD微型网盘 - 流式分块上传解决方案
+# FCD微型网盘 - 流式分块上传工具
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
 
-![界面预览](https://via.placeholder.com/800x500.png?text=FCD+UI+Preview)
-
 > 专为绕过大文件限制设计的智能分块上传系统，保障文件安全性与传输可靠性
 
 ---
 
-## 🌟 核心功能
+## 核心功能
 
-### 🛠️ 技术实现
+### 技术实现
 - **分块上传**：基于浏览器流式API（`ReadableStream`），动态分块（每块≤20MB）
 - **断点重传**：自动重试失败分块（最多3次，指数退避策略）
 - **双模式支持**：
@@ -22,7 +20,7 @@
   - 操作日志（`localStorage`存储，支持导出）
   - 上传历史（时间戳+链接，自动去重）
 
-### 🎨 交互特性
+### 交互特性
 - **实时状态监控**：
   - 分块统计（`总块数: {{ totalChunks }}`）
   - 预估完成时间（动态倒计时）
@@ -35,7 +33,7 @@
 
 ---
 
-## 🧩 技术栈
+## 技术栈
 
 | 模块          | 实现细节                                                                 |
 |---------------|--------------------------------------------------------------------------|
@@ -48,7 +46,7 @@
 
 ---
 
-## 🚦 快速使用
+## 快速使用
 
 ### 本地运行
 ```bash
@@ -56,6 +54,9 @@
 npm install
 npm run dev
 ```
+### Vercel一键部署
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/CJackHwang/Fuck-Codemao-Detection)
+
 
 ### 文件上传流程
 1. **选择文件**：拖放或点击选择（`<input type="file">`）
@@ -63,14 +64,14 @@ npm run dev
 3. **开始上传**：调用`uploadFile`方法
 4. **获取链接**：结果存入`sjurl`并显示
 
-### 高级操作
+### 其他操作
 - **日志管理**：清除/导出操作记录（`debugOutput`）
 - **历史记录**：查看/导出上传历史（`uploadHistory`）
 - **主题切换**：点击月亮/太阳图标切换模式
 
 ---
 
-## ⚙️ 核心配置
+## 核心配置
 
 ### 分块参数（MainContent.vue）
 ```javascript
@@ -98,7 +99,7 @@ document.documentElement.classList.toggle('dark-theme', isDarkMode);
 
 ---
 
-## 📊 数据流架构
+## 数据流架构
 
 ```mermaid
 graph LR
@@ -113,7 +114,7 @@ graph LR
 
 ---
 
-## 📜 合规声明
+## 合规声明
 
 1. **许可证**：GPL-3.0（`package.json`声明）
 2. **数据安全**：
@@ -125,7 +126,7 @@ graph LR
 
 ---
 
-## 🤝 贡献指南
+## 贡献指南
 
 1. **代码规范**：
    - 遵循ESLint配置（`package.json`）
@@ -137,7 +138,7 @@ graph LR
 
 ---
 
-**📬 开发者信息**  
+**开发者信息**  
 CJackHwang · [GitHub](https://github.com/CJackHwang) · [博客](http://www.cjack.cfd)
 
 > 注意：本项目为技术演示用途，实际使用需遵守目标平台规则
