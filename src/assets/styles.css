@@ -1,150 +1,467 @@
+/* ========== Material Design 风格重构 ========== */
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #f8f9fa;
-    --font-size-base: 16px;
-    --font-size-small: 12px;
-    --font-size-large: 24px;
-    --button-hover-color: #0056b3;
-    --button-padding: 10px 15px;
-    --button-margin: 10px;
+    /* Material 颜色系统 */
+    --primary-color: #6750A4;
+    --primary-hover: #7F67BE;
+    --surface-color: #FEF7FF;
+    --background-color: #F3EDF7;
+    --divider-color: #79747E;
+    --text-primary: #1C1B1F;
+    --text-secondary: #4A4458;
+
+    /* 间距系统 */
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 24px;
+
+    /* 圆角 */
+    --border-radius-sm: 4px;
+    /* 小元素 */
+    --border-radius-md: 12px;
+    /* 卡片/面板 */
+    --border-radius-lg: 16px;
+    /* 大组件 */
+
+    /* M3 阴影系统 */
+    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.15);
+    --shadow-3: 0 4px 8px rgba(0, 0, 0, 0.18);
+
+    /* 动画曲线 */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
-    box-sizing: border-box;
-}
-
+/* ===== 基础重置 ===== */
 body {
-    font-family: 'OPPO Sans Medium', sans-serif;
+    font-family: 'Roboto', 'OPPO Sans Medium', sans-serif;
     margin: 0 auto;
-    padding: 1rem 20px;
-    background-color: var(--secondary-color);
-    font-size: var(--font-size-base);
-    line-height: 1.6;
+    padding: var(--spacing-5) var(--spacing-4);
+    background: var(--background-color);
+    color: var(--text-primary);
+    line-height: 1.5;
     max-width: 800px;
+    min-height: 100vh;
 }
 
+/* ===== Material Header ===== */
 header {
     background: var(--primary-color);
-    color: #ffffff;
-    padding: 20px;
-    text-align: center;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    color: var(--surface-color);
+    padding: var(--spacing-4) var(--spacing-5);
+    border-radius: var(--border-radius-lg);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    /* 统一1.5px描边 */
+    margin-bottom: var(--spacing-5);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s var(--ease-standard);
+}
+
+header:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 h2 {
     margin: 0;
-    font-size: var(--font-size-large);
+    font-size: 1.375rem;
+    font-weight: 500;
+    letter-spacing: 0.25px;
 }
 
+/* ===== Material 主内容区 ===== */
 main {
-    background: linear-gradient(to bottom, #ffffff, #f1f1f1);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background: var(--surface-color);
+    padding: var(--spacing-5);
+    border-radius: var(--border-radius-md);
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.03),  /* 基础阴影 */
+        0 1px 3px 1px rgba(0, 0, 0, 0.07); /* M3卡片标准阴影 */
+    border: none; /* 移除旧版边框 */
+    position: relative; /* 实现层级叠加 */
+    z-index: 1;
 }
 
+/* ===== 文件上传组件 ===== */
 .file-upload {
-    margin-bottom: 20px;
+    --border-color: #79747E;
+    --highlight-color: #6750A4;
+    --info-bg: var(--background-color);
+    background: var(--surface-color);
+
+    border: 1.5px dashed var(--border-color);
+    border-radius: var(--border-radius-md);
+    border-width: 1.5px;
+    /* 加粗描边 */
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.05),
+        0 2px 6px 1px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    transition: all 0.2s ease;
+    max-width: 600px;
+    margin: 1rem auto;
 }
 
-input[type="file"],
-#sjurl {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.file-upload:hover {
+    border-color: var(--highlight-color);
+    background: rgba(103, 80, 164, 0.03);
+    /* 同步M3主色透明度 */
+}
+
+.hidden-input {
+    position: absolute;
     width: 100%;
-    margin-bottom: 10px;
-    font-size: var(--font-size-base);
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+}
+
+.upload-area {
+    pointer-events: none;
+    /* 防止遮挡点击事件 */
+}
+
+.icon {
+    width: 40px;
+    height: 40px;
+    color: var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.highlight {
+    color: var(--highlight-color);
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.file-info {
+    margin-top: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9em;
 }
 
 .chunk-info {
-    margin: 10px 0;
-    font-size: 14px;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--info-bg);
+    border-radius: 6px;
+    font-size: 0.9em;
 }
 
+@media (max-width: 480px) {
+    .file-upload {
+        padding: 1rem;
+    }
+}
+
+#sjurl {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--divider-color);
+    border-radius: 4px;
+    transition: border-color 0.2s var(--ease-standard);
+    background: var(--surface-color);
+}
+
+#sjurl:focus {
+    border-color: var(--primary-color);
+    outline: 2px solid rgba(103, 80, 164, 0.2);
+    outline-color: rgba(103, 80, 164, 0.2); /* 同步M3主色系 */
+}
+
+.chunk-toggle {
+    --active-color: #6750A4;
+    /* M3主色 */
+    --border-color: #79747E;
+    /* M3中性边框色 */
+    --hover-bg: rgba(103, 80, 164, 0.08);
+    /* M3悬停态背景 */
+
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 8px;
+    margin: 1rem 0;
+    font-size: 14px;
+    padding: 6px 12px;
+    /* 增加点击热区 */
+    border-radius: var(--border-radius-sm);
+    /* M3小圆角 */
+    transition: background 0.2s var(--ease-standard);
+}
+
+/* 悬停状态增强 */
+.chunk-toggle:hover {
+    background: var(--hover-bg);
+}
+
+/* 聚焦状态指示 */
+.chunk-toggle:focus-within {
+    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
+}
+
+.label-text {
+    color: var(--text-secondary);
+    /* 使用全局文本次级色 */
+    transition: color 0.2s var(--ease-standard);
+}
+
+/* 选中态标签颜色加深 */
+.toggle-input:checked~.label-text {
+    color: var(--text-primary);
+}
+
+/* 同步修改custom-checkbox */
+.custom-checkbox {
+    border: 1.5px solid var(--border-color);
+    /* 加粗描边 */
+    transition:
+        border-color 0.2s var(--ease-standard),
+        background 0.2s var(--ease-standard);
+}
+
+.toggle-input:checked+.custom-checkbox {
+    border-color: var(--active-color);
+    background: var(--active-color);
+}
+
+.toggle-input {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+
+.custom-checkbox {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    border-width: 1.5px;
+    /* 加粗描边 */
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* 选中状态 */
+.toggle-input:checked+.custom-checkbox {
+    border-color: var(--active-color);
+    background-color: var(--active-color);
+}
+
+/* 对勾图标 */
+.toggle-input:checked+.custom-checkbox::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* 悬停效果 */
+.chunk-toggle:hover .custom-checkbox {
+    border-color: var(--active-color);
+}
+
+/* 聚焦状态 */
+.toggle-input:focus-visible+.custom-checkbox {
+    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
+}
+
+.label-text {
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.chunk-toggle:hover .label-text {
+    color: #333;
+}
+
+/* ===== Material 按钮系统 ===== */
 .button-group,
+.debug-buttons,
 .action-buttons,
 .history-buttons {
-    margin: 15px 0;
+    margin: var(--spacing-4) 0;
+    display: flex;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
 }
 
 button {
-    padding: var(--button-padding);
+    padding: 10px 24px;
+    background: var(--primary-color);
+    color: var(--surface-color);
+    border: 1px solid rgba(103, 80, 164, 0.3);
+    /* 新增半透明描边 */
+    border-radius: var(--border-radius-lg);
+    /* 原20px改为lg变量 */
+    box-shadow: var(--shadow-1);
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s, transform 0.2s;
-    font-size: var(--font-size-base);
-    margin-right: var(--button-margin);
+    transition:
+        background 0.2s var(--ease-standard),
+        box-shadow 0.2s var(--ease-standard);
+    letter-spacing: 0.25px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 button:hover {
-    background-color: var(--button-hover-color);
-    transform: scale(1.05);
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-2);
 }
 
-.button-group button:last-child,
-.history-buttons button:last-child {
-    margin-right: 0;
-}
-
-.status-message {
-    margin: 10px 0;
-    color: #666;
-}
-
-.debug-output {
-    margin: 10px 0;
-    background-color: #f4f4f4;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 5px;
-    white-space: pre-wrap;
-    max-height: 300px;
-    overflow-y: auto;
-    font-size: var(--font-size-small);
-}
-
-h3 {
-    margin: 20px 0 0;
-    font-size: 20px;
-}
-
+/* ===== Material 表格系统 ===== */
 #uploadHistory {
-    margin-top: 10px;
-    max-height: 200px;
+    margin-top: var(--spacing-4);
+    border: 1.5px solid var(--divider-color);
+    /* 加粗线条 */
+    border-radius: var(--border-radius-sm);
     overflow-x: auto;
 }
 
 #uploadHistoryTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--font-size-small);
-}
-
-#uploadHistoryTable th,
-#uploadHistoryTable td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    background: var(--surface-color);
+    min-width: 600px;
+    font-size: 13px;
 }
 
 #uploadHistoryTable th {
-    background-color: #f1f1f1;
+    background: var(--background-color);
+    color: var(--text-secondary);
+    padding: var(--spacing-3);
+    font-weight: 500;
+    text-align: left;
+    border-bottom: 1.5px solid var(--divider-color);
+    /* 加粗表头线条 */
 }
 
+#uploadHistoryTable td {
+    padding: var(--spacing-3);
+    border-bottom: 1px solid var(--divider-color);
+    color: var(--text-primary);
+}
+
+/* ===== 调试输出框 ===== */
+.debug-output {
+    background: var(--surface-color);
+    border: 1.5px solid var(--divider-color);
+    /* 加粗描边 */
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-3);
+    margin: var(--spacing-3) 0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== 响应式优化 ===== */
+@media (max-width: 350px) {
+    body {
+        padding: var(--spacing-3);
+    }
+
+    header {
+        padding: var(--spacing-3);
+    }
+
+    main {
+        padding: var(--spacing-3);
+    }
+
+    button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #uploadHistoryTable {
+        min-width: 100%;
+    }
+}
+
+/* ===== Material 3 页脚样式 ===== */
 footer {
-    text-align: center;
-    margin-top: 20px;
+    background: var(--surface-color);
+    border-top: 1.5px solid var(--divider-color);
+    margin-top: var(--spacing-5);
+    padding: var(--spacing-4) 0;
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+        box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.08); /* 上方阴影更柔和 */
+    }
+
+footer p {
+    max-width: 800px;
+    margin: var(--spacing-2) auto;
+    padding: 0 var(--spacing-4);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+footer p:last-child {
+    padding-top: var(--spacing-2);
+    border-top: 1px solid var(--divider-color);
+    margin-top: var(--spacing-3);
 }
 
 footer a {
     color: var(--primary-color);
     text-decoration: none;
+    transition: color 0.2s var(--ease-standard);
+    padding: 2px 4px;
+    margin: 0 -4px;
+    border-radius: var(--border-radius-sm);
 }
 
 footer a:hover {
-    text-decoration: underline;
+    color: var(--primary-hover);
+    background: rgba(103, 80, 164, 0.08);
+    /* M3悬停态背景 */
+}
+
+footer img {
+    vertical-align: middle;
+    border: 1.5px solid var(--divider-color);
+    border-radius: var(--border-radius-sm);
+    transition:
+        border-color 0.2s var(--ease-standard),
+        box-shadow 0.2s var(--ease-standard);
+}
+
+footer img:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-1);
+}
+
+/* 响应式优化 */
+@media (max-width: 600px) {
+    footer {
+        padding: var(--spacing-3);
+        text-align: center;
+    }
+
+    footer p {
+        flex-direction: column;
+        gap: var(--spacing-1);
+    }
 }

@@ -4,7 +4,7 @@
             © CJackHwang.保留所有权利.
         </p>
         <p>
-            项目仓库: <a href="https://github.com/CJackHwang/Fuck-Codemao-Detection" target="_blank">Fuck-Codemao-Detection</a>
+            <a href="https://github.com/CJackHwang/Fuck-Codemao-Detection" target="_blank">项目仓库：Fuck-Codemao-Detection</a>
         </p>
         <p>
             <a href="https://github.com/CJackHwang">
