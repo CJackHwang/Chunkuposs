@@ -347,7 +347,7 @@ footer a:hover {
     }
 }
 
-@media (max-width: 350px) {
+@media (max-width: 360px) {
     body {
         padding: var(--spacing-3);
     }
@@ -364,9 +364,7 @@ footer a:hover {
     #uploadHistoryTable {
         min-width: 100%;
     }
-}
 
-@media (max-width: 600px) {
     footer {
         padding: var(--spacing-3);
         text-align: center;
