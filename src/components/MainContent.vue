@@ -1,29 +1,32 @@
 <template>
     <main>
         <div class="file-upload">
-            <input type="file" @change="updateFileInfo">
-            <div id="fileInfo">
+            <input type="file" @change="updateFileInfo" class="hidden-input">
+            <div class="upload-area">
+                <p>拖放文件到这里或<span class="highlight">点击选择</span></p>
+            </div>
+            <div id="fileInfo" class="file-info">
                 {{ fileInfo }}
             </div>
             <div id="chunkSize" v-if="chunkSizeVisible" class="chunk-info">
                 <div>
-                    <p>
-                        每块大小（自动设置）: {{ chunkValue }} MB
-                    </p>
-                    <p>
-                        总上传块数: {{ totalChunks }}
-                    </p>
+                    <p>每块大小（自动设置）: {{ chunkValue }} MB</p>
+                    <p>总上传块数: {{ totalChunks }}</p>
                 </div>
             </div>
-            <label>
-                <input type="checkbox" v-model="isChunkedMode"> 启用分块上传
-            </label>
         </div>
         <div class="button-group">
-            <button @click="uploadFile">提交并转链接</button>
+            <button @click="uploadFile">上传文件</button>
             <button @click="resetAll">重置全部</button>
         </div>
-        <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接；上传链接也会显示在此">
+        <label class="chunk-toggle">
+            <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
+            <span class="custom-checkbox"></span>
+            <span class="label-text">启用分块上传</span>
+        </label>
+        <div class="url-container">
+            <input type="text" id="sjurl" v-model="sjurl" placeholder="输入链接；上传链接也会显示在此">
+        </div>
         <div class="action-buttons">
             <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
             <button v-if="sjurl" @click="downloadFiles">下载文件</button>
@@ -38,8 +41,10 @@
         <div id="debugOutput" class="debug-output">
             {{ debugOutput }}
         </div>
-        <button @click="clearLog">清除日志</button>
-        <button @click="exportLog">导出日志</button>
+        <div class="debug-buttons">
+            <button @click="clearLog">清除日志</button>
+            <button @click="exportLog">导出日志</button>
+        </div>
         <h3>上传历史</h3>
         <div id="uploadHistory">
             <table id="uploadHistoryTable">
@@ -101,7 +106,7 @@ function updateFileInfo(event) {
 
 async function uploadFile() {
     if (!file.value) {
-        showToast('请选择文件!');
+        showToast('请先选择文件');
         return;
     }
     status.value = "上传处理中...";
@@ -295,7 +300,7 @@ async function downloadFiles() {
         return;
     }
 
-    const matches = longUrl.match(/^\[(.+?)\](.+)$/);
+    const matches = longUrl.match(/^\[(.*)\](.+)$/);
     if (!matches) {
         showToast('输入格式不正确，请确保格式为标准链接或分块链接 "[文件名]xxx?xxx,xxx2?xxx,..."');
         return;
