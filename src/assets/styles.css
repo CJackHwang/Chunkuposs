@@ -53,18 +53,18 @@ header {
     padding: var(--spacing-4) var(--spacing-5);
     border: 1.5px solid rgba(255, 255, 255, 0.1);
     margin-bottom: var(--spacing-5);
-    transition: box-shadow 0.2s var(--ease-standard);
-}
+    transition: box-shadow 0.3s var(--ease-standard);
 
-header:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
+    header:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
 
-h2 {
-    margin: 0;
-    font-size: 1.375rem;
-    font-weight: 500;
-    letter-spacing: 0.25px;
+    h2 {
+        margin: 0;
+        font-size: 1.375rem;
+        font-weight: 500;
+        letter-spacing: 0.25px;
+    }
 }
 
 /* ===== Material 主内容区 ===== */
@@ -85,7 +85,7 @@ main {
     padding: 2rem;
     text-align: center;
     position: relative;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     margin: 1rem auto;
 }
 
@@ -240,7 +240,7 @@ button {
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
+    transition: all 0.3s var(--ease-standard);
     height: 40px;
     display: inline-flex;
     align-items: center;
@@ -372,4 +372,10 @@ footer a:hover {
         flex-direction: column;
         gap: var(--spacing-1);
     }
+}
+main,
+.file-upload,
+#uploadHistory {
+    will-change: transform;
+    transform: translateZ(0);
 }

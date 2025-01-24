@@ -47,6 +47,9 @@ export default {
     transition: all 0.3s var(--ease-standard);
     border-radius: var(--border-radius-lg);
     cursor: pointer;
+    transition:
+        background 0.3s var(--ease-standard),
+        transform 0.15s var(--ease-standard) !important;
 }
 
 .theme-toggle:hover {
@@ -61,6 +64,12 @@ export default {
 .theme-icon {
     width: 24px;
     height: 24px;
-    transition: filter 0.3s var(--ease-standard);
+    transition: 
+        opacity 0.3s var(--ease-standard),
+        transform 0.3s var(--ease-standard);
+}
+
+.theme-toggle:active .theme-icon {
+    transform: scale(0.9);
 }
 </style>
