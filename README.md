@@ -1,77 +1,145 @@
-# FCD微型网盘 - 流式分块上传
-[![GitHub](https://img.shields.io/badge/GitHub-CJackHwang-100000?style=flat&logo=github&logoColor=white)](https://github.com/CJackHwang)
-[![GPL-3.0 License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel)](https://vercel.com)
+# FCD Micro Drive - Streamable Chunked Upload Tool  
 
-## 项目简介
+[![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)  
+[![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)  
+[![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)  
+**这里有中文版文档**：[README_CN.md](./README_CN.md)  
 
-基于 Vue.js 的文件上传工具，支持分块上传和断点续传，避免因文件过大（超过 30MB）而被编程猫删除。根据该工具可以辅助构建微型网盘私人使用
+> A chunked upload utility designed to bypass Codemao's large file restrictions, ensuring reliable file transfers.  
 
-## 功能特性
+---  
 
-- **文件选择和信息展示**：实时查看文件大小。
-- **流式分块上传**：支持自动计算每块大小和总块数。
-- **文件上传**：上传文件并生成下载链接。
-- **上传历史记录**：保存每次上传的时间和链接。
-- **操作日志**：记录上传过程中的操作信息。
-- **文件下载**：支持合并下载文件。
-- **链接复制和导出**：一键复制链接和记录。
+## Core Features  
 
-## 技术栈
+### Technical Implementation  
+- **Chunked Upload**: Browser Streams API (`ReadableStream`)-based dynamic chunking (≤20MB per chunk)  
+- **Resumable Uploads**: Automatic retry for failed chunks (max 3 retries with exponential backoff)  
+- **Dual Modes**:  
+  - **Single File Mode**: Direct upload for ≤30MB files (`uploadSingleFile`)  
+  - **Chunked Mode**: Stream-based splitting for large files (`uploadChunks`)  
+- **Local Persistence**:  
+  - Operation logs (`localStorage`, exportable)  
+  - Upload history (timestamped URLs with deduplication)  
 
-- **前端框架**：Vue.js 3
-- **样式**：CSS
-- **HTTP 请求**：Fetch API
+### Interactive Features  
+- **Real-time Monitoring**:  
+  - Chunk statistics (`Total Chunks: {{ totalChunks }}`)  
+  - ETA calculation (dynamic countdown)  
+- **Theme System**:  
+  - Dark/Light mode toggle (`ThemeToggle.vue`)  
+  - Material Design 3 styling (`styles.css`)  
+- **Convenient Operations**:  
+  - One-click URL copy (`navigator.clipboard`)  
+  - File merging & download (`Blob` stream merging)  
 
-## 使用说明
+---  
 
-### 运行项目
+## Tech Stack  
 
-1. 下载或克隆项目代码。
-2. 打开 `index.html` 文件。
-3. 使用现代浏览器（如 Chrome、Firefox）访问。
+| Module           | Implementation Details                                                                 |
+|------------------|---------------------------------------------------------------------------------------|  
+| **Frontend**     | Vue 3 Composition API (`<script setup>` syntax)                                       |  
+| **Network**      | Fetch API + custom retry logic (`fetchWithRetry`)                                     |  
+| **File Handling**| Streams API (`file.value.stream().getReader()`)                                       |  
+| **State**        | Vue Reactivity System (`ref`/`reactive`)                                              |  
+| **Styling**      | CSS Variables + dark mode adaptation (`darktheme.css`)                                |  
+| **Build Tool**   | Vite 6 (`package.json` config)                                                        |  
 
-### （可选）Vercel 部署
+---  
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/CJackHwang/Fuck-Codemao-Detection)
+## Quick Start  
 
-### 上传文件
+### Local Development  
+```bash  
+# From source (package.json)  
+npm install  
+npm run dev  
+```  
 
-1. 点击 "选择文件" 按钮。
-2. 查看文件信息，选择是否启用分块上传。
-3. 点击 "提交并转链接" 进行上传。
-4. 上传完成后获得下载链接。
+### Vercel Deployment  
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/CJackHwang/Fuck-Codemao-Detection)  
 
-### 操作日志和历史记录
+### Upload Workflow  
+1. **Select File**: Drag-and-drop or click (`<input type="file">`)  
+2. **Choose Mode**: Enable chunked mode (`isChunkedMode` binding)  
+3. **Start Upload**: Invoke `uploadFile` method  
+4. **Get Link**: Result stored in `sjurl` and displayed  
 
-- 实时更新操作日志。
-- 上传历史保存在本地存储。
+### Additional Operations  
+- **Log Management**: Clear/export logs (`debugOutput`)  
+- **History**: View/export upload history (`uploadHistory`)  
+- **Theme Toggle**: Click moon/sun icon to switch themes  
 
-### 复制和下载链接
+---  
 
-- 点击 "复制链接" 将链接复制到剪贴板。
-- 点击 "下载文件" 下载上传的文件。
+## Core Configuration  
 
-### 清除日志和历史记录
+### Chunk Parameters (MainContent.vue)  
+```javascript  
+const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // Chunk size limit  
+const chunkSize = ref(0);                // Dynamically calculated  
+const totalChunks = ref(0);              // Total chunks  
+```  
 
-- **清除日志**：清空操作日志。
-- **清除历史**：清空上传历史记录。
-- **导出历史**：导出上传历史记录为 `upload_history.txt` 文件。
-- **导出日志**：导出操作日志为 `upload_log.txt` 文件。
+### Network Parameters (MainContent.vue)  
+```javascript  
+// Upload endpoint  
+const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file';  
 
-## 注意事项
+// Retry policy (fetchWithRetry)  
+let retries = 3;  
+while (retries > 0) { ... }  
+```  
 
-- 文件大小限制：单文件上传模式时确保选择的文件不超过 30MB。
-- 分块上传可能需要更长时间
-- 上传历史和操作日志会保存在本地网页存储中，注意备份。
+### Theme Configuration (ThemeToggle.vue)  
+```javascript  
+// Persist theme state  
+localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');  
+document.documentElement.classList.toggle('dark-theme', isDarkMode);  
+```  
 
-## 联系方式
+---  
 
-如有问题或建议，请联系开发者：
+## Data Flow Architecture  
 
-- **姓名**: CJackHwang
-- **博客**: [www.cjack.cfd](http://www.cjack.cfd)
+```mermaid  
+graph LR  
+    A[User Selects File] --> B{File Size Check}  
+    B -->|≤30MB| C[Single File FormData Submit]  
+    B -->|>30MB| D[Stream Chunk Processor]  
+    D --> E[Parallel Chunk Upload]  
+    E --> F[Result Aggregation]  
+    F --> G[Generate Download Link]  
+    G --> H[Local History Storage]  
+```  
 
-## 版权信息
+---  
 
-© CJackHwang. 保留所有权利。
+## Compliance  
+
+1. **License**: GPL-3.0 (declared in `package.json`)  
+2. **Data Security**:  
+   - All logs stored locally (`localStorage`)  
+   - No remote data collection (open-source code)  
+3. **Usage Restrictions**:  
+   - Illegal content prohibited (cloud-side filtering)  
+   - Chunked mode requires manual activation  
+
+---  
+
+## Contribution Guidelines  
+
+1. **Code Standards**:  
+   - Follow ESLint rules (`package.json`)  
+   - Use Vue 3 Composition API  
+2. **Commit Rules**:  
+   - Include unit tests  
+   - Update relevant documentation  
+3. **Issue Reporting**: Submit via GitHub Issues  
+
+---  
+
+**Developer Info**  
+CJackHwang · [GitHub](https://github.com/CJackHwang) · [Blog](http://www.cjack.cfd)  
+
+> Note: This project is for technical demonstration. Actual usage must comply with target platform policies.  
