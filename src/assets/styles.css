@@ -38,7 +38,10 @@ body {
 }
 
 /* ===== 通用阴影和圆角样式 ===== */
-header, main, .file-upload, footer {
+header,
+main,
+.file-upload,
+footer {
     border-radius: var(--border-radius-lg);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 3px 1px rgba(0, 0, 0, 0.07);
 }
@@ -83,7 +86,6 @@ main {
     text-align: center;
     position: relative;
     transition: all 0.2s ease;
-    max-width: 600px;
     margin: 1rem auto;
 }
 
@@ -104,13 +106,6 @@ main {
 
 .upload-area {
     pointer-events: none;
-}
-
-.icon {
-    width: 40px;
-    height: 40px;
-    color: var(--border-color);
-    margin-bottom: 1rem;
 }
 
 .highlight {
@@ -142,6 +137,7 @@ main {
     background: var(--surface-color);
     box-sizing: border-box;
     padding: 8px 12px;
+    color: var(--text-primary);
 }
 
 #sjurl:focus {
@@ -262,6 +258,7 @@ button:hover {
     border: 1.5px solid var(--divider-color);
     border-radius: var(--border-radius-sm);
     overflow-x: auto;
+    max-height: 500px;
 }
 
 #uploadHistoryTable {
@@ -352,7 +349,8 @@ footer a:hover {
         padding: var(--spacing-3);
     }
 
-    header, main {
+    header,
+    main {
         padding: var(--spacing-3);
     }
 
