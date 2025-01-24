@@ -18,6 +18,7 @@
         <div class="button-group">
             <button @click="uploadFile">上传文件</button>
             <button @click="resetAll">重置全部</button>
+            <ThemeToggle/>
         </div>
         <label class="chunk-toggle">
             <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
@@ -72,7 +73,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { showToast } from '@/services/toast'
-
+import ThemeToggle from './ThemeToggle.vue'
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
 
