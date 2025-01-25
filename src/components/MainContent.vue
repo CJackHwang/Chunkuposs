@@ -183,7 +183,7 @@ async function uploadChunks() {
 
 async function uploadChunkWithRetry(i, chunk, urls) {
     const formData = new FormData();
-    formData.append('file', chunk, file.value.name);
+    formData.append('file', chunk, `chunk-${i}`);
     formData.append('path', 'pickduck');
 
     let retries = 3;
