@@ -3,7 +3,7 @@
     --primary-color: #6750A4;
     --primary-hover: #7F67BE;
     --surface-color: #FEF7FF;
-    --background-color: #F3EDF7;
+    --background-color: #f0eaf4;
     --divider-color: #79747E;
     --text-primary: #1C1B1F;
     --text-secondary: #4A4458;
@@ -235,7 +235,7 @@ button {
     background: var(--primary-color);
     color: var(--surface-color);
     border: 1px solid rgba(103, 80, 164, 0.3);
-    border-radius: var(--border-radius-lg);
+    border-radius: 50px;
     box-shadow: var(--shadow-1);
     font-size: 14px;
     font-weight: 500;
