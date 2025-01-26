@@ -58,10 +58,9 @@
 # Local development (hot-reload)
 npm install
 npm run dev
-
-# Vercel One-Click Deployment
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Fuck-Codemao-Detection)
 ```
+### Vercel One-Click Deployment
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Fuck-Codemao-Detection)
 
 ### Workflow
 1. **File Selection**: Drag-drop zone with hover feedback (`file-upload` component)
