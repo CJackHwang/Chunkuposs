@@ -58,10 +58,9 @@
 # 本地开发（热重载支持）
 npm install
 npm run dev
-
-# Vercel 一键部署
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Fuck-Codemao-Detection)
 ```
+### Vercel 一键部署
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Fuck-Codemao-Detection)
 
 ### 工作流程
 1. **文件选择**：拖放区域支持Hover状态反馈（`file-upload`组件）
