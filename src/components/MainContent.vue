@@ -18,13 +18,16 @@
         <div class="button-group">
             <button @click="uploadFile">上传文件</button>
             <button @click="resetAll">重置全部</button>
+
+        </div>
+        <div class="settings-group">
+            <label class="chunk-toggle">
+                <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
+                <span class="custom-checkbox"></span>
+                <span class="label-text">- 分块上传模式（推荐）</span>
+            </label>
             <ThemeToggle />
         </div>
-        <label class="chunk-toggle">
-            <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
-            <span class="custom-checkbox"></span>
-            <span class="label-text">- 分块上传模式（推荐）</span>
-        </label>
         <div class="url-container">
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>

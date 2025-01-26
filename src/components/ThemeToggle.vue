@@ -45,7 +45,7 @@ export default {
     padding: 8px;
     color: var(--text-primary);
     transition: all 0.3s var(--ease-standard);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius-md);
     cursor: pointer;
     transition:
         background 0.3s var(--ease-standard),
