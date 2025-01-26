@@ -1,4 +1,4 @@
-# FCD Micro Drive - Stream Chunked Upload Tool
+# FlowChunkFlex - Stream Chunked Upload Tool
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
@@ -60,7 +60,7 @@ npm install
 npm run dev
 ```
 ### Vercel One-Click Deployment
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Fuck-Codemao-Detection)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/FlowChunkFlex)
 
 ### Workflow
 1. **File Selection**: Drag-drop zone with hover feedback (`file-upload` component)
