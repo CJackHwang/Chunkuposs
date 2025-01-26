@@ -23,7 +23,7 @@
         <label class="chunk-toggle">
             <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
             <span class="custom-checkbox"></span>
-            <span class="label-text">使用分块上传模式（推荐）</span>
+            <span class="label-text">- 分块上传模式（推荐）</span>
         </label>
         <div class="url-container">
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
@@ -38,35 +38,8 @@
                 {{ estimatedCompletionTime }}
             </p>
         </div>
-        <h3>操作日志</h3>
-        <div id="debugOutput" class="debug-output">
-            {{ debugOutput }}
-        </div>
-        <div class="debug-buttons">
-            <button @click="clearLog">清除日志</button>
-            <button @click="exportLog">导出日志</button>
-        </div>
-        <h3>上传历史</h3>
-        <div id="uploadHistory">
-            <table id="uploadHistoryTable">
-                <thead>
-                    <tr>
-                        <th>上传时间</th>
-                        <th>文件链接</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="entry in uploadHistory" :key="entry.time">
-                        <td>{{ entry.time }}</td>
-                        <td>{{ entry.link }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="history-buttons">
-            <button @click="clearHistory">清除历史</button>
-            <button @click="exportHistory">导出为txt</button>
-        </div>
+        <DebugLogger :debug-output="debugOutput" @clear-log="clearLog" @export-log="exportLog" />
+        <UploadHistory :history="uploadHistory" @clear-history="clearHistory" @export-history="exportHistory" />
     </main>
 </template>
 
@@ -74,11 +47,11 @@
 import { ref, onMounted } from 'vue'
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
+import DebugLogger from '@/components/DebugLogger.vue';
+import UploadHistory from '@/components/UploadHistory.vue';
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
-const REQUEST_RATE_LIMIT = 5;                 // 每秒最多5次请求
-
-
+const REQUEST_RATE_LIMIT = 5;// 每秒最多5次请求
 const file = ref(null);
 const chunkSize = ref(0);
 const chunkSizeVisible = ref(false);
