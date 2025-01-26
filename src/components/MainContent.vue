@@ -17,7 +17,7 @@
         </div>
         <div class="button-group">
             <button @click="uploadFile">上传文件</button>
-            <button @click="resetAll">重置全部</button>
+            <button @click="resetAll('确定要刷新页面吗？')">重置全部</button>
 
         </div>
         <div class="settings-group">
@@ -32,7 +32,7 @@
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>
         <div class="action-buttons">
-            <button v-if="sjurl" @click="copyToClipboard">复制链接</button>
+            <button v-if="sjurl" @click="handleCopy">复制链接</button>
             <button v-if="sjurl" @click="downloadFiles">下载文件</button>
         </div>
         <div id="status" class="status-message">
@@ -60,6 +60,11 @@ import {
     clearLog,
     clearHistory
 } from '@/utils/storageHelper';
+import {
+    copyToClipboard,
+    resetAll,
+    downloadFile
+} from '@/utils/helpers';
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
 const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
@@ -83,12 +88,7 @@ const isChunkDisabled = computed(() => {
 });
 
 onMounted(() => {
-    const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
-    if (log) {
-        const logEntries = JSON.parse(log);
-        debugOutput.value = logEntries.join('\n');
-    }
-    loadUploadHistory(uploadHistory);
+    loadLog(); // [!code ++] 统一初始化日志和历史记录
 });
 
 function updateFileInfo(event) {
@@ -392,18 +392,12 @@ function resetEstimatedCompletionTime() {
     estimatedCompletionTime.value = '';
 }
 
-function copyToClipboard() {
-    navigator.clipboard.writeText(sjurl.value).then(() => {
-        showToast('链接已复制到剪贴板');
-    }).catch(err => {
-        console.error('复制失败:', err);
-    });
-}
-
-function resetAll() {
-    if (confirm('确定要刷新网页吗？')) {
-        location.reload();
-    }
+function handleCopy() {
+    copyToClipboard(
+        sjurl.value,
+        () => showToast('链接已复制到剪贴板'), // 成功回调
+        (err) => console.error('复制失败:', err) // 失败回调（可选）
+    );
 }
 
 async function downloadFiles() {
@@ -478,27 +472,12 @@ function exportLog() {
     downloadFile('upload_log.txt', logEntries);
 }
 
-function downloadFile(filename, content) {
-    const blob = new Blob([content], {
-        type: 'text/plain'
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast(`${filename} 导出完成，请检查是否保存成功`);
-}
-
 function loadLog() {
     const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
     if (log) {
         const logEntries = JSON.parse(log);
         debugOutput.value = logEntries.join('\n');
     }
-    loadUploadHistory();
+    loadUploadHistory(uploadHistory);
 }
 </script>
