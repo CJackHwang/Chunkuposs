@@ -52,6 +52,14 @@ import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
 import UploadHistory from '@/components/UploadHistory.vue';
+import { STORAGE_KEYS } from '@/utils/storageHelper';
+import {
+    addDebugOutput,
+    saveUploadHistory,
+    loadUploadHistory,
+    clearLog,
+    clearHistory
+} from '@/utils/storageHelper';
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
 const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
@@ -74,7 +82,14 @@ const isChunkDisabled = computed(() => {
     return file.value?.size <= MIN_CHUNK_SIZE; // 使用可选链操作符
 });
 
-onMounted(loadLog);
+onMounted(() => {
+    const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
+    if (log) {
+        const logEntries = JSON.parse(log);
+        debugOutput.value = logEntries.join('\n');
+    }
+    loadUploadHistory(uploadHistory);
+});
 
 function updateFileInfo(event) {
     file.value = event.target.files[0];
@@ -82,7 +97,7 @@ function updateFileInfo(event) {
     if (file.value) {
         const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
         fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
-        
+
         chunkSize.value = Math.min(
             Math.max(file.value.size / 2, MIN_CHUNK_SIZE), // 确保不小于1MB
             MAX_CHUNK_SIZE
@@ -96,7 +111,7 @@ function updateFileInfo(event) {
             isChunkedMode.value = false;
             chunkSizeVisible.value = false;
             totalChunks.value = 1;
-            addDebugOutput("文件小于1MB，分块模式已禁用");
+            addDebugOutput("文件小于1MB，分块模式已禁用", debugOutput);
         }
     }
 }
@@ -110,7 +125,7 @@ async function uploadFile() {
     }
     status.value = "上传处理中...";
     showToast('正在提交...');
-    addDebugOutput("已开始上传任务，请耐心等待...");
+    addDebugOutput("已开始上传任务，请耐心等待...", debugOutput);
 
     if (!isChunkedMode.value) {
         await uploadSingleFile();
@@ -132,7 +147,7 @@ async function uploadSingleFile() {
         handleUploadResponse(data);
     } catch (error) {
         showToast('上传发生错误，确保文件≤ 30 MB 和检查网络并重试');
-        addDebugOutput(`上传失败: ${error.message}`);
+        addDebugOutput(`上传失败: ${error.message}`, debugOutput);
     }
 }
 
@@ -198,7 +213,7 @@ async function uploadChunks() {
                 })
                 .catch(error => {
                     showToast('分块上传失败');
-                    addDebugOutput(`上传终止: ${error.message}`);
+                    addDebugOutput(`上传终止: ${error.message}`, debugOutput);
                     status.value = "上传失败";
                 });
 
@@ -248,7 +263,7 @@ async function uploadChunkWithRetry(i, chunk, urls) {
                 // 成功时记录性能指标
                 const duration = Date.now() - start;
                 urls.value[i] = data.url;
-                addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | 大小: ${(chunk.size / 1024 / 1024).toFixed(2)}MB`);
+                addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | 大小: ${(chunk.size / 1024 / 1024).toFixed(2)}MB`, debugOutput);
                 return; // 成功时直接返回
 
             } catch (error) {
@@ -287,7 +302,7 @@ async function fetchWithRetry(url, options, retries = 3) {
             return await fetch(url, options);
         } catch (error) {
             retries--;
-            addDebugOutput(`Fetch error, retries left: ${retries}`);
+            addDebugOutput(`Fetch error, retries left: ${retries}`, debugOutput);
         }
     }
     throw new Error('最大重试次数已达到');
@@ -297,12 +312,12 @@ function handleUploadResponse(data, i, urls) {
     if (data.url) {
         if (i !== undefined) {
             urls.value[i] = data.url;
-            addDebugOutput(`上传块 ${i + 1} 成功: ${data.url}`);
+            addDebugOutput(`上传块 ${i + 1} 成功: ${data.url}`, debugOutput);
         } else {
             sjurl.value = data.url;
             status.value = "上传完成!";
-            addDebugOutput("上传完成!");
-            saveUploadHistory(data.url);
+            addDebugOutput("上传完成!", debugOutput);
+            saveUploadHistory(sjurl.value, uploadHistory);
             showToast('上传完成, 请复制链接保存');
         }
     } else {
@@ -329,8 +344,8 @@ function handleChunkUploadCompletion(urlsArray) {
     sjurl.value = `[${encodeURIComponent(file.value.name)}]${formattedUrls}`; // 使用 encodeURIComponent
     status.value = "上传完成!";
     showToast('上传完成, 请复制链接并保存');
-    addDebugOutput(`最终链接: ${sjurl.value}`);
-    saveUploadHistory(sjurl.value); // 修正参数传递
+    addDebugOutput(`最终链接: ${sjurl.value}`, debugOutput);
+    saveUploadHistory(sjurl.value, uploadHistory); // 修正参数传递
     resetEstimatedCompletionTime();
 }
 
@@ -417,7 +432,7 @@ async function downloadFiles() {
     });
 
     status.value = "下载中...";
-    addDebugOutput("开始下载...");
+    addDebugOutput("开始下载...", debugOutput);
     showToast('下载已开始，请耐心等待');
 
     try {
@@ -426,7 +441,7 @@ async function downloadFiles() {
     } catch (error) {
         showToast('下载发生错误：' + error.message);
         status.value = "下载失败!";
-        addDebugOutput(`下载失败: ${error.message}`);
+        addDebugOutput(`下载失败: ${error.message}`, debugOutput);
     }
 }
 
@@ -447,39 +462,9 @@ async function mergeAndDownload(blobs, filename) {
     document.body.removeChild(a);
     URL.revokeObjectURL(downloadUrl);
     status.value = "下载完成!";
-    addDebugOutput("下载完成!");
+    addDebugOutput("下载完成!", debugOutput);
     showToast(`下载完成，请检查是否保存成功`);
     blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob)));
-}
-
-function addDebugOutput(message) {
-    const timestamp = new Date().toLocaleString();
-    debugOutput.value += `[${timestamp}] ${message}\n---------\n`;
-    const history = JSON.parse(localStorage.getItem('uploadLog')) || [];
-    history.push(`[${timestamp}] ${message}`);
-    localStorage.setItem('uploadLog', JSON.stringify(history));
-}
-
-function saveUploadHistory(_urls) {
-    const history = JSON.parse(localStorage.getItem('uploadHistory')) || [];
-    const existing = history.find(entry => entry.link === sjurl.value);
-    if (!existing) {
-        history.push({
-            time: new Date().toLocaleString(), link: sjurl.value
-        });
-        localStorage.setItem('uploadHistory', JSON.stringify(history));
-    }
-    uploadHistory.value = history;
-}
-
-function clearLog() {
-    debugOutput.value = '';
-    localStorage.removeItem('uploadLog');
-}
-
-function clearHistory() {
-    uploadHistory.value = [];
-    localStorage.removeItem('uploadHistory');
 }
 
 function exportHistory() {
@@ -488,7 +473,7 @@ function exportHistory() {
 }
 
 function exportLog() {
-    const log = localStorage.getItem('uploadLog');
+    const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
     const logEntries = log ? JSON.parse(log).join('\n') : '没有日志记录。';
     downloadFile('upload_log.txt', logEntries);
 }
@@ -509,15 +494,11 @@ function downloadFile(filename, content) {
 }
 
 function loadLog() {
-    const log = localStorage.getItem('uploadLog');
+    const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
     if (log) {
         const logEntries = JSON.parse(log);
         debugOutput.value = logEntries.join('\n');
     }
     loadUploadHistory();
-}
-
-function loadUploadHistory() {
-    uploadHistory.value = JSON.parse(localStorage.getItem('uploadHistory')) || [];
 }
 </script>
