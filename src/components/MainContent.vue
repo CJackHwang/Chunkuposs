@@ -101,7 +101,7 @@ function updateFileInfo(event) {
     chunkSizeVisible.value = !!file.value;
     if (file.value) {
         const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
-        fileInfo.value = `文件大小: ${fileSizeMB} MB`;
+        fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
         // 增加最小分块阈值（1MB）
         const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
         chunkSize.value = Math.min(
