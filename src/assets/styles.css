@@ -40,10 +40,14 @@ body {
 /* ===== 通用阴影和圆角样式 ===== */
 header,
 main,
+#uploadHistory,
+.table-container,
+#sjurl,
+.debug-output,
 .file-upload,
 footer {
     border-radius: var(--border-radius-lg);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 3px 1px rgba(0, 0, 0, 0.07);
+    box-shadow: var(--shadow-1);
 }
 
 /* ===== Material Header ===== */
@@ -54,10 +58,6 @@ header {
     border: 1.5px solid rgba(255, 255, 255, 0.1);
     margin-bottom: var(--spacing-5);
     transition: box-shadow 0.3s var(--ease-standard);
-
-    header:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
 
     h2 {
         margin: 0;
@@ -124,7 +124,14 @@ main {
 .chunk-info {
     padding: 1rem;
     background: var(--info-bg);
-    border-radius: 6px;
+    border-radius: var(--border-radius-md);
+}
+
+.settings-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2); /* 8px 与按钮间距一致 */
+    margin: var(--spacing-4) 0; /* 16px 垂直间距 */
 }
 
 /* ===== URL输入框 ===== */
@@ -141,7 +148,7 @@ main {
 }
 
 #sjurl:focus {
-    border-color: var(--primary-color);
+    box-shadow: var(--shadow-2);
     outline: 2px solid rgba(103, 80, 164, 0.2);
 }
 
@@ -152,6 +159,7 @@ main {
 
 /* ===== 分片开关组件 ===== */
 .chunk-toggle {
+    --toggle-height: 40px; /* 与按钮高度一致 */
     --active-color: #6750A4;
     --border-color: #79747E;
     --hover-bg: rgba(103, 80, 164, 0.08);
@@ -161,10 +169,11 @@ main {
     gap: 8px;
     margin: 0.5rem 0;
     font-size: 14px;
-    padding: 6px 12px 6px 34px;
+    padding: 9px 12px 9px 40px; /* 左留空适应复选框 */
     border-radius: var(--border-radius-md);
     transition: background 0.2s var(--ease-standard);
     position: relative;
+    box-shadow: var(--shadow-1);
 }
 
 .chunk-toggle:hover {
@@ -172,16 +181,17 @@ main {
 }
 
 .chunk-toggle:focus-within {
-    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
+    box-shadow: var(--shadow-2);
 }
 
 .custom-checkbox {
     display: inline-block;
-    left: 12px;
-    width: 18px;
-    height: 18px;
+    left: 16px;
+    width: 20px;
+    height: 20px;
     border: 1.5px solid var(--border-color);
     border-radius: var(--border-radius-sm);
+    border-width: 2px;
     position: absolute;
     transition: all 0.2s ease;
     box-sizing: border-box;
@@ -275,7 +285,7 @@ button {
     position: relative;
     border: 1px solid var(--divider-color); /* 增加外边框 */
     border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-1); /* 添加阴影 */
+    
 }
 
 /* 统一表格边框和悬停效果 */
@@ -289,7 +299,7 @@ button {
 .upload-history-table thead {
     background: var(--background-color);
     border-bottom: 1px solid var(--divider-color);
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .upload-history-table th {
@@ -312,7 +322,7 @@ button {
 
 /* 行悬停效果 */
 .upload-history-table tr:hover td {
-    background: rgba(var(--primary-color-rgb), 0.04);
+    background: var(--background-color);
 }
 
 /* 链接单元格优化 */
@@ -327,7 +337,6 @@ button {
     border-radius: var(--border-radius-md);
     padding: var(--spacing-3);
     margin: var(--spacing-4) 0;
-    box-shadow: var(--shadow-1);
     font-family: monospace;
     overflow-x: auto;
     overflow-y: auto;
@@ -380,13 +389,7 @@ footer a:hover {
 }
 
 /* ===== 响应式优化 ===== */
-@media (max-width: 480px) {
-    .file-upload {
-        padding: 1rem;
-    }
-}
-
-@media (max-width: 360px) {
+@media (max-width: 320px) {
     body {
         padding: var(--spacing-3);
     }
@@ -399,10 +402,6 @@ footer a:hover {
     button {
         width: 100%;
         justify-content: center;
-    }
-
-    #uploadHistoryTable {
-        min-width: 100%;
     }
 
     footer {

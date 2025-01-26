@@ -6,7 +6,7 @@
             <pre>{{ debugOutput }}</pre>
         </div>
         <div class="debug-buttons">
-            <button @click="handleClearLog">清除日志</button>
+            <button @click="handleClearLog">清空记录</button>
             <button @click="handleExportLog">导出日志</button>
         </div>
     </div>

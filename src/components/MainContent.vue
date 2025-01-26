@@ -18,13 +18,16 @@
         <div class="button-group">
             <button @click="uploadFile">上传文件</button>
             <button @click="resetAll">重置全部</button>
+
+        </div>
+        <div class="settings-group">
+            <label class="chunk-toggle">
+                <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
+                <span class="custom-checkbox"></span>
+                <span class="label-text">- 分块上传模式（推荐）</span>
+            </label>
             <ThemeToggle />
         </div>
-        <label class="chunk-toggle">
-            <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
-            <span class="custom-checkbox"></span>
-            <span class="label-text">- 分块上传模式（推荐）</span>
-        </label>
         <div class="url-container">
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>
@@ -297,7 +300,7 @@ function handleUploadResponse(data, i, urls) {
             status.value = "上传完成!";
             addDebugOutput("上传完成!");
             saveUploadHistory(data.url);
-            showToast('上传完成, 请复制链接并保存');
+            showToast('上传完成, 请复制链接保存');
         }
     } else {
         showToast(data.msg);
@@ -442,7 +445,7 @@ async function mergeAndDownload(blobs, filename) {
     URL.revokeObjectURL(downloadUrl);
     status.value = "下载完成!";
     addDebugOutput("下载完成!");
-    showToast(`下载成功，请检查是否已经保存`);
+    showToast(`下载完成，请检查是否保存成功`);
     blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob)));
 }
 
@@ -499,7 +502,7 @@ function downloadFile(filename, content) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast(`${filename} 导出执行成功，请检查是否已经保存`);
+    showToast(`${filename} 导出完成，请检查是否保存成功`);
 }
 
 function loadLog() {

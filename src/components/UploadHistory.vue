@@ -2,7 +2,7 @@
 <!-- UploadHistory.vue -->
 <template>
     <div class="upload-history">
-        <h3>上传历史</h3>
+        <h3>历史文件</h3>
         <div class="table-container">
             <table class="upload-history-table">
                 <thead>
@@ -20,8 +20,8 @@
             </table>
         </div>
         <div class="history-actions">
-            <button @click="handleClear">清除历史</button>
-            <button @click="handleExport">导出为txt</button>
+            <button @click="handleClear">清空记录</button>
+            <button @click="handleExport">导出历史</button>
         </div>
     </div>
 </template>

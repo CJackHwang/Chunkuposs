@@ -104,6 +104,10 @@
     background: rgba(77, 182, 172, 0.05) !important; /* 覆盖原主题的浅色悬停 */
 }
 
+.dark-theme .link-cell {
+    color: var(--accent-1) !important;
+}
+
 /* 调试面板 */
 .dark-theme .debug-output {
     background: rgba(26, 28, 35, 0.9);
