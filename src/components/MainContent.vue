@@ -300,7 +300,7 @@ function handleUploadResponse(data, i, urls) {
             status.value = "上传完成!";
             addDebugOutput("上传完成!");
             saveUploadHistory(data.url);
-            showToast('上传完成, 请复制链接并保存');
+            showToast('上传完成, 请复制链接保存');
         }
     } else {
         showToast(data.msg);
@@ -445,7 +445,7 @@ async function mergeAndDownload(blobs, filename) {
     URL.revokeObjectURL(downloadUrl);
     status.value = "下载完成!";
     addDebugOutput("下载完成!");
-    showToast(`下载成功，请检查是否已经保存`);
+    showToast(`下载完成，请检查是否保存成功`);
     blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob)));
 }
 
@@ -502,7 +502,7 @@ function downloadFile(filename, content) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast(`${filename} 导出执行成功，请检查是否已经保存`);
+    showToast(`${filename} 导出完成，请检查是否保存成功`);
 }
 
 function loadLog() {
