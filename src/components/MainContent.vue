@@ -22,7 +22,7 @@
         </div>
         <div class="settings-group">
             <label class="chunk-toggle">
-                <input type="checkbox" v-model="isChunkedMode" class="toggle-input">
+                <input type="checkbox" v-model="isChunkedMode" :disabled="isChunkDisabled" class="toggle-input">
                 <span class="custom-checkbox"></span>
                 <span class="label-text">- 分块上传模式（推荐）</span>
             </label>
@@ -47,12 +47,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
 import UploadHistory from '@/components/UploadHistory.vue';
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
+const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
 const REQUEST_RATE_LIMIT = 5;// 每秒最多5次请求
 const file = ref(null);
@@ -69,6 +70,9 @@ const isChunkedMode = ref(false);
 const estimatedCompletionTime = ref('');
 let intervalId = null;
 const activeUploads = ref(0);
+const isChunkDisabled = computed(() => {
+    return file.value?.size <= MIN_CHUNK_SIZE; // 使用可选链操作符
+});
 
 onMounted(loadLog);
 
@@ -78,8 +82,7 @@ function updateFileInfo(event) {
     if (file.value) {
         const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
         fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
-        // 增加最小分块阈值（1MB）
-        const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
+        
         chunkSize.value = Math.min(
             Math.max(file.value.size / 2, MIN_CHUNK_SIZE), // 确保不小于1MB
             MAX_CHUNK_SIZE
@@ -93,7 +96,7 @@ function updateFileInfo(event) {
             isChunkedMode.value = false;
             chunkSizeVisible.value = false;
             totalChunks.value = 1;
-            addDebugOutput("文件过小，不会进行分块操作");
+            addDebugOutput("文件小于1MB，分块模式已禁用");
         }
     }
 }

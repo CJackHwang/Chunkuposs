@@ -176,6 +176,12 @@ main {
     box-shadow: var(--shadow-1);
 }
 
+.chunk-toggle input[disabled] + .custom-checkbox {
+    opacity: 0.5;
+    background-color: #eee;
+    cursor: not-allowed;
+}
+
 .chunk-toggle:hover {
     background: var(--hover-bg);
 }
