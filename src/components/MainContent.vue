@@ -17,14 +17,14 @@
         </div>
         <div class="button-group">
             <button @click="uploadFile">上传文件</button>
-            <button @click="resetAll('确定要刷新页面吗？')">重置全部</button>
+            <button @click="resetAll('确定要刷新页面吗？')">重置页面</button>
 
         </div>
         <div class="settings-group">
             <label class="chunk-toggle">
                 <input type="checkbox" v-model="isChunkedMode" :disabled="isChunkDisabled" class="toggle-input">
                 <span class="custom-checkbox"></span>
-                <span class="label-text">- 分块上传模式（推荐）</span>
+                <span class="label-text">「分块上传模式」</span>
             </label>
             <ThemeToggle />
         </div>

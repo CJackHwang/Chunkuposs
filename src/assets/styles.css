@@ -130,8 +130,10 @@ main {
 .settings-group {
     display: flex;
     align-items: center;
-    gap: var(--spacing-2); /* 8px 与按钮间距一致 */
-    margin: var(--spacing-4) 0; /* 16px 垂直间距 */
+    gap: var(--spacing-2);
+    /* 8px 与按钮间距一致 */
+    margin: var(--spacing-4) 0;
+    /* 16px 垂直间距 */
 }
 
 /* ===== URL输入框 ===== */
@@ -159,7 +161,8 @@ main {
 
 /* ===== 分片开关组件 ===== */
 .chunk-toggle {
-    --toggle-height: 40px; /* 与按钮高度一致 */
+    --toggle-height: 40px;
+    /* 与按钮高度一致 */
     --active-color: #6750A4;
     --border-color: #79747E;
     --hover-bg: rgba(103, 80, 164, 0.08);
@@ -169,14 +172,15 @@ main {
     gap: 8px;
     margin: 0.5rem 0;
     font-size: 14px;
-    padding: 9px 12px 9px 40px; /* 左留空适应复选框 */
+    padding: 9px 12px 9px 40px;
+    /* 左留空适应复选框 */
     border-radius: var(--border-radius-md);
     transition: background 0.2s var(--ease-standard);
     position: relative;
     box-shadow: var(--shadow-1);
 }
 
-.chunk-toggle input[disabled] + .custom-checkbox {
+.chunk-toggle input[disabled]+.custom-checkbox {
     opacity: 0.5;
     background-color: #eee;
     cursor: not-allowed;
@@ -269,7 +273,7 @@ button {
 .debug-buttons button,
 .history-actions button {
     /* 保持与全局按钮一致 */
-    padding: 10px 24px; 
+    padding: 10px 24px;
     font-size: 14px;
 }
 
@@ -280,7 +284,8 @@ button {
     box-shadow: var(--shadow-1);
     background: var(--surface-color);
     border: 1px solid var(--divider-color);
-    overflow: hidden; /* 保持圆角效果 */
+    overflow: hidden;
+    /* 保持圆角效果 */
     display: flex;
     flex-direction: column;
 }
@@ -289,9 +294,10 @@ button {
     max-height: 400px;
     overflow: auto;
     position: relative;
-    border: 1px solid var(--divider-color); /* 增加外边框 */
+    border: 1px solid var(--divider-color);
+    /* 增加外边框 */
     border-radius: var(--border-radius-md);
-    
+
 }
 
 /* 统一表格边框和悬停效果 */
@@ -313,7 +319,8 @@ button {
     font-weight: 600;
     text-align: left;
     color: var(--text-secondary);
-    height: 56px; /* M3标准行高 */
+    height: 56px;
+    /* M3标准行高 */
     transition: background 0.2s var(--ease-standard);
 }
 
@@ -321,7 +328,8 @@ button {
 .upload-history-table td {
     padding: var(--spacing-3) var(--spacing-4);
     border-bottom: 1px solid var(--divider-color);
-    height: 52px; /* M3标准行高 */
+    height: 52px;
+    /* M3标准行高 */
     transition: background 0.2s var(--ease-standard);
     font-size: 12px;
 }
@@ -420,9 +428,26 @@ footer a:hover {
         gap: var(--spacing-1);
     }
 }
+
 main,
 .file-upload,
 #uploadHistory {
     will-change: transform;
     transform: translateZ(0);
+}
+
+/* 在styles.css末尾添加 */
+.m3-toast {
+    background: var(--primary-color) !important;
+    color: var(--surface-color) !important;
+    border: 1px solid var(--divider-color);
+    box-shadow: var(--shadow-2) !important;
+    border-radius: var(--border-radius-lg) !important;
+    padding: 12px 20px !important;
+    font: 400 14px/20px Roboto;
+    margin: 0 16px 16px 0;
+}
+
+.m3-toast a {
+    color: var(--primary-color) !important;
 }

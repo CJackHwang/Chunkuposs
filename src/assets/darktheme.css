@@ -78,7 +78,8 @@
 
 .dark-theme button:hover {
     background: var(--primary-hover);
-    box-shadow: var(--shadow-2); /* 同步浅色主题的阴影层级 */
+    box-shadow: var(--shadow-2);
+    /* 同步浅色主题的阴影层级 */
     color: #1A1C23;
 }
 
@@ -89,19 +90,23 @@
 
 .dark-theme .upload-history-table {
     border-color: var(--accent-2);
-    box-shadow: var(--shadow-1); /* 同步深色阴影 */
+    box-shadow: var(--shadow-1);
+    /* 同步深色阴影 */
 }
+
 .dark-theme .upload-history-table th {
     background: rgba(64, 70, 79, 0.6);
     color: var(--text-secondary);
 }
+
 .dark-theme .upload-history-table td {
     background: rgba(26, 28, 35, 0.9);
     color: var(--text-primary);
 }
 
 .dark-theme .upload-history-table tr:hover td {
-    background: rgba(77, 182, 172, 0.05) !important; /* 覆盖原主题的浅色悬停 */
+    background: rgba(77, 182, 172, 0.05) !important;
+    /* 覆盖原主题的浅色悬停 */
 }
 
 .dark-theme .link-cell {
@@ -162,4 +167,10 @@
         color 0.3s var(--ease-standard),
         border-color 0.3s var(--ease-standard),
         box-shadow 0.3s var(--ease-standard);
+}
+
+.dark-theme .m3-toast {
+    background: var(--accent-1) !important;
+    border-color: var(--accent-2);
+    box-shadow: var(--shadow-3) !important;
 }
