@@ -17,7 +17,7 @@
         </div>
         <div class="button-group">
             <button @click="uploadFile">上传文件</button>
-            <button @click="resetAll('确定要刷新页面吗？')">重置页面</button>
+            <button @click="helpers.resetAll('确定要刷新页面吗？')">重置页面</button>
 
         </div>
         <div class="settings-group">
@@ -41,8 +41,8 @@
                 {{ estimatedCompletionTime }}
             </p>
         </div>
-        <DebugLogger :debug-output="debugOutput" @clear-log="clearLog" @export-log="exportLog" />
-        <UploadHistory :history="uploadHistory" @clear-history="clearHistory" @export-history="exportHistory" />
+        <DebugLogger :debug-output="debugOutput" @clear-log="handleClearLog" @export-log="exportLog" />
+        <UploadHistory :history="uploadHistory" @clear-history="handleClear" @export-history="exportHistory" />
     </main>
 </template>
 
@@ -60,11 +60,7 @@ import {
     clearLog,
     clearHistory
 } from '@/utils/storageHelper';
-import {
-    copyToClipboard,
-    resetAll,
-    downloadFile
-} from '@/utils/helpers';
+import * as helpers from '@/utils/helpers';
 const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
 const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
@@ -393,7 +389,7 @@ function resetEstimatedCompletionTime() {
 }
 
 function handleCopy() {
-    copyToClipboard(
+    helpers.copyToClipboard(
         sjurl.value,
         () => showToast('链接已复制到剪贴板'), // 成功回调
         (err) => console.error('复制失败:', err) // 失败回调（可选）
@@ -463,13 +459,13 @@ async function mergeAndDownload(blobs, filename) {
 
 function exportHistory() {
     const links = uploadHistory.value.map(entry => entry.link).join('\n');
-    downloadFile('upload_history.txt', links);
+    helpers.downloadFile('upload_history.txt', links);
 }
 
 function exportLog() {
     const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
     const logEntries = log ? JSON.parse(log).join('\n') : '没有日志记录。';
-    downloadFile('upload_log.txt', logEntries);
+    helpers.downloadFile('upload_log.txt', logEntries);
 }
 
 function loadLog() {
@@ -479,5 +475,13 @@ function loadLog() {
         debugOutput.value = logEntries.join('\n');
     }
     loadUploadHistory(uploadHistory);
+}
+
+function handleClearLog() {
+    clearLog(debugOutput)
+}
+
+function handleClear() {
+    clearHistory(uploadHistory);
 }
 </script>
