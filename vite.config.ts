@@ -24,6 +24,8 @@ export default defineConfig({
             type: 'image/png',
           },
         ],
+        "display": "standalone",
+        "orientation": "portrait"
       },
       registerType: 'autoUpdate',
       workbox: {
