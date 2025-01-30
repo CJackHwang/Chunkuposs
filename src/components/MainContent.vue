@@ -47,7 +47,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted,onUnmounted } from 'vue'
+
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
@@ -61,7 +62,13 @@ import {
     clearHistory
 } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
-const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
+import { useTimeEstimation } from '@/services/timeEstimationService';
+const {
+    estimatedCompletionTime,
+    updateEstimatedCompletionTimeAfterUpload,
+    resetEstimatedCompletionTime
+} = useTimeEstimation();
+const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 20 MB
 const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
 const REQUEST_RATE_LIMIT = 5;// 每秒最多5次请求
@@ -76,8 +83,6 @@ const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
 const isChunkedMode = ref(false);
-const estimatedCompletionTime = ref('');
-let intervalId = null;
 const activeUploads = ref(0);
 const isChunkDisabled = computed(() => {
     return file.value?.size <= MIN_CHUNK_SIZE; // 使用可选链操作符
@@ -85,6 +90,9 @@ const isChunkDisabled = computed(() => {
 
 onMounted(() => {
     loadLog(); // [!code ++] 统一初始化日志和历史记录
+});
+onUnmounted(() => {
+    resetEstimatedCompletionTime();
 });
 
 function updateFileInfo(event) {
@@ -143,7 +151,7 @@ async function uploadSingleFile() {
         handleUploadResponse(data);
     } catch (error) {
         showToast('上传发生错误，确保文件≤ 30 MB 和检查网络并重试');
-        addDebugOutput(`上传失败: ${error.message}`, debugOutput);
+        addDebugOutput(`上传失败: ${error.message}`,debugOutput);
     }
 }
 
@@ -155,7 +163,7 @@ async function uploadChunks() {
     let index = 0;
     let byteArray = [];
     let currentChunkSize = 0;
-    const CONCURRENT_LIMIT = 3; // 并发数
+    const CONCURRENT_LIMIT = 2; // 并发数
     const lastRequestTimestamps = ref([]); // 记录请求时间戳
 
     async function canMakeRequest() {
@@ -205,11 +213,11 @@ async function uploadChunks() {
             // 上传并更新进度
             uploadChunkWithRetry(currentIndex, chunkBlob, urls)
                 .then(() => {
-                    updateEstimatedCompletionTimeAfterUpload(startTime, urls.value);
+                    updateEstimatedCompletionTimeAfterUpload(startTime, urls.value, totalChunks.value);
                 })
                 .catch(error => {
                     showToast('分块上传失败');
-                    addDebugOutput(`上传终止: ${error.message}`, debugOutput);
+                    addDebugOutput(`上传终止: ${error.message}`,debugOutput);
                     status.value = "上传失败";
                 });
 
@@ -264,7 +272,7 @@ async function uploadChunkWithRetry(i, chunk, urls) {
 
             } catch (error) {
                 lastError = error;
-                addDebugOutput(`块 ${i} 第${attempt}次尝试失败: ${error.message}`);
+                addDebugOutput(`块 ${i} 第${attempt}次尝试失败: ${error.message}`,debugOutput);
 
                 // 指数退避重试：1s, 2s, 4s
                 if (attempt < 3) {
@@ -343,49 +351,6 @@ function handleChunkUploadCompletion(urlsArray) {
     addDebugOutput(`最终链接: ${sjurl.value}`, debugOutput);
     saveUploadHistory(sjurl.value, uploadHistory); // 修正参数传递
     resetEstimatedCompletionTime();
-}
-
-// 新增完成时间估算方法
-function updateEstimatedCompletionTimeAfterUpload(startTime, urlsArray) {
-    const elapsed = Date.now() - startTime;
-    const completed = urlsArray.filter(url => !!url).length; // 使用传入的数组
-    const remaining = totalChunks.value - completed;
-    if (remaining === 0) {
-        resetEstimatedCompletionTime();
-        return;
-    }
-
-    // 清除旧定时器
-    if (intervalId) clearInterval(intervalId);
-
-    // 计算初始剩余时间
-    const averageTime = elapsed / (completed || 1);
-    let estimatedSeconds = Math.ceil((averageTime * remaining) / 1000);
-
-    // 立即更新显示
-    updateTimeDisplay(estimatedSeconds);
-
-    // 设置每秒更新
-    intervalId = setInterval(() => {
-        if (estimatedSeconds > 0) {
-            estimatedSeconds--;
-            updateTimeDisplay(estimatedSeconds);
-        } else {
-            clearInterval(intervalId);
-            estimatedCompletionTime.value = '正在等待服务器响应...';
-        }
-    }, 1000);
-}
-
-function updateTimeDisplay(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    estimatedCompletionTime.value = `预计完成还需: ${minutes} 分 ${remainingSeconds} 秒`;
-}
-
-function resetEstimatedCompletionTime() {
-    clearInterval(intervalId);
-    estimatedCompletionTime.value = '';
 }
 
 function handleCopy() {
