@@ -1,14 +1,22 @@
 import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-
 import { VitePWA } from 'vite-plugin-pwa';
+
 const mode = 'production';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      // 显式配置 Vue 3 编译器选项
+      template: {
+        compilerOptions: {
+          // 确保使用 Vue 3 的模块系统
+          whitespace: 'condense',
+          compatConfig: { MODE: 3 }
+        }
+      }
+    }),
     VitePWA({
       mode: 'development',
       base: '/',
@@ -59,13 +67,39 @@ export default defineConfig({
       devOptions: {
         enabled: true,
         type: 'module',
-        navigateFallback: 'index.html'
+        navigateFallback: 'index.html',
+        navigateFallbackAllowlist: [/^\/index.html/], // 只允许/index.html触发回退
+        suppressWarnings: true // 隐藏警告
       },
     }),
   ],
+  optimizeDeps: {
+    // 显式包含 Vue 3 依赖链
+    include: [
+      'vue',
+      '@vue/runtime-core',
+      '@vue/runtime-dom',
+      '@vue/shared',
+      '@vue/reactivity'
+    ],
+    // 排除可能引起冲突的库
+    exclude: ['vue-demi', 'vue-hot-reload-api']
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // 防止 chunk 循环引用
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        }
+      }
+    }
+  }
 })
