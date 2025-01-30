@@ -3,117 +3,115 @@
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
-**中文版**: [README_CN.md](./README_CN.md)
+**中文版本**: [README_CN.md](./README_CN.md)
 
-> A chunked upload tool designed to bypass Codemao's file size limits, ensuring reliable file transfers.
+> A chunked upload tool designed to bypass large file limitations on CodeMao, ensuring reliable file transfer (v5.2+)
 
 ---
 
-## 🚀 Core Features (v5.0+)
+## 🚀 Core Features (v5.2+)
 
 ### Technical Enhancements
 - **Smart Chunking Strategy**:
-  - Dynamic chunk calculation (1MB min / 20MB max)
+  - Dynamic chunk calculation (1MB min / 15MB max)
   - Auto-disable chunking for small files (≤1MB)
-- **Enhanced Concurrency Control**:
-  - Parallel upload limit (max 3 concurrent requests)
-  - Dynamic rate limiting (≤5 requests/sec)
-- **Reliability Improvements**:
-  - Chunk timeout retry (dynamic timeout mechanism)
-  - Exponential backoff for error recovery (1s/2s/4s)
+  - Buffer streaming segmentation (Uint8Array optimized)
+- **Advanced Concurrency Control**:
+  - Parallel upload limit (2 concurrent requests max)
+  - Dynamic request rate control (≤5 requests/sec)
+- **Reliability Optimization**:
+  - Chunk retry with dynamic timeout (5s~60s)
+  - Three-level retry mechanism (exponential backoff: 1s/2s/4s)
+  - Real-time concurrency counter (`activeUploads` tracking)
 - **Local Persistence**:
-  - Timestamped operation logs
-  - Deduplicated upload history storage
+  - Paginated operation logs (1000 entries max)
+  - Upload history deduplication (link hash-based)
 
 ### UX Improvements
-- **Advanced Theme System**:
-  - Full Material Design 3 compliance
-  - Modern dark theme with CSS variable transitions
 - **Enhanced Status Monitoring**:
-  - Real-time concurrent upload counter
-  - Server response wait state indicators
+  - Real-time chunk progress (e.g., `Uploaded ${index}/${totalChunks} chunks`)
+  - ETA calculation (based on historical speeds)
 - **Component Refactoring**:
-  - Independent debug logger module (`DebugLogger.vue`)
-  - Shadow hierarchy support for history tables
+  - Independent debug logger (clear/export support)
+  - Dark mode for history table
+  - Theme transition animations (CSS variables)
 
 ---
 
-## 🛠️ Tech Stack Upgrades
+## 🛠️ Tech Stack
 
-| Module               | Implementation Details                                                                 |
-|----------------------|----------------------------------------------------------------------------------------|
-| **Theme System**     | CSS variables + seamless transitions (`darktheme.css`)                                |
-| **Network Layer**    | AbortController signals + dynamic timeout strategies                                  |
-| **File Handling**    | Streams API + Blob segmentation/merging                                               |
-| **State Management** | Vue reactivity system + `localStorage` persistence                                    |
-| **UI Components**    | Custom Material Design components (toggles/tables/buttons)                           |
-| **Build Optimizations** | Vite 6 + `will-change` hardware acceleration declarations                           |
+| Module              | Implementation Details                                                                 |
+|---------------------|----------------------------------------------------------------------------------------|
+| **Network Layer**   | `AbortController` + Dynamic timeout (chunk size-based)                                |
+| **File Handling**   | Streams API + Blob merging (browser memory optimized)                                 |
+| **State Management**| Vue Reactivity System + `localStorage` (auto JSON serialization)                       |
+| **Error Handling**  | Three-layer error catching (network/business/user)                                    |
+| **Build Optimization**| Vite 6 + Smart chunk splitting (vendor auto-separation)                              |
 
 ---
 
-## 🖥️ Quick Start Guide
+## 🖥️ Quick Start
 
 ### Deployment
 ```bash
 # Local development (hot-reload)
 npm install
 npm run dev
+
+# Production build (PWA support)
+npm run build
 ```
-### Vercel One-Click Deployment
+
+### Vercel One-Click Deploy
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/FlowChunkFlex)
 
 ### Workflow
-1. **File Selection**: Drag-drop zone with hover feedback (`file-upload` component)
-2. **Mode Toggle**: Smart chunking switch (`chunk-toggle` component)
+1. **File Selection**: Drag & drop with hover feedback (30MB max)
+2. **Mode Toggle**: Auto chunking (enabled for files >1MB)
 3. **Upload Monitoring**:
-   - Real-time chunk progress (`Submitted ${index}/${totalChunks} chunks`)
-   - Server response time statistics
+   - Real-time chunk progress
+   - Server response metrics (visible in debug logs)
 4. **Result Handling**:
-   - Smart link parsing (legacy format compatible)
-   - Browser-based stream merging for downloads
+   - Smart URL parsing (supports `[filename]chunk1,chunk2` format)
+   - Browser stream merging (auto CDN path assembly)
 
 ---
 
-## ⚙️ Core Configuration
+## ⚙️ Core Configurations
 
 ### Network Layer (MainContent.vue)
 ```javascript
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'; // Upload endpoint
-const REQUEST_RATE_LIMIT = 5; // Max requests/sec
-const CONCURRENT_LIMIT = 3;   // Parallel uploads
+const REQUEST_RATE_LIMIT = 5;  // Max requests per second
+const CONCURRENT_LIMIT = 2;    // Parallel upload threads (actual code value)
+const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // Max chunk size 15MB
 ```
 
 ### Chunking Strategy (MainContent.vue)
 ```javascript
-// Dynamic timeout calculation (based on chunk size)
+// Dynamic timeout calculation (chunk size-based)
 const dynamicTimeout = Math.max(5000, (chunk.size / (20 * 1024 * 1024)) * 60000);
 
-// Minimum chunk threshold (forces single-file mode)
-const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
-```
-
-### Theme Configuration (ThemeToggle.vue)
-```javascript
-// Adaptive theme logic
-const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-this.isDarkMode = savedTheme ? savedTheme === 'dark' : systemDark;
+// Buffer management
+let buffer = new Uint8Array(CHUNK_SIZE);
+let bufferPos = 0; // Current buffer write position
 ```
 
 ---
 
-## 📊 System Architecture
+## 📊 System Architecture (v5.2+)
 
 ```mermaid
 graph TD
     A[File Input] --> B{Chunk Detection}
-    B -->|Single-File Mode| C[Direct FormData Submission]
-    B -->|Chunked Mode| D[Stream Segmentation]
-    D --> E[Concurrency Control Queue]
-    E --> F[Exponential Backoff Retry]
-    F --> G[Result Aggregation]
-    G --> H[Link Generation]
-    H --> I[History Storage]
-    I --> J[Cross-Session Persistence]
+    B -->|Single File| C[FormData Direct Submit]
+    B -->|Chunked Mode| D[Streams API Segmentation]
+    D --> E[Double Buffering]
+    E --> F[Concurrency Queue]
+    F --> G[Three-level Retry]
+    G --> H[CDN URL Aggregation]
+    H --> I[Base64 Filename Encoding]
+    I --> J[Local History Storage]
 ```
 
 ---
@@ -121,43 +119,43 @@ graph TD
 ## 🔒 Compliance & Security
 
 1. **Data Privacy**:
-   - All operations stored locally in IndexedDB
-   - No third-party data collection
+   - All logs stored in `localStorage` only
+   - No third-party SDKs (pure frontend implementation)
 2. **Content Moderation**:
-   - Uploads comply with Codemao CDN policies
-   - Automatic illegal content filtering
+   - Follows CodeMao CDN policies
+   - Illegal content auto-blocking (server-side)
 3. **Licensing**:
    - GPL-3.0 Open Source License (includes dependencies)
-   - Commercial/closed-source use prohibited
+   - Commercial use prohibited (CodeMao API restrictions)
 
 ---
 
-## 🧩 Component Overview
+## 🧩 Components (v5.2)
 
-| Component             | Key Features                                  |
-|-----------------------|----------------------------------------------|
-| `ThemeToggle.vue`     | Theme switching (dynamic SVG loading)        |
-| `UploadHistory.vue`   | Virtual-scroll table (400px max height)      |
-| `DebugLogger.vue`     | Paginated logs (ANSI color code support)     |
-| `MainContent.vue`     | File stream processor (ReadableStream wrapper) |
+| Component           | Features                                                                 |
+|---------------------|--------------------------------------------------------------------------|
+| `DebugLogger.vue`   | Real-time logs (timestamp + separators)                                 |
+| `UploadHistory.vue` | Virtual-scrolling table (500px max height)                              |
+| `MainContent.vue`   | Core processor (streaming + concurrency control)                        |
+| `ThemeToggle.vue`   | Theme synchronization (auto system theme detection)                     |
 
 ---
 
-## 🤝 Contribution Guidelines
+## 🤝 Contribution Guide
 
-1. **Development Standards**:
-   - Follow Vue 3 Composition API conventions
-   - Use CSS variable prefixes: `--primary-*`/`--surface-*`
+1. **Coding Standards**:
+   - Use Vue3 `<script setup>` syntax
+   - Reactive variables must use `ref`/`computed`
 2. **Testing Requirements**:
-   - New features require Vitest cases
-   - UI changes need Storybook validation
-3. **Issue Reporting**:
-   - Use GitHub Issue templates
-   - Include browser console logs
+   - Chunk logic requires >100MB file tests
+   - Network error simulation (Chrome DevTools)
+3. **Documentation**:
+   - Sync README when modifying configurations
+   - New components require documentation updates
 
 ---
 
 **Developer Info**  
 CJackHwang · [GitHub](https://github.com/CJackHwang) · [Tech Blog](http://www.cjack.cfd)
 
-> Important: This tool is for technical research only. Please comply with target platform policies.
+> Important: This tool is for technical research only. Ensure legal authorization before uploading files.

@@ -47,7 +47,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
@@ -61,7 +62,13 @@ import {
     clearHistory
 } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
-const MAX_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
+import { useTimeEstimation } from '@/services/timeEstimationService';
+const {
+    estimatedCompletionTime,
+    updateEstimatedCompletionTimeAfterUpload,
+    resetEstimatedCompletionTime
+} = useTimeEstimation();
+const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 20 MB
 const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
 const REQUEST_RATE_LIMIT = 5;// 每秒最多5次请求
@@ -76,8 +83,6 @@ const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
 const isChunkedMode = ref(false);
-const estimatedCompletionTime = ref('');
-let intervalId = null;
 const activeUploads = ref(0);
 const isChunkDisabled = computed(() => {
     return file.value?.size <= MIN_CHUNK_SIZE; // 使用可选链操作符
@@ -85,6 +90,9 @@ const isChunkDisabled = computed(() => {
 
 onMounted(() => {
     loadLog(); // [!code ++] 统一初始化日志和历史记录
+});
+onUnmounted(() => {
+    resetEstimatedCompletionTime();
 });
 
 function updateFileInfo(event) {
@@ -97,6 +105,13 @@ function updateFileInfo(event) {
         chunkSize.value = Math.min(
             Math.max(file.value.size / 2, MIN_CHUNK_SIZE), // 确保不小于1MB
             MAX_CHUNK_SIZE
+        );
+        chunkSize.value = Math.max(
+            Math.min(
+                Math.ceil(file.value.size / 2),
+                MAX_CHUNK_SIZE
+            ),
+            MIN_CHUNK_SIZE
         );
 
         chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
@@ -152,10 +167,12 @@ async function uploadChunks() {
     const startTime = Date.now();
     const urls = ref(new Array(totalChunks.value).fill(null)); // 使用响应式数组
     const reader = file.value.stream().getReader();
+    const CHUNK_SIZE = chunkSize.value; // 确保使用精确的字节数
+    let buffer = new Uint8Array(CHUNK_SIZE);
+    let bufferPos = 0; // 当前缓冲区写入位置
     let index = 0;
-    let byteArray = [];
-    let currentChunkSize = 0;
-    const CONCURRENT_LIMIT = 3; // 并发数
+
+    const CONCURRENT_LIMIT = 2; // 并发数
     const lastRequestTimestamps = ref([]); // 记录请求时间戳
 
     async function canMakeRequest() {
@@ -176,47 +193,58 @@ async function uploadChunks() {
     async function readAndUpload() {
         const { done, value } = await reader.read();
         if (done) {
-            if (currentChunkSize > 0 || index === 0) {
-                await uploadChunkWithRetry(index, new Blob(byteArray), urls);
+            if (bufferPos > 0) {
+                const finalChunk = buffer.subarray(0, bufferPos);
+                await uploadChunkWithRetry(index, new Blob([finalChunk]), urls);
                 index++;
             }
             await waitForPendingChunks();
             handleChunkUploadCompletion(urls.value);
             return;
         }
+        let offset = 0; // 当前 value 的读取位置
 
-        byteArray.push(value);
-        currentChunkSize += value.byteLength;
+        while (offset < value.length) {
+            const spaceRemaining = CHUNK_SIZE - bufferPos;
+            const bytesToCopy = Math.min(spaceRemaining, value.length - offset);
 
-        while (currentChunkSize >= chunkSize.value && index < totalChunks.value) {
-            const chunkBlob = new Blob(byteArray);
-            await uploadWithRateLimit();
+            // 将数据复制到缓冲区
+            buffer.set(value.subarray(offset, offset + bytesToCopy), bufferPos);
+            bufferPos += bytesToCopy;
+            offset += bytesToCopy;
 
-            // 等待并发槽位
-            while (getActiveUploadCount() >= CONCURRENT_LIMIT) {
-                await new Promise(resolve => setTimeout(resolve, 100));
+            // 缓冲区填满时上传
+            if (bufferPos === CHUNK_SIZE) {
+                await uploadWithRateLimit();
+                // 等待并发槽位
+                while (getActiveUploadCount() >= CONCURRENT_LIMIT) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                const currentIndex = index;
+                index++;
+                const chunkBlob = new Blob([buffer]);
+
+                // 重置缓冲区
+                buffer = new Uint8Array(CHUNK_SIZE);
+                bufferPos = 0;
+
+                // 上传并更新进度
+                uploadChunkWithRetry(currentIndex, chunkBlob, urls)
+                    .then(() => {
+                        updateEstimatedCompletionTimeAfterUpload(startTime, urls.value, totalChunks.value);
+                    })
+                    .catch(error => {
+                        showToast('分块上传失败');
+                        addDebugOutput(`上传终止: ${error.message}`, debugOutput);
+                        status.value = "上传失败";
+                    });
+
+                status.value = `上传中...（已提交 ${index}/${totalChunks.value} 块）`;
             }
-
-            const currentIndex = index; // 保存当前索引
-            index++;
-            byteArray = [];
-            currentChunkSize = 0;
-
-            // 上传并更新进度
-            uploadChunkWithRetry(currentIndex, chunkBlob, urls)
-                .then(() => {
-                    updateEstimatedCompletionTimeAfterUpload(startTime, urls.value);
-                })
-                .catch(error => {
-                    showToast('分块上传失败');
-                    addDebugOutput(`上传终止: ${error.message}`, debugOutput);
-                    status.value = "上传失败";
-                });
-
-            status.value = `上传中...（已提交 ${index}/${totalChunks.value} 块）`;
         }
 
-        readAndUpload();
+        setTimeout(readAndUpload, 0);
     }
 
     readAndUpload();
@@ -264,7 +292,7 @@ async function uploadChunkWithRetry(i, chunk, urls) {
 
             } catch (error) {
                 lastError = error;
-                addDebugOutput(`块 ${i} 第${attempt}次尝试失败: ${error.message}`);
+                addDebugOutput(`块 ${i} 第${attempt}次尝试失败: ${error.message}`, debugOutput);
 
                 // 指数退避重试：1s, 2s, 4s
                 if (attempt < 3) {
@@ -343,49 +371,6 @@ function handleChunkUploadCompletion(urlsArray) {
     addDebugOutput(`最终链接: ${sjurl.value}`, debugOutput);
     saveUploadHistory(sjurl.value, uploadHistory); // 修正参数传递
     resetEstimatedCompletionTime();
-}
-
-// 新增完成时间估算方法
-function updateEstimatedCompletionTimeAfterUpload(startTime, urlsArray) {
-    const elapsed = Date.now() - startTime;
-    const completed = urlsArray.filter(url => !!url).length; // 使用传入的数组
-    const remaining = totalChunks.value - completed;
-    if (remaining === 0) {
-        resetEstimatedCompletionTime();
-        return;
-    }
-
-    // 清除旧定时器
-    if (intervalId) clearInterval(intervalId);
-
-    // 计算初始剩余时间
-    const averageTime = elapsed / (completed || 1);
-    let estimatedSeconds = Math.ceil((averageTime * remaining) / 1000);
-
-    // 立即更新显示
-    updateTimeDisplay(estimatedSeconds);
-
-    // 设置每秒更新
-    intervalId = setInterval(() => {
-        if (estimatedSeconds > 0) {
-            estimatedSeconds--;
-            updateTimeDisplay(estimatedSeconds);
-        } else {
-            clearInterval(intervalId);
-            estimatedCompletionTime.value = '正在等待服务器响应...';
-        }
-    }, 1000);
-}
-
-function updateTimeDisplay(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    estimatedCompletionTime.value = `预计完成还需: ${minutes} 分 ${remainingSeconds} 秒`;
-}
-
-function resetEstimatedCompletionTime() {
-    clearInterval(intervalId);
-    estimatedCompletionTime.value = '';
 }
 
 function handleCopy() {
