@@ -15,8 +15,8 @@ export default {
     computed: {
         iconPath() {
             return this.isDarkMode
-                ? '/Sun.svg'  // public目录下的浅色模式图标
-                : '/Moon.svg' // public目录下的深色模式图标
+                ? '/Sun.svg'  // 浅色模式图标
+                : '/Moon.svg' // 深色模式图标
         }
     },
     mounted() {

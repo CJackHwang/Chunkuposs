@@ -27,10 +27,20 @@ export default defineConfig({
         description: '流式分块上传工具，使用编程猫七牛云对象存储接口开发的微云盘',
         icons: [
           {
-            src: '/app.png',
+            src: '/App.png',
             sizes: '1024x1024',
             type: 'image/png',
           },
+          {
+            src: '/App-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/App-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
         ],
         "display": "standalone",
         "orientation": "portrait"
