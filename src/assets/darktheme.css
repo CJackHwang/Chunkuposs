@@ -1,18 +1,17 @@
 /* ========== 深色主题（现代全适配版） ========== */
 .dark-theme {
     /* 基础色板 */
-    --primary-color: #80CBC4;
-    --primary-hover: #A7E0DB;
-    --surface-color: #2D2F36;
-    --background-color: #1A1C23;
-    --divider-color: #40464F;
-    --text-primary: #E0E6F0;
-    --text-secondary: #9CA8B8;
+    --primary-color: #00968F;
+    --primary-hover: #1cc9c0;
+    --surface-color: #314a4a;
+    --background-color: #243636;
+    --divider-color: #477979;
+    --text-primary: #aee7e1;
+    --text-dark: #192322; /* 深灰文字 */
     --shadow-1: 0 2px 6px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.45);
     --shadow-3: 0 8px 16px rgba(0, 0, 0, 0.5);
-    --accent-1: #4DB6AC;
-    --accent-2: #546E7A;
+    --accent-2: #547a77;
 }
 
 /* 全局适配 */
@@ -23,19 +22,18 @@
 
 /* 头部 */
 .dark-theme header {
-    background: var(--accent-1);
+    background: var(--primary-color);
     border-color: rgba(255, 255, 255, 0.08);
-    color: #1A1C23;
+    color: var(--text-dark);
 }
 
 /* 文件上传区域 */
 .dark-theme .file-upload {
     --border-color: var(--divider-color);
-    --highlight-color: var(--accent-1);
-    --info-bg: rgba(77, 182, 172, 0.08);
+    --highlight-color: var(--primary-hover);
+    --info-bg: rgba(38, 137, 127, 0.398);
     background: var(--surface-color);
     border: 1.5px dashed var(--border-color);
-    --border-color: #79747E;
 }
 
 .dark-theme .file-upload:hover {
@@ -43,23 +41,23 @@
 }
 
 .dark-theme .highlight {
-    color: var(--accent-1);
+    color: var(--primary-hover);
 }
 
 /* 输入系统 */
 .dark-theme #sjurl {
-    background: rgba(26, 28, 35, 0.9);
+    background: rgba(25, 34, 34, 0.9);
     border-color: var(--divider-color);
     color: var(--text-primary);
 }
 
 .dark-theme #sjurl:focus {
-    border-color: var(--accent-2);
+    outline: 1px solid var(--primary-hover);
 }
 
 /* 开关组件 */
 .dark-theme .chunk-toggle {
-    --active-color: var(--accent-1);
+    --active-color: var(--primary-hover);
     --border-color: var(--divider-color);
     --hover-bg: rgba(77, 182, 172, 0.1);
     color: var(--text-primary);
@@ -71,16 +69,14 @@
 
 /* 按钮系统 */
 .dark-theme button {
-    background: var(--accent-1);
-    border-color: rgba(128, 203, 196, 0.3);
-    color: #1A1C23;
+    background: var(--primary-color);
+    color: var(--text-dark);
 }
 
 .dark-theme button:hover {
     background: var(--primary-hover);
     box-shadow: var(--shadow-2);
     /* 同步浅色主题的阴影层级 */
-    color: #1A1C23;
 }
 
 /* 表格系统 */
@@ -95,12 +91,12 @@
 }
 
 .dark-theme .upload-history-table th {
-    background: rgba(64, 70, 79, 0.6);
-    color: var(--text-secondary);
+    background: var(--background-color);
+    color: var(--text-primary);
 }
 
 .dark-theme .upload-history-table td {
-    background: rgba(26, 28, 35, 0.9);
+    background: rgba(25, 34, 34, 0.9);
     color: var(--text-primary);
 }
 
@@ -110,12 +106,12 @@
 }
 
 .dark-theme .link-cell {
-    color: var(--accent-1) !important;
+    color: var(--primary-color) !important;
 }
 
 /* 调试面板 */
 .dark-theme .debug-output {
-    background: rgba(26, 28, 35, 0.9);
+    background: rgba(25, 34, 34, 0.9);
 }
 
 .dark-theme .debug-output pre {
@@ -128,25 +124,24 @@
 }
 
 .dark-theme footer a {
-    color: var(--accent-1);
+    color: var(--primary-color);
 }
 
-.dark-theme footer a:hover {
-    background: rgba(77, 182, 172, 0.1);
+.dark-theme footer p {
+    color: var(--text-primary);
 }
 
 /* 辅助元素 */
 .dark-theme .chunk-info {
-    background: rgba(64, 70, 79, 0.3);
-    color: var(--text-secondary);
+    background: var(--background-color);
+    color: var(--text-primary);
 }
 
-/* 阴影增强 */
 .dark-theme header,
 .dark-theme main,
 .dark-theme .file-upload,
 .dark-theme footer {
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-1);
 }
 
 /* 替换原 * 选择器 */
@@ -168,7 +163,8 @@
 }
 
 .dark-theme .m3-toast {
-    background: var(--accent-1) !important;
+    background: var(--primary-color) !important;
     border-color: var(--accent-2);
     box-shadow: var(--shadow-3) !important;
+    color: var(--text-dark);
 }
