@@ -23,7 +23,7 @@ export default defineConfig({
       manifest: {
         name: 'FlowChunkFlex',
         short_name: 'FCF微云盘',
-        theme_color: '#1A1C23',
+        theme_color: '#00968F',
         description: '流式分块上传工具，使用编程猫七牛云对象存储接口开发的微云盘',
         icons: [
           {
