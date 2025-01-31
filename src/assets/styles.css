@@ -1,12 +1,11 @@
 /* ========== Material Design 风格重构 ========== */
 :root {
-    --primary-color: #4DB6AC;      /* M3 Teal 200 */
-    --primary-hover: #80CBC4;      /* M3 Teal 300 */
+    --primary-color: #00968F;      /* M3 Teal */
+    --primary-hover: #1dc3bb; 
     --surface-color: #FFFFFF;      /* 表面纯白 */
-    --background-color: #F5FDFC;   /* 浅青背景 */
-    --divider-color: #B2DFDB;      /* 青色调分隔线 */
-    --text-primary: #1A1C23;       /* 深灰文字 */
-    --text-secondary: #546E7A;     /* 青灰文字 */
+    --background-color: #e9fffd;   /* 浅青背景 */
+    --divider-color: #78b0ab;      /* 青色调分隔线 */
+    --text-primary: #3f5b58;       /* 文字 */
 
     --spacing-1: 4px;
     --spacing-2: 8px;
@@ -21,9 +20,9 @@
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
 
-    --shadow-1: 0 1px 3px rgba(26, 28, 35, 0.12);
-    --shadow-2: 0 3px 6px rgba(26, 28, 35, 0.15);
-    --shadow-3: 0 6px 12px rgba(26, 28, 35, 0.18);
+    --shadow-1: 0 1px 3px rgba(26, 35, 34, 0.12);
+    --shadow-2: 0 3px 6px rgba(26, 35, 34, 0.15);
+    --shadow-3: 0 6px 12px rgba(26, 35, 34, 0.18);
 
     --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
     /* 辅助色 */
@@ -121,7 +120,7 @@ main {
 .file-info,
 .chunk-info {
     margin-top: 1rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 0.9em;
 }
 
@@ -156,9 +155,7 @@ main {
 }
 
 #sjurl:focus {
-    box-shadow: var(--shadow-2);
-    outline: 2px solid rgba(103, 80, 164, 0.2);
-    border-color: var(--primary-color);
+    outline: 1px solid var(--primary-color);
 }
 
 .url-container {
@@ -189,7 +186,7 @@ main {
 
 .chunk-toggle input[disabled]+.custom-checkbox {
     opacity: 0.5;
-    background-color: #eee;
+    background-color: var(--divider-color);
     cursor: not-allowed;
 }
 
@@ -323,7 +320,7 @@ button:hover {
     padding: var(--spacing-3) var(--spacing-4);
     font-weight: 600;
     text-align: left;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     height: 56px;
     /* M3标准行高 */
     transition: background 0.2s var(--ease-standard);
@@ -383,7 +380,7 @@ footer p {
     max-width: 800px;
     margin: var(--spacing-2) auto;
     padding: 0 var(--spacing-4);
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -403,11 +400,6 @@ footer a {
     padding: 2px 4px;
     margin: 0 -4px;
     border-radius: var(--border-radius-sm);
-}
-
-footer a:hover {
-    color: var(--primary-hover);
-    background: var(--hover-bg);
 }
 
 /* ===== 响应式优化 ===== */
@@ -445,7 +437,7 @@ main,
 }
 .m3-toast {
     background: var(--primary-color) !important;
-    color: var(--surface-color) !important;
+    color: var(--surface-color);
     border: 1px solid var(--divider-color);
     box-shadow: var(--shadow-2) !important;
     border-radius: var(--border-radius-lg) !important;
