@@ -1,12 +1,12 @@
 /* ========== Material Design 风格重构 ========== */
 :root {
-    --primary-color: #6750A4;
-    --primary-hover: #7F67BE;
-    --surface-color: #FEF7FF;
-    --background-color: #f0eaf4;
-    --divider-color: #79747E;
-    --text-primary: #1C1B1F;
-    --text-secondary: #4A4458;
+    --primary-color: #4DB6AC;      /* M3 Teal 200 */
+    --primary-hover: #80CBC4;      /* M3 Teal 300 */
+    --surface-color: #FFFFFF;      /* 表面纯白 */
+    --background-color: #F5FDFC;   /* 浅青背景 */
+    --divider-color: #B2DFDB;      /* 青色调分隔线 */
+    --text-primary: #1A1C23;       /* 深灰文字 */
+    --text-secondary: #546E7A;     /* 青灰文字 */
 
     --spacing-1: 4px;
     --spacing-2: 8px;
@@ -14,15 +14,21 @@
     --spacing-4: 16px;
     --spacing-5: 24px;
 
+    --error-color: #FF5252;
+    --success-color: #69F0AE;
+
     --border-radius-sm: 4px;
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
 
-    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12);
-    --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.15);
-    --shadow-3: 0 4px 8px rgba(0, 0, 0, 0.18);
+    --shadow-1: 0 1px 3px rgba(26, 28, 35, 0.12);
+    --shadow-2: 0 3px 6px rgba(26, 28, 35, 0.15);
+    --shadow-3: 0 6px 12px rgba(26, 28, 35, 0.18);
 
     --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    /* 辅助色 */
+    --hover-bg: rgba(77, 182, 172, 0.08);  /* 主色8%透明 */
+    --active-bg: rgba(77, 182, 172, 0.12); /* 主色12%透明 */
 }
 
 /* ===== 基础重置 ===== */
@@ -40,14 +46,9 @@ body {
 /* ===== 通用阴影和圆角样式 ===== */
 header,
 main,
-#uploadHistory,
-.table-container,
-#sjurl,
-.debug-output,
-.file-upload,
 footer {
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-1);
+    box-shadow: var(--shadow-2);
 }
 
 /* ===== Material Header ===== */
@@ -56,6 +57,7 @@ header {
     color: var(--surface-color);
     padding: var(--spacing-4) var(--spacing-5);
     border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
     margin-bottom: var(--spacing-5);
     transition: box-shadow 0.3s var(--ease-standard);
 
@@ -77,21 +79,23 @@ main {
 
 /* ===== 文件上传组件 ===== */
 .file-upload {
-    --border-color: #79747E;
-    --highlight-color: #6750A4;
+    border-color: var(--divider-color);
+    --highlight-color: var(--primary-color);
     --info-bg: var(--background-color);
     background: var(--surface-color);
-    border: 1.5px dashed var(--border-color);
+    border: 1.5px dashed var(--divider-color);
+    border-radius: var(--border-radius-lg);
     padding: 2rem;
     text-align: center;
     position: relative;
     transition: all 0.3s ease;
     margin: 1rem auto;
+    box-shadow: var(--shadow-1);
 }
 
 .file-upload:hover {
     border-color: var(--highlight-color);
-    background: rgba(103, 80, 164, 0.03);
+    background: var(--hover-bg);
 }
 
 .hidden-input {
@@ -145,13 +149,16 @@ main {
     transition: border-color 0.1s var(--ease-standard);
     background: var(--surface-color);
     box-sizing: border-box;
+    box-shadow: var(--shadow-1);
     padding: 8px 12px;
     color: var(--text-primary);
+    border-color: var(--divider-color);
 }
 
 #sjurl:focus {
     box-shadow: var(--shadow-2);
     outline: 2px solid rgba(103, 80, 164, 0.2);
+    border-color: var(--primary-color);
 }
 
 .url-container {
@@ -163,9 +170,9 @@ main {
 .chunk-toggle {
     --toggle-height: 40px;
     /* 与按钮高度一致 */
-    --active-color: #6750A4;
-    --border-color: #79747E;
-    --hover-bg: rgba(103, 80, 164, 0.08);
+    --active-color: var(--primary-color);
+    --border-color: var(--divider-color);
+    --hover-bg: var(--hover-bg);
     display: inline-flex;
     align-items: center;
     cursor: pointer;
@@ -202,6 +209,7 @@ main {
     border: 1.5px solid var(--border-color);
     border-radius: var(--border-radius-sm);
     border-width: 2px;
+    border-color: var(--divider-color);
     position: absolute;
     transition: all 0.2s ease;
     box-sizing: border-box;
@@ -210,8 +218,8 @@ main {
 }
 
 .toggle-input:checked+.custom-checkbox {
-    border-color: var(--active-color);
-    background: var(--active-color);
+    border-color: var(--primary-color);
+    background: var(--primary-color);
 }
 
 .toggle-input:checked+.custom-checkbox::after {
@@ -245,8 +253,9 @@ button {
     padding: 10px 24px;
     background: var(--primary-color);
     color: var(--surface-color);
-    border: 1px solid rgba(103, 80, 164, 0.3);
+    border: 1px;
     border-radius: 50px;
+    border-color: rgba(77, 182, 172, 0.3);
     box-shadow: var(--shadow-1);
     font-size: 14px;
     font-weight: 500;
@@ -257,7 +266,10 @@ button {
     align-items: center;
     gap: 8px;
 }
-
+button:hover {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-2);
+}
 /* 按钮组统一间距 */
 .button-group,
 .debug-buttons,
@@ -269,19 +281,10 @@ button {
     flex-wrap: wrap;
 }
 
-/* 移除冗余定义，继承全局按钮样式 */
-.debug-buttons button,
-.history-actions button {
-    /* 保持与全局按钮一致 */
-    padding: 10px 24px;
-    font-size: 14px;
-}
-
 /* ===== 表格系统 ===== */
 #uploadHistory {
     margin-top: var(--spacing-4);
     border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-1);
     background: var(--surface-color);
     border: 1px solid var(--divider-color);
     overflow: hidden;
@@ -297,6 +300,7 @@ button {
     border: 1px solid var(--divider-color);
     /* 增加外边框 */
     border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-1);
 
 }
 
@@ -315,6 +319,7 @@ button {
 }
 
 .upload-history-table th {
+    background: rgba(245, 253, 252, 0.8);
     padding: var(--spacing-3) var(--spacing-4);
     font-weight: 600;
     text-align: left;
@@ -336,7 +341,7 @@ button {
 
 /* 行悬停效果 */
 .upload-history-table tr:hover td {
-    background: var(--background-color);
+    background: var(--hover-bg);
 }
 
 /* 链接单元格优化 */
@@ -349,12 +354,14 @@ button {
     background: var(--surface-color);
     border: 1px solid var(--divider-color);
     border-radius: var(--border-radius-md);
+    border-color: var(--divider-color);
     padding: var(--spacing-3);
     margin: var(--spacing-4) 0;
     font-family: monospace;
     overflow-x: auto;
     overflow-y: auto;
     max-height: 200px;
+    box-shadow: var(--shadow-1);
 }
 
 .debug-output pre {
@@ -369,6 +376,7 @@ footer {
     background: var(--surface-color);
     margin-top: var(--spacing-5);
     padding: var(--spacing-4);
+    border-color: var(--divider-color);
 }
 
 footer p {
@@ -399,7 +407,7 @@ footer a {
 
 footer a:hover {
     color: var(--primary-hover);
-    background: rgba(103, 80, 164, 0.08);
+    background: var(--hover-bg);
 }
 
 /* ===== 响应式优化 ===== */
@@ -435,14 +443,13 @@ main,
     will-change: transform;
     transform: translateZ(0);
 }
-
-/* 在styles.css末尾添加 */
 .m3-toast {
     background: var(--primary-color) !important;
     color: var(--surface-color) !important;
     border: 1px solid var(--divider-color);
     box-shadow: var(--shadow-2) !important;
     border-radius: var(--border-radius-lg) !important;
+    border-color: var(--divider-color);
     padding: 12px 20px !important;
     font: 400 14px/20px Roboto;
     margin: 0 16px 16px 0;
