@@ -2,7 +2,7 @@
   <div id="app">
     <header>
       <h2>FCF-微云盘</h2>
-      <a>Ver：5.2.2</a>
+      <a>Ver：5.2.3</a>
       <p>
         基于Vue3+Vite6开发；流式读取文件分块并发提交至CodemaoCDN以绕过大小限制；中断自动重传，默认单块最大15MB，并发上传数2。
       </p>
