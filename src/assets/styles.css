@@ -160,7 +160,7 @@ main {
     margin: 1rem 0;
 }
 
-/* ===== 分片开关组件 ===== */
+/* ===== 分片开关组件和主题按钮 ===== */
 .chunk-toggle {
     --toggle-height: 40px;
     /* 与按钮高度一致 */
@@ -193,6 +193,13 @@ main {
 
 .chunk-toggle:focus-within {
     box-shadow: var(--shadow-2);
+}
+
+:root {
+    --icon-color: var(--text-primary); /* 主题svg跟随文字颜色 */
+}
+.dark-theme {
+    --icon-color: var(--text-primary); /* 深色模式 */
 }
 
 .custom-checkbox {
