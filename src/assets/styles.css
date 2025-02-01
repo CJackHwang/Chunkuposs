@@ -3,7 +3,7 @@
     --primary-color: #00968F;      /* M3 Teal */
     --primary-hover: #1dc3bb; 
     --surface-color: #FFFFFF;      /* 表面纯白 */
-    --background-color: #e9fffd;   /* 浅青背景 */
+    --background-color: #ebf9f8;   /* 浅青背景 */
     --divider-color: #78b0ab;      /* 青色调分隔线 */
     --text-primary: #3f5b58;       /* 文字 */
 
@@ -20,9 +20,9 @@
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
 
-    --shadow-1: 0 1px 3px rgba(26, 35, 34, 0.12);
-    --shadow-2: 0 3px 6px rgba(26, 35, 34, 0.15);
-    --shadow-3: 0 6px 12px rgba(26, 35, 34, 0.18);
+    --shadow-1: 0 1px 3px rgba(16, 21, 21, 0.12);
+    --shadow-2: 0 3px 6px rgba(16, 21, 21, 0.15);
+    --shadow-3: 0 6px 12px rgba(16, 21, 21, 0.18);
 
     --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
     /* 辅助色 */
@@ -47,7 +47,7 @@ header,
 main,
 footer {
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-1);
 }
 
 /* ===== Material Header ===== */
@@ -78,7 +78,6 @@ main {
 
 /* ===== 文件上传组件 ===== */
 .file-upload {
-    border-color: var(--divider-color);
     --highlight-color: var(--primary-color);
     --info-bg: var(--background-color);
     background: var(--surface-color);
@@ -89,7 +88,6 @@ main {
     position: relative;
     transition: all 0.3s ease;
     margin: 1rem auto;
-    box-shadow: var(--shadow-1);
 }
 
 .file-upload:hover {
@@ -142,13 +140,12 @@ main {
 /* ===== URL输入框 ===== */
 #sjurl {
     width: 100%;
-    height: 40px;
+    height: 45px;
     border: 1.5px solid var(--divider-color);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-sm);
     transition: border-color 0.1s var(--ease-standard);
     background: var(--surface-color);
     box-sizing: border-box;
-    box-shadow: var(--shadow-1);
     padding: 8px 12px;
     color: var(--text-primary);
     border-color: var(--divider-color);
@@ -297,8 +294,6 @@ button:hover {
     border: 1px solid var(--divider-color);
     /* 增加外边框 */
     border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-1);
-
 }
 
 /* 统一表格边框和悬停效果 */
@@ -358,7 +353,6 @@ button:hover {
     overflow-x: auto;
     overflow-y: auto;
     max-height: 200px;
-    box-shadow: var(--shadow-1);
 }
 
 .debug-output pre {

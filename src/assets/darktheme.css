@@ -1,12 +1,12 @@
 /* ========== 深色主题（现代全适配版） ========== */
 .dark-theme {
     /* 基础色板 */
-    --primary-color: #00968F;
-    --primary-hover: #1cc9c0;
-    --surface-color: #314a4a;
-    --background-color: #243636;
-    --divider-color: #477979;
-    --text-primary: #aee7e1;
+    --primary-color: #09a39c;
+    --primary-hover: #1bcec5;
+    --surface-color: #2f4040;
+    --background-color: #1d2929;
+    --divider-color: #5f8a8a;
+    --text-primary: #c3ddda;
     --text-dark: #192322; /* 深灰文字 */
     --shadow-1: 0 2px 6px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.45);
@@ -29,11 +29,11 @@
 
 /* 文件上传区域 */
 .dark-theme .file-upload {
-    --border-color: var(--divider-color);
     --highlight-color: var(--primary-hover);
     --info-bg: rgba(38, 137, 127, 0.398);
     background: var(--surface-color);
-    border: 1.5px dashed var(--border-color);
+    border: 1.5px dashed var(--divider-color);
+    box-shadow: none !important;
 }
 
 .dark-theme .file-upload:hover {
@@ -46,7 +46,7 @@
 
 /* 输入系统 */
 .dark-theme #sjurl {
-    background: rgba(25, 34, 34, 0.9);
+    background: var(--surface-color);
     border-color: var(--divider-color);
     color: var(--text-primary);
 }
@@ -70,6 +70,7 @@
 /* 按钮系统 */
 .dark-theme button {
     background: var(--primary-color);
+    box-shadow: var(--shadow-1);
     color: var(--text-dark);
 }
 
@@ -86,7 +87,6 @@
 
 .dark-theme .upload-history-table {
     border-color: var(--accent-2);
-    box-shadow: var(--shadow-1);
     /* 同步深色阴影 */
 }
 
@@ -96,7 +96,7 @@
 }
 
 .dark-theme .upload-history-table td {
-    background: rgba(25, 34, 34, 0.9);
+    background: var(--background-color);
     color: var(--text-primary);
 }
 
@@ -111,7 +111,7 @@
 
 /* 调试面板 */
 .dark-theme .debug-output {
-    background: rgba(25, 34, 34, 0.9);
+    background: var(--background-color);
 }
 
 .dark-theme .debug-output pre {
