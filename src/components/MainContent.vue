@@ -148,7 +148,7 @@ async function uploadFile() {
 async function uploadSingleFile() {
     const formData = new FormData();
     formData.append('file', file.value, file.value.name);
-    formData.append('path', 'pickduck');
+    formData.append('path', 'flowchunkflex');
 
     try {
         const response = await fetchWithRetry(UPLOAD_URL, {
@@ -258,7 +258,7 @@ async function uploadChunkWithRetry(i, chunk, urls) {
     try {
         const formData = new FormData();
         formData.append('file', chunk, `chunk-${i}`); // 强制使用无后缀块名
-        formData.append('path', 'pickduck');
+        formData.append('path', 'flowchunkflex');
 
         const dynamicTimeout = Math.max(5000, (chunk.size / (20 * 1024 * 1024)) * 60000); // 最低5秒
 
@@ -403,7 +403,7 @@ async function downloadFiles() {
     // 修改 downloadFiles 函数中的URL解析逻辑
     const urls = matches[2].split(',').map(item => {
         const [legacyFilename] = item.split('?'); // 兼容新旧格式
-        return `https://static.codemao.cn/pickduck/${legacyFilename}`;
+        return `https://static.codemao.cn/flowchunkflex/${legacyFilename}`;
     });
 
     status.value = "下载中...";
