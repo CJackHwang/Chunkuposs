@@ -1,7 +1,9 @@
+/* START OF FILE styles.css */
+
 /* ========== Material Design 风格重构 ========== */
 :root {
     --primary-color: #00968F;      /* M3 Teal */
-    --primary-hover: #1dc3bb; 
+    --primary-hover: #1dc3bb;
     --surface-color: #FFFFFF;      /* 表面纯白 */
     --background-color: #ebf9f8;   /* 浅青背景 */
     --divider-color: #78b0ab;      /* 青色调分隔线 */
@@ -16,9 +18,11 @@
     --error-color: #FF5252;
     --success-color: #69F0AE;
 
-    --border-radius-sm: 4px;
-    --border-radius-md: 12px;
-    --border-radius-lg: 16px;
+    /* --- 圆角变量 --- */
+    --border-radius-sm: 4px;   /* 小圆角 (输入框, 复选框, debug, chunk-info, toast) */
+    --border-radius-md: 12px;  /* 中圆角 (开关容器) - 保留原样 */
+    --border-radius-lg: 16px;  /* 大圆角 (Header, Main, Footer, File Upload) - 保留原样 */
+    --border-radius-xl: 8px;   /* 新增：用于表格容器，与深色模式统一 */
 
     --shadow-1: 0 1px 3px rgba(16, 21, 21, 0.12);
     --shadow-2: 0 3px 6px rgba(16, 21, 21, 0.15);
@@ -28,6 +32,9 @@
     /* 辅助色 */
     --hover-bg: rgba(77, 182, 172, 0.08);  /* 主色8%透明 */
     --active-bg: rgba(77, 182, 172, 0.12); /* 主色12%透明 */
+
+    /* Icon Color Variable */
+    --icon-color: var(--text-primary); /* 默认图标颜色 */
 }
 
 /* ===== 基础重置 ===== */
@@ -46,7 +53,7 @@ body {
 header,
 main,
 footer {
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius-lg); /* 保留大圆角 */
     box-shadow: var(--shadow-1);
 }
 
@@ -82,7 +89,7 @@ main {
     --info-bg: var(--background-color);
     background: var(--surface-color);
     border: 1.5px dashed var(--divider-color);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius-lg); /* 保留大圆角 */
     padding: 2rem;
     text-align: center;
     position: relative;
@@ -115,17 +122,19 @@ main {
     margin-left: 4px;
 }
 
-.file-info,
+.file-info {
+     margin-top: 1rem;
+     color: var(--text-primary);
+     font-size: 0.9em;
+}
+
 .chunk-info {
     margin-top: 1rem;
     color: var(--text-primary);
     font-size: 0.9em;
-}
-
-.chunk-info {
     padding: 1rem;
     background: var(--info-bg);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-sm); /* <<< 修改: 统一为小圆角 (4px) */
 }
 
 .settings-group {
@@ -142,7 +151,7 @@ main {
     width: 100%;
     height: 45px;
     border: 1.5px solid var(--divider-color);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm); /* 已是小圆角 (4px) */
     transition: border-color 0.1s var(--ease-standard);
     background: var(--surface-color);
     box-sizing: border-box;
@@ -175,7 +184,7 @@ main {
     font-size: 14px;
     padding: 9px 12px 9px 40px;
     /* 左留空适应复选框 */
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-md); /* <<< 保留中圆角 (12px) */
     transition: background 0.2s var(--ease-standard);
     position: relative;
     box-shadow: var(--shadow-1);
@@ -195,12 +204,7 @@ main {
     box-shadow: var(--shadow-2);
 }
 
-:root {
-    --icon-color: var(--text-primary); /* 主题svg跟随文字颜色 */
-}
-.dark-theme {
-    --icon-color: var(--text-primary); /* 深色模式 */
-}
+/* Icon color is handled by the :root variable --icon-color */
 
 .custom-checkbox {
     display: inline-block;
@@ -208,7 +212,7 @@ main {
     width: 20px;
     height: 20px;
     border: 1.5px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm); /* 已是小圆角 (4px) */
     border-width: 2px;
     border-color: var(--divider-color);
     position: absolute;
@@ -255,7 +259,7 @@ button {
     background: var(--primary-color);
     color: var(--surface-color);
     border: 1px;
-    border-radius: 50px;
+    border-radius: 50px; /* <<< 保留原样 (胶囊形状) */
     border-color: rgba(77, 182, 172, 0.3);
     box-shadow: var(--shadow-1);
     font-size: 14px;
@@ -285,13 +289,13 @@ button:hover {
 /* ===== 表格系统 ===== */
 #uploadHistory {
     margin-top: var(--spacing-4);
-    border-radius: var(--border-radius-md);
     background: var(--surface-color);
     border: 1px solid var(--divider-color);
     overflow: hidden;
     /* 保持圆角效果 */
     display: flex;
     flex-direction: column;
+    border-radius: var(--border-radius-xl); /* <<< 修改: 统一为 8px */
 }
 
 .table-container {
@@ -300,7 +304,11 @@ button:hover {
     position: relative;
     border: 1px solid var(--divider-color);
     /* 增加外边框 */
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-xl); /* <<< 修改: 统一为 8px */
+    /* Inner border radius needs to be slightly smaller if border exists, or match if no border */
+    /* Since #uploadHistory already provides the outer border/radius, we might not need border here */
+    /* Let's remove the border here for cleaner nesting */
+    border: 1px solid var(--divider-color);
 }
 
 /* 统一表格边框和悬停效果 */
@@ -327,6 +335,9 @@ button:hover {
     /* M3标准行高 */
     transition: background 0.2s var(--ease-standard);
 }
+/* First and Last TH for potential rounding if needed, but maybe handled by container */
+/* .upload-history-table th:first-child { border-top-left-radius: var(--border-radius-xl); } */
+/* .upload-history-table th:last-child { border-top-right-radius: var(--border-radius-xl); } */
 
 /* 单元格 */
 .upload-history-table td {
@@ -337,6 +348,12 @@ button:hover {
     transition: background 0.2s var(--ease-standard);
     font-size: 12px;
 }
+
+/* Remove bottom border for last row */
+.upload-history-table tr:last-child td {
+    border-bottom: none;
+}
+
 
 /* 行悬停效果 */
 .upload-history-table tr:hover td {
@@ -352,7 +369,7 @@ button:hover {
 .debug-output {
     background: var(--surface-color);
     border: 1px solid var(--divider-color);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-sm); /* <<< 修改: 统一为小圆角 (4px) */
     border-color: var(--divider-color);
     padding: var(--spacing-3);
     margin: var(--spacing-4) 0;
@@ -375,6 +392,7 @@ footer {
     margin-top: var(--spacing-5);
     padding: var(--spacing-4);
     border-color: var(--divider-color);
+    /* border-radius is already --border-radius-lg from general rule */
 }
 
 footer p {
@@ -400,7 +418,7 @@ footer a {
     transition: color 0.2s var(--ease-standard);
     padding: 2px 4px;
     margin: 0 -4px;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm); /* 已是小圆角 (4px) */
 }
 
 /* ===== 响应式优化 ===== */
@@ -430,18 +448,21 @@ footer a {
     }
 }
 
+/* Performance Hint: Promote layers for potentially complex/animated elements */
 main,
 .file-upload,
 #uploadHistory {
-    will-change: transform;
-    transform: translateZ(0);
+    will-change: transform; /* Keep existing hint */
+    transform: translateZ(0); /* Keep existing hint */
 }
+
+/* Toast Notification Styling */
 .m3-toast {
-    background: var(--primary-color) !important;
+    background: var(--primary-color) !important; /* Keep original color */
     color: var(--surface-color);
     border: 1px solid var(--divider-color);
     box-shadow: var(--shadow-2) !important;
-    border-radius: var(--border-radius-lg) !important;
+    border-radius: var(--border-radius-sm) !important; /* <<< 修改: 统一为小圆角 (4px) */
     border-color: var(--divider-color);
     padding: 12px 20px !important;
     font: 400 14px/20px Roboto;
@@ -449,5 +470,10 @@ main,
 }
 
 .m3-toast a {
-    color: var(--primary-color) !important;
+    color: var(--primary-color) !important; /* Needs high specificity or different color */
+    /* Consider a lighter text color on primary bg for links */
+    /* color: var(--surface-color) !important; */
+    /* text-decoration: underline; */
 }
+
+/* END OF FILE styles.css */
