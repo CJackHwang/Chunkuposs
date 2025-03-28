@@ -1,5 +1,6 @@
 <template>
     <main>
+        <!-- Section 1: File Upload -->
         <div class="file-upload">
             <input type="file" @change="updateFileInfo" class="hidden-input">
             <div class="upload-area">
@@ -15,34 +16,48 @@
                 </div>
             </div>
         </div>
-        <div class="button-group">
-            <button @click="uploadFile">上传文件</button>
-            <button @click="helpers.resetAll('确定要刷新页面吗？')">重置页面</button>
 
-        </div>
+        <!-- Settings relevant to Upload (and general settings) -->
         <div class="settings-group">
             <label class="chunk-toggle">
                 <input type="checkbox" v-model="isChunkedMode" :disabled="isChunkDisabled" class="toggle-input">
                 <span class="custom-checkbox"></span>
                 <span class="label-text">「分块上传模式」</span>
             </label>
-            <ThemeToggle />
+            <ThemeToggle /> <!-- Theme toggle kept with other settings -->
         </div>
+
+        <!-- Primary Actions for File Upload -->
+        <div class="button-group">
+            <button @click="uploadFile">上传文件</button>
+            <button @click="helpers.resetAll('确定要刷新页面吗？')">重置页面</button>
+        </div>
+
+        <!-- Section 2: Download via URL -->
         <div class="url-container">
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>
+
+        <!-- Actions related to URL Input -->
         <div class="action-buttons">
             <button v-if="sjurl" @click="handleCopy">复制链接</button>
             <button v-if="sjurl" @click="downloadFiles">下载文件</button>
         </div>
+
+        <!-- Section 3: Status & Information -->
         <div id="status" class="status-message">
             {{ status }}
-            <p>
+            <p v-if="estimatedCompletionTime"> <!-- Only show paragraph if time exists -->
                 {{ estimatedCompletionTime }}
             </p>
         </div>
+
+        <!-- Debugging Output -->
         <DebugLogger :debug-output="debugOutput" @clear-log="handleClearLog" @export-log="exportLog" />
+
+        <!-- Upload History Table -->
         <UploadHistory :history="uploadHistory" @clear-history="handleClear" @export-history="exportHistory" />
+
     </main>
 </template>
 
