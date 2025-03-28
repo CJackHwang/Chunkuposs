@@ -1,5 +1,6 @@
 <template>
     <main>
+        <!-- Section 1: File Upload -->
         <div class="file-upload">
             <input type="file" @change="updateFileInfo" class="hidden-input">
             <div class="upload-area">
@@ -15,34 +16,52 @@
                 </div>
             </div>
         </div>
-        <div class="button-group">
-            <button @click="uploadFile">上传文件</button>
-            <button @click="helpers.resetAll('确定要刷新页面吗？')">重置页面</button>
 
-        </div>
+        <!-- Settings relevant to Upload (and general settings) -->
         <div class="settings-group">
             <label class="chunk-toggle">
                 <input type="checkbox" v-model="isChunkedMode" :disabled="isChunkDisabled" class="toggle-input">
                 <span class="custom-checkbox"></span>
                 <span class="label-text">「分块上传模式」</span>
             </label>
-            <ThemeToggle />
+            <ThemeToggle /> <!-- Theme toggle kept with other settings -->
         </div>
+
+        <!-- Primary Actions for File Upload -->
+        <div class="button-group">
+            <button @click="uploadFile">上传文件</button>
+            <button @click="helpers.resetAll('确定要刷新页面吗？')">重置页面</button>
+        </div>
+
+        <!-- Section 2: Download via URL -->
         <div class="url-container">
             <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>
+
+        <!-- Actions related to URL Input -->
         <div class="action-buttons">
             <button v-if="sjurl" @click="handleCopy">复制链接</button>
             <button v-if="sjurl" @click="downloadFiles">下载文件</button>
         </div>
+
+        <!-- Section 3: Status & Information -->
         <div id="status" class="status-message">
             {{ status }}
-            <p>
+            <p v-if="estimatedCompletionTime"> <!-- Only show paragraph if time exists -->
                 {{ estimatedCompletionTime }}
             </p>
         </div>
+
+        <!-- Debugging Output -->
         <DebugLogger :debug-output="debugOutput" @clear-log="handleClearLog" @export-log="exportLog" />
-        <UploadHistory :history="uploadHistory" @clear-history="handleClear" @export-history="exportHistory" />
+
+        <!-- Upload History Table -->
+        <UploadHistory
+            :history="uploadHistory"
+            @clear-history="handleClear"
+            @export-history="exportHistory"
+            @select-item="handleHistoryItemSelect" /> <!-- [!code ++] Listen for the 'select-item' event -->
+
     </main>
 </template>
 
@@ -52,7 +71,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
-import UploadHistory from '@/components/UploadHistory.vue';
+import UploadHistory from '@/components/UploadHistory.vue'; // Make sure path is correct
 import { STORAGE_KEYS } from '@/utils/storageHelper';
 import {
     addDebugOutput,
@@ -68,7 +87,7 @@ const {
     updateEstimatedCompletionTimeAfterUpload,
     resetEstimatedCompletionTime
 } = useTimeEstimation();
-const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 20 MB
+const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 15 MB (Adjusted from comment)
 const MIN_CHUNK_SIZE = 1 * 1024 * 1024;
 const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'
 const REQUEST_RATE_LIMIT = 5;// 每秒最多5次请求
@@ -85,388 +104,682 @@ const uploadHistory = ref([]);
 const isChunkedMode = ref(false);
 const activeUploads = ref(0);
 const isChunkDisabled = computed(() => {
-    return file.value?.size <= MIN_CHUNK_SIZE; // 使用可选链操作符
+    // Allow disabling only if file exists and is <= MIN_CHUNK_SIZE
+    return file.value && file.value.size <= MIN_CHUNK_SIZE;
 });
 
 onMounted(() => {
-    loadLog(); // [!code ++] 统一初始化日志和历史记录
+    loadLog();
+    loadUploadHistory(uploadHistory); // Ensure history is loaded on mount
 });
 onUnmounted(() => {
     resetEstimatedCompletionTime();
 });
 
 function updateFileInfo(event) {
-    file.value = event.target.files[0];
-    chunkSizeVisible.value = !!file.value;
-    if (file.value) {
-        const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
-        fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
+    const selectedFile = event.target.files[0];
+    if (!selectedFile) {
+        // Reset if no file is selected or selection is cancelled
+        file.value = null;
+        fileInfo.value = '';
+        chunkSizeVisible.value = false;
+        chunkValue.value = 0;
+        totalChunks.value = 0;
+        isChunkedMode.value = false; // Reset chunk mode
+        sjurl.value = ''; // Optionally clear the URL input
+        status.value = ''; // Clear status
+        resetEstimatedCompletionTime(); // Reset time estimation
+        return;
+    }
 
-        chunkSize.value = Math.min(
-            Math.max(file.value.size / 2, MIN_CHUNK_SIZE), // 确保不小于1MB
-            MAX_CHUNK_SIZE
-        );
-        chunkSize.value = Math.max(
-            Math.min(
-                Math.ceil(file.value.size / 2),
-                MAX_CHUNK_SIZE
-            ),
-            MIN_CHUNK_SIZE
-        );
+    file.value = selectedFile;
+    chunkSizeVisible.value = true; // Show chunk info when a file is selected
 
-        chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
-        totalChunks.value = Math.ceil(file.value.size / chunkSize.value);
+    const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+    fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
 
-        // 小文件强制单块模式
-        if (file.value.size <= MIN_CHUNK_SIZE) {
-            isChunkedMode.value = false;
-            chunkSizeVisible.value = false;
-            totalChunks.value = 1;
-            addDebugOutput("文件小于1MB，分块模式已禁用", debugOutput);
-        }
+    // Calculate chunk size (at least half the file size, capped between MIN and MAX)
+    let calculatedChunkSize = Math.ceil(file.value.size / 2); // Start with half size
+    calculatedChunkSize = Math.max(calculatedChunkSize, MIN_CHUNK_SIZE); // Ensure at least MIN
+    calculatedChunkSize = Math.min(calculatedChunkSize, MAX_CHUNK_SIZE); // Ensure at most MAX
+    chunkSize.value = calculatedChunkSize;
+
+    chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
+    totalChunks.value = Math.ceil(file.value.size / chunkSize.value);
+
+    // Automatically disable chunked mode for small files
+    if (file.value.size <= MIN_CHUNK_SIZE) {
+        isChunkedMode.value = false;
+        chunkSizeVisible.value = false; // Hide chunk info for single chunk uploads
+        totalChunks.value = 1; // Explicitly set to 1 chunk
+        addDebugOutput("文件小于或等于 1MB，强制使用单块上传模式。", debugOutput);
+    } else {
+         // If file is larger, *enable* chunked mode by default, but allow user to toggle it
+         isChunkedMode.value = true; // Default to chunked for larger files
+         chunkSizeVisible.value = true; // Ensure chunk info is visible
+         addDebugOutput(`文件大于 1MB，自动计算分块大小: ${chunkValue.value} MB, 总块数: ${totalChunks.value}。默认启用分块模式。`, debugOutput);
     }
 }
 
 async function uploadFile() {
-    let startTime; // 声明上传开始时间
-    startTime = Date.now();
     if (!file.value) {
         showToast('请先选择文件');
+        status.value = "请选择文件"; // Update status
         return;
     }
-    status.value = "上传处理中...";
-    showToast('正在提交...');
-    addDebugOutput("已开始上传任务，请耐心等待...", debugOutput);
+    // Reset previous status/URL before starting a new upload
+    status.value = "准备上传...";
+    sjurl.value = '';
+    resetEstimatedCompletionTime(); // Reset estimator
 
-    if (!isChunkedMode.value) {
-        await uploadSingleFile();
-    } else {
-        await uploadChunks();
+    showToast('开始上传...');
+    addDebugOutput(`开始上传文件: ${file.value.name}`, debugOutput);
+
+    // Use a try-finally block to ensure status is updated on completion/error
+    try {
+        if (!isChunkedMode.value || file.value.size <= MIN_CHUNK_SIZE) {
+             addDebugOutput("执行单块上传...", debugOutput);
+            await uploadSingleFile();
+        } else {
+             addDebugOutput(`执行分块上传 (总块数: ${totalChunks.value})...`, debugOutput);
+            await uploadChunks();
+        }
+    } catch (error) {
+        // Error handling is now mostly within uploadSingleFile/uploadChunks/uploadChunkWithRetry
+        // This catch is a final fallback
+        status.value = "上传失败 (请查看调试日志)";
+        showToast("上传过程中发生意外错误");
+        addDebugOutput(`上传任务最终失败: ${error?.message || error}`, debugOutput);
+        resetEstimatedCompletionTime(); // Reset timer on failure
+    } finally {
+        // Optional: Add final status update if needed, but specific handlers are better
+         console.log("Upload function finished.");
     }
 }
 
 async function uploadSingleFile() {
+    const startTime = Date.now(); // Record start time for single upload
+    status.value = "正在上传单块文件...";
     const formData = new FormData();
     formData.append('file', file.value, file.value.name);
-    formData.append('path', 'flowchunkflex');
+    formData.append('path', 'flowchunkflex'); // Ensure path is correct
 
     try {
         const response = await fetchWithRetry(UPLOAD_URL, {
-            method: 'POST', body: formData
-        });
+            method: 'POST',
+            body: formData
+        }, 3); // Add retry logic
+
+        // Check HTTP status first
+        if (!response.ok) {
+             const errorText = await response.text(); // Try to get error body
+             throw new Error(`HTTP ${response.status} ${response.statusText}. Server response: ${errorText}`);
+        }
+
         const data = await response.json();
-        handleUploadResponse(data);
+        handleUploadResponse(data); // Pass entire data object
+
+        const duration = (Date.now() - startTime) / 1000; // Calculate duration
+        addDebugOutput(`单块文件上传成功. 耗时: ${duration.toFixed(2)} 秒.`, debugOutput);
+
     } catch (error) {
-        showToast('上传发生错误，确保文件≤ 30 MB 和检查网络并重试');
-        addDebugOutput(`上传失败: ${error.message}`, debugOutput);
+        showToast('单块上传失败，请检查网络或文件大小（≤ 30 MB）');
+        status.value = "单块上传失败";
+        addDebugOutput(`单块上传错误: ${error.message}`, debugOutput);
+        throw error; // Re-throw error to be caught by uploadFile if needed
     }
 }
 
-// 修改uploadChunks函数中的循环部分
+
 async function uploadChunks() {
     const startTime = Date.now();
-    const urls = ref(new Array(totalChunks.value).fill(null)); // 使用响应式数组
+    const urls = ref(new Array(totalChunks.value).fill(null));
     const reader = file.value.stream().getReader();
-    const CHUNK_SIZE = chunkSize.value; // 确保使用精确的字节数
+    const CHUNK_SIZE = chunkSize.value; // Use calculated chunk size
     let buffer = new Uint8Array(CHUNK_SIZE);
-    let bufferPos = 0; // 当前缓冲区写入位置
-    let index = 0;
+    let bufferPos = 0;
+    let chunkIndex = 0; // Renamed from 'index' to avoid conflict
+    activeUploads.value = 0; // Reset active uploads count
 
-    const CONCURRENT_LIMIT = 2; // 并发数
-    const lastRequestTimestamps = ref([]); // 记录请求时间戳
+    const CONCURRENT_LIMIT = 2;
+    const lastRequestTimestamps = ref([]);
 
-    async function canMakeRequest() {
-        const now = Date.now();
-        // 移除超过1秒的旧记录
-        lastRequestTimestamps.value = lastRequestTimestamps.value.filter(ts => now - ts < 1000);
-        return lastRequestTimestamps.value.length < REQUEST_RATE_LIMIT;
-    }
-
-    async function uploadWithRateLimit() {
-        // 等待速率限制
-        while (!(await canMakeRequest())) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-        }
-        lastRequestTimestamps.value.push(Date.now());
-    }
-
-    async function readAndUpload() {
-        const { done, value } = await reader.read();
-        if (done) {
-            if (bufferPos > 0) {
-                const finalChunk = buffer.subarray(0, bufferPos);
-                await uploadChunkWithRetry(index, new Blob([finalChunk]), urls);
-                index++;
+    // Helper to manage rate limiting
+    async function waitForRateLimitSlot() {
+        while (true) {
+            const now = Date.now();
+            lastRequestTimestamps.value = lastRequestTimestamps.value.filter(ts => now - ts < 1000); // Keep only last second timestamps
+            if (lastRequestTimestamps.value.length < REQUEST_RATE_LIMIT) {
+                lastRequestTimestamps.value.push(now);
+                return; // Slot available
             }
-            await waitForPendingChunks();
-            handleChunkUploadCompletion(urls.value);
-            return;
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait if limit reached
         }
-        let offset = 0; // 当前 value 的读取位置
+    }
 
-        while (offset < value.length) {
-            const spaceRemaining = CHUNK_SIZE - bufferPos;
-            const bytesToCopy = Math.min(spaceRemaining, value.length - offset);
+    // Helper to manage concurrency limiting
+    async function waitForConcurrencySlot() {
+        while (getActiveUploadCount() >= CONCURRENT_LIMIT) {
+            await new Promise(resolve => setTimeout(resolve, 150)); // Wait if concurrency limit reached
+        }
+    }
 
-            // 将数据复制到缓冲区
-            buffer.set(value.subarray(offset, offset + bytesToCopy), bufferPos);
-            bufferPos += bytesToCopy;
-            offset += bytesToCopy;
+    // The main loop function using ReadableStream
+    async function processStream() {
+        while (true) {
+            try {
+                 const { done, value } = await reader.read();
 
-            // 缓冲区填满时上传
-            if (bufferPos === CHUNK_SIZE) {
-                await uploadWithRateLimit();
-                // 等待并发槽位
-                while (getActiveUploadCount() >= CONCURRENT_LIMIT) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                if (done) {
+                    // Process any remaining data in the buffer
+                    if (bufferPos > 0) {
+                        const finalChunkBlob = new Blob([buffer.subarray(0, bufferPos)]);
+                        await waitForConcurrencySlot(); // Wait for slot before last chunk
+                        await waitForRateLimitSlot();   // Wait for rate limit
+                         addDebugOutput(`准备上传最后一块 (块 ${chunkIndex})...`, debugOutput);
+                        // Don't await here directly to allow processing loop to potentially finish
+                         uploadChunkWithRetry(chunkIndex, finalChunkBlob, urls)
+                            .catch(e => { /* error already logged in retry func */ });
+                        chunkIndex++;
+                    }
+                    break; // Exit loop when stream is done
                 }
 
-                const currentIndex = index;
-                index++;
-                const chunkBlob = new Blob([buffer]);
+                let currentOffset = 0;
+                while (currentOffset < value.length) {
+                    const spaceInBuffer = CHUNK_SIZE - bufferPos;
+                    const bytesToCopy = Math.min(spaceInBuffer, value.length - currentOffset);
 
-                // 重置缓冲区
-                buffer = new Uint8Array(CHUNK_SIZE);
-                bufferPos = 0;
+                    buffer.set(value.subarray(currentOffset, currentOffset + bytesToCopy), bufferPos);
+                    bufferPos += bytesToCopy;
+                    currentOffset += bytesToCopy;
 
-                // 上传并更新进度
-                uploadChunkWithRetry(currentIndex, chunkBlob, urls)
-                    .then(() => {
-                        updateEstimatedCompletionTimeAfterUpload(startTime, urls.value, totalChunks.value);
-                    })
-                    .catch(error => {
-                        showToast('分块上传失败');
-                        addDebugOutput(`上传终止: ${error.message}`, debugOutput);
-                        status.value = "上传失败";
-                    });
+                    // If buffer is full, upload the chunk
+                    if (bufferPos === CHUNK_SIZE) {
+                         const chunkBlob = new Blob([buffer]); // Create blob from the *full* buffer
+                         const currentIndex = chunkIndex++; // Capture current index and increment
 
-                status.value = `上传中...（已提交 ${index}/${totalChunks.value} 块）`;
+                        await waitForConcurrencySlot();
+                        await waitForRateLimitSlot();
+                         addDebugOutput(`准备上传块 ${currentIndex}...`, debugOutput);
+                        // Don't await here; let uploads happen concurrently
+                        uploadChunkWithRetry(currentIndex, chunkBlob, urls)
+                            .then(() => {
+                                // Update estimated time *after* a chunk successfully uploads
+                                updateEstimatedCompletionTimeAfterUpload(startTime, urls.value, totalChunks.value);
+                                // Update status based on completed uploads
+                                const completedCount = urls.value.filter(u => u !== null).length;
+                                status.value = `上传中... (${completedCount}/${totalChunks.value} 块完成)`;
+                            })
+                            .catch(e => { /* error already logged in retry func */ });
+
+                        // Reset buffer for the next chunk
+                        buffer = new Uint8Array(CHUNK_SIZE);
+                        bufferPos = 0;
+                    }
+                }
+
+            } catch (streamError) {
+                showToast('读取文件流时出错');
+                addDebugOutput(`文件流读取错误: ${streamError.message}`, debugOutput);
+                status.value = "文件读取失败";
+                throw streamError; // Propagate error
             }
-        }
+        } // end while(true)
 
-        setTimeout(readAndUpload, 0);
+        // After the loop, wait for all pending uploads to finish
+         addDebugOutput("所有块已提交，等待上传完成...", debugOutput);
+        await waitForPendingChunks();
+         addDebugOutput("所有块上传尝试已结束.", debugOutput);
+
+        // Final check and completion handling
+        handleChunkUploadCompletion(urls.value); // Pass the final array of URLs
     }
 
-    readAndUpload();
+    // Start processing the stream
+    status.value = `开始分块上传 (0/${totalChunks.value} 块完成)`;
+    await processStream(); // Await the entire stream processing
 }
 
 
 async function uploadChunkWithRetry(i, chunk, urls) {
-    activeUploads.value++; // 进入函数时增加并发计数器
-    let lastError = null; // 记录最后一次错误信息
+    activeUploads.value++;
+    let lastError = null;
+    const MAX_RETRIES = 3;
+    const BASE_DELAY_MS = 1000; // 1 second base delay
+
+    addDebugOutput(`开始上传块 ${i} (大小: ${(chunk.size / 1024).toFixed(1)} KB)`, debugOutput);
 
     try {
         const formData = new FormData();
-        formData.append('file', chunk, `chunk-${i}`); // 强制使用无后缀块名
+        // Use a simple, consistent naming scheme without file extension
+        formData.append('file', chunk, `chunk-${i}.part`); // Add '.part' temporarily? Or keep it simple. Let's try simple first.
+        formData.append('file', chunk, `chunk-${i}`);
         formData.append('path', 'flowchunkflex');
 
-        const dynamicTimeout = Math.max(5000, (chunk.size / (20 * 1024 * 1024)) * 60000); // 最低5秒
+        // Calculate a dynamic timeout: Base + time proportional to size (e.g., 1 minute per 10MB)
+        // Minimum 10 seconds, Maximum 5 minutes
+        const sizeMB = chunk.size / (1024 * 1024);
+        const calculatedTimeout = 10000 + sizeMB * 6000; // 10s + 6s per MB
+        const dynamicTimeout = Math.min(Math.max(calculatedTimeout, 10000), 300000); // Clamp between 10s and 5min
+        addDebugOutput(`块 ${i} - 设置超时: ${dynamicTimeout / 1000}s`, debugOutput);
 
-        // 重试机制（最多3次）
-        for (let attempt = 1; attempt <= 3; attempt++) {
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
                 const start = Date.now();
                 const response = await fetch(UPLOAD_URL, {
                     method: 'POST',
                     body: formData,
-                    signal: AbortSignal.timeout(dynamicTimeout) // 使用动态超时
+                    signal: AbortSignal.timeout(dynamicTimeout) // Use AbortSignal for timeout
                 });
 
-                // 处理HTTP错误状态
+                const duration = Date.now() - start;
+
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                     // Try reading response body for more details if available
+                     let errorBody = '';
+                     try {
+                       errorBody = await response.text();
+                     } catch (e) { /* ignore if can't read body */ }
+                     throw new Error(`HTTP ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`); // Limit body length in error
                 }
 
                 const data = await response.json();
 
-                // 处理业务逻辑错误
-                if (!data.url) {
-                    throw new Error(data.msg || '服务器返回无效响应');
+                if (!data || !data.url) {
+                    throw new Error(data?.msg || '服务器响应无效或缺少URL');
                 }
 
-                // 成功时记录性能指标
-                const duration = Date.now() - start;
-                urls.value[i] = data.url;
-                addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | 大小: ${(chunk.size / 1024 / 1024).toFixed(2)}MB`, debugOutput);
-                return; // 成功时直接返回
+                // Success!
+                urls.value[i] = data.url; // Store URL in the reactive array
+                addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${data.url}`, debugOutput);
+                // Update progress immediately after success
+                 const completedCount = urls.value.filter(u => u !== null).length;
+                 status.value = `上传中... (${completedCount}/${totalChunks.value} 块完成)`;
+                return; // Exit retry loop on success
 
             } catch (error) {
-                lastError = error;
-                addDebugOutput(`块 ${i} 第${attempt}次尝试失败: ${error.message}`, debugOutput);
+                lastError = error; // Store the error
+                addDebugOutput(`块 ${i} 第 ${attempt}/${MAX_RETRIES} 次尝试失败: ${error.message}`, debugOutput);
 
-                // 指数退避重试：1s, 2s, 4s
-                if (attempt < 3) {
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (2 ** (attempt - 1))));
+                if (attempt < MAX_RETRIES) {
+                    // Exponential backoff: 1s, 2s, 4s...
+                    const delay = BASE_DELAY_MS * (2 ** (attempt - 1));
+                    addDebugOutput(`块 ${i} - 等待 ${delay / 1000}s 后重试...`, debugOutput);
+                    await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
-        }
+        } // End retry loop
 
-        // 所有重试失败后抛出最终错误
-        throw new Error(`块 ${i} 上传失败: ${lastError?.message}`);
+        // If loop finishes without returning, all retries failed
+        throw new Error(`块 ${i} 上传失败，已达最大重试次数. 最后错误: ${lastError?.message}`);
 
-    } finally {
-        activeUploads.value--; // 确保无论如何都减少计数器
-        if (activeUploads.value < 0) activeUploads.value = 0; // 防止意外负数
+    } catch (finalError) {
+         addDebugOutput(`块 ${i} 彻底失败: ${finalError.message}`, debugOutput);
+         status.value = `上传失败 (块 ${i} 错误)`;
+         // We don't re-throw here, failure is recorded by the null in urls.value[i]
+         // The final check in handleChunkUploadCompletion will detect this.
+    }
+    finally {
+        activeUploads.value--; // Decrement active count regardless of outcome
+         if (activeUploads.value < 0) activeUploads.value = 0; // Safety check
+         // addDebugOutput(`块 ${i} 处理结束. 当前并发: ${activeUploads.value}`, debugOutput); // Verbose logging
     }
 }
 
+
 function getActiveUploadCount() {
-    return activeUploads.value; // 返回 .value
+    return activeUploads.value;
 }
 
 async function waitForPendingChunks() {
-    while (activeUploads.value > 0) { // 检查 .value
-        await new Promise(resolve => setTimeout(resolve, 100));
+     const checkInterval = 200; // ms
+     let waitTime = 0;
+     const maxWaitTime = 120000; // 2 minutes max wait safeguard
+
+    while (activeUploads.value > 0 && waitTime < maxWaitTime) {
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
+        waitTime += checkInterval;
     }
+     if (waitTime >= maxWaitTime && activeUploads.value > 0) {
+          addDebugOutput(`警告: 等待块完成超时 (${maxWaitTime / 1000}s). 可能有 ${activeUploads.value} 个块未正确结束。`, debugOutput);
+     } else {
+          addDebugOutput("所有活动的块上传均已结束。", debugOutput);
+     }
 }
 
 async function fetchWithRetry(url, options, retries = 3) {
-    while (retries > 0) {
-        try {
-            return await fetch(url, options);
-        } catch (error) {
-            retries--;
-            addDebugOutput(`Fetch error, retries left: ${retries}`, debugOutput);
-        }
-    }
-    throw new Error('最大重试次数已达到');
+     let attempt = 0;
+     while (attempt < retries) {
+       attempt++;
+       try {
+         const response = await fetch(url, options);
+         // Check if response is ok (status in the range 200-299)
+         if (!response.ok && attempt >= retries) {
+              // If it's the last attempt and still not ok, throw based on status
+               throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+         }
+          // If response is ok, or if it's not ok but we have retries left, return/continue
+         return response; // Return the response object directly on success or for non-ok status if retries remain (caller should check response.ok)
+       } catch (error) {
+         addDebugOutput(`Fetch error (尝试 ${attempt}/${retries}): ${error.message}`, debugOutput);
+         if (attempt >= retries) {
+           // If this was the last attempt, re-throw the caught error
+           throw error; // Or throw a new summarizing error: new Error(`最大重试次数 (${retries}) 已达到. 最后错误: ${error.message}`);
+         }
+         // Optional: Add delay before retrying
+         await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Simple linear backoff
+       }
+     }
+     // This part should ideally not be reached if logic is correct, but acts as a safeguard
+     throw new Error('最大重试次数已达到');
 }
 
-function handleUploadResponse(data, i, urls) {
-    if (data.url) {
-        if (i !== undefined) {
-            urls.value[i] = data.url;
-            addDebugOutput(`上传块 ${i + 1} 成功: ${data.url}`, debugOutput);
-        } else {
-            sjurl.value = data.url;
-            status.value = "上传完成!";
-            addDebugOutput("上传完成!", debugOutput);
-            saveUploadHistory(sjurl.value, uploadHistory);
-            showToast('上传完成, 请复制链接保存');
-        }
+// Simplified handler for single file upload response
+function handleUploadResponse(data) {
+    if (data && data.url) {
+        sjurl.value = data.url;
+        status.value = "上传完成!";
+        addDebugOutput(`单文件上传成功: ${data.url}`, debugOutput);
+        saveUploadHistory(sjurl.value, uploadHistory); // Save to history
+        showToast('上传完成, 链接已生成');
     } else {
-        showToast(data.msg);
-        throw new Error(data.msg);
+        const errorMessage = data?.msg || '服务器返回未知错误';
+        showToast(`上传失败: ${errorMessage}`);
+        status.value = "上传失败";
+        addDebugOutput(`处理上传响应失败: ${errorMessage}`, debugOutput);
+        // Don't throw error here, just log and update status/toast
     }
 }
 
+
+// Handler specifically for when all chunk uploads have attempted
 function handleChunkUploadCompletion(urlsArray) {
-    // 确保所有块都存在
-    if (urlsArray.some(url => !url)) {
-        showToast('部分分块上传失败，请检查日志');
-        return;
-    }
-    // 按索引顺序拼接
-    const formattedUrls = urlsArray
-        .map(url => {
-            // 分割URL，仅保留文件名部分（兼容旧格式）
-            const [filenamePart] = url.split('?');
-            return filenamePart.split('/').pop();
-        })
-        .join(',');
+     const successfulUploads = urlsArray.filter(url => url !== null);
+     const failedCount = totalChunks.value - successfulUploads.length;
 
-    sjurl.value = `[${encodeURIComponent(file.value.name)}]${formattedUrls}`; // 使用 encodeURIComponent
-    status.value = "上传完成!";
-    showToast('上传完成, 请复制链接并保存');
-    addDebugOutput(`最终链接: ${sjurl.value}`, debugOutput);
-    saveUploadHistory(sjurl.value, uploadHistory); // 修正参数传递
-    resetEstimatedCompletionTime();
+    addDebugOutput(`分块上传完成检查: 成功 ${successfulUploads.length}/${totalChunks.value} 块.`, debugOutput);
+
+    if (failedCount > 0) {
+        showToast(`有 ${failedCount} 个分块上传失败，请检查日志`);
+        status.value = `上传失败 (${failedCount} 块错误)`;
+        addDebugOutput(`最终合并失败: ${failedCount} 个块未能成功上传。`, debugOutput);
+        resetEstimatedCompletionTime(); // Reset timer on partial failure
+        return; // Stop here if not all chunks succeeded
+    }
+
+    // All chunks succeeded, proceed to merge URLs
+    try {
+        const formattedUrls = urlsArray
+            .map(url => {
+                // Extract filename part robustly
+                const urlParts = url.split('?')[0].split('/');
+                return urlParts[urlParts.length - 1]; // Get the last part (filename)
+            })
+            .join(',');
+
+        // Use encodeURIComponent on the filename part ONLY
+        const finalUrl = `[${encodeURIComponent(file.value.name)}]${formattedUrls}`;
+        sjurl.value = finalUrl;
+        status.value = "所有分块上传完成!";
+        showToast('分块上传成功, 请复制链接保存');
+        addDebugOutput(`最终合并链接: ${sjurl.value}`, debugOutput);
+        saveUploadHistory(sjurl.value, uploadHistory);
+        resetEstimatedCompletionTime(); // Reset timer on success
+
+    } catch (error) {
+         showToast('合并分块链接时出错');
+         status.value = "处理结果失败";
+         addDebugOutput(`合并分块链接时出错: ${error.message}`, debugOutput);
+         resetEstimatedCompletionTime();
+    }
 }
+
 
 function handleCopy() {
+    if (!sjurl.value) {
+        showToast("没有链接可复制");
+        return;
+    }
     helpers.copyToClipboard(
         sjurl.value,
-        () => showToast('链接已复制到剪贴板'), // 成功回调
-        (err) => console.error('复制失败:', err) // 失败回调（可选）
+        () => showToast('链接已复制到剪贴板'),
+        (err) => {
+            showToast('复制失败，请手动复制');
+            addDebugOutput(`复制到剪贴板失败: ${err}`, debugOutput);
+            console.error('复制失败:', err);
+        }
     );
 }
 
 async function downloadFiles() {
-    const longUrl = sjurl.value;
-    if (!longUrl) {
-        showToast('请先上传文件或输入链接');
+    const urlToDownload = sjurl.value; // Use the current value in the input
+    if (!urlToDownload) {
+        showToast('输入框中没有链接可供下载');
         return;
     }
 
-    const isNormalUrl = /^https?:\/\/.+/.test(longUrl);
+    // Check if it's a standard URL
+    const isNormalUrl = /^(https?:\/\/)/i.test(urlToDownload);
     if (isNormalUrl) {
-        window.open(longUrl, '_blank');
+        try {
+             addDebugOutput(`尝试直接打开标准链接: ${urlToDownload}`, debugOutput);
+             // Try opening in a new tab, good for direct downloads or viewing
+             window.open(urlToDownload, '_blank');
+             status.value = "已尝试打开链接...";
+             showToast("正在尝试打开或下载标准链接...");
+             // Note: We can't easily track download progress/completion for direct links.
+        } catch (e) {
+             showToast("无法打开链接，请检查链接或浏览器设置");
+             status.value = "打开链接失败";
+             addDebugOutput(`直接打开链接失败: ${e.message}`, debugOutput);
+        }
+        return; // Stop execution for standard URLs
+    }
+
+    // Proceed with chunked URL logic
+    const matches = urlToDownload.match(/^\[(.*?)\](.+)$/); // Made filename capture non-greedy
+    if (!matches || matches.length < 3) {
+        showToast('链接格式无效，应为 "[文件名]块1,块2,..." 或标准 https:// URL');
+        status.value = "链接格式错误";
+        addDebugOutput(`下载链接格式解析失败: ${urlToDownload}`, debugOutput);
         return;
     }
 
-    const matches = longUrl.match(/^\[(.*)\](.+)$/);
-    if (!matches) {
-        showToast('输入格式不正确，请确保格式为标准链接或分块链接 "[文件名]xxx?xxx,xxx2?xxx,..."');
-        return;
+    let filename;
+    try {
+        // IMPORTANT: Decode the filename AFTER extracting it
+        filename = decodeURIComponent(matches[1]);
+    } catch (e) {
+         showToast('文件名解码失败，可能包含无效字符');
+         status.value = "文件名错误";
+         addDebugOutput(`文件名解码失败: ${matches[1]} - Error: ${e.message}`, debugOutput);
+         filename = 'downloaded-file'; // Fallback filename
     }
-    const filename = decodeURIComponent(matches[1]);
-    // 修改 downloadFiles 函数中的URL解析逻辑
-    const urls = matches[2].split(',').map(item => {
-        const [legacyFilename] = item.split('?'); // 兼容新旧格式
-        return `https://static.codemao.cn/flowchunkflex/${legacyFilename}`;
+
+    const chunkIdentifiers = matches[2].split(',');
+
+    if (!chunkIdentifiers || chunkIdentifiers.length === 0 || chunkIdentifiers[0] === '') {
+         showToast('链接中未找到有效的分块标识');
+         status.value = "链接格式错误";
+         addDebugOutput(`下载链接分块部分解析失败: ${matches[2]}`, debugOutput);
+         return;
+    }
+
+
+    const baseDownloadUrl = 'https://static.codemao.cn/flowchunkflex/';
+    const urls = chunkIdentifiers.map(identifier => {
+        // Remove potential query parameters just in case (though format suggests they shouldn't be there)
+        const cleanIdentifier = identifier.split('?')[0];
+        return `${baseDownloadUrl}${cleanIdentifier}`;
     });
 
-    status.value = "下载中...";
-    addDebugOutput("开始下载...", debugOutput);
-    showToast('下载已开始，请耐心等待');
+    status.value = `准备下载 ${urls.length} 个分块...`;
+    addDebugOutput(`开始下载 "${filename}" (共 ${urls.length} 块)...`, debugOutput);
+    showToast('下载已开始，请稍候');
 
+    let downloadedBlobs;
     try {
-        const blobs = await Promise.all(urls.map(fetchBlob));
-        await mergeAndDownload(blobs, filename);
+         // Fetch all blobs in parallel
+        downloadedBlobs = await Promise.all(urls.map((url, index) =>
+             fetchBlob(url, index, urls.length) // Pass index/total for progress
+        ));
+        addDebugOutput(`所有 ${urls.length} 个分块已获取完毕。`, debugOutput);
+        status.value = "分块获取完成，正在合并...";
+
+        // Merge and trigger download
+        await mergeAndDownload(downloadedBlobs, filename);
+
     } catch (error) {
-        showToast('下载发生错误：' + error.message);
+        // Error handling within fetchBlob or mergeAndDownload should update status/log
+        // This is a final catch
+        showToast('下载过程中发生错误: ' + error.message);
         status.value = "下载失败!";
-        addDebugOutput(`下载失败: ${error.message}`, debugOutput);
+        addDebugOutput(`下载任务失败: ${error.message}`, debugOutput);
+        // Clean up any blobs that might have been created before the error
+         if (downloadedBlobs) {
+             downloadedBlobs.forEach(blob => {
+                 if (blob) URL.revokeObjectURL(URL.createObjectURL(blob)); // Clean up Blob URLs
+             });
+         }
     }
 }
 
-async function fetchBlob(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`无法获取 ${url}: ${res.statusText}`);
-    return res.blob();
+// Modified fetchBlob to include progress update
+async function fetchBlob(url, index, total) {
+    try {
+        addDebugOutput(`开始获取块 ${index + 1}/${total}: ${url}`, debugOutput);
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`无法获取块 ${index + 1} (${url}): ${res.status} ${res.statusText}`);
+        }
+        const blob = await res.blob();
+        status.value = `下载中... (${index + 1}/${total} 块)`; // Update status on successful fetch
+        addDebugOutput(`成功获取块 ${index + 1}/${total}`, debugOutput);
+        return blob;
+    } catch (error) {
+         addDebugOutput(`获取块 ${index + 1} 失败: ${error.message}`, debugOutput);
+        throw error; // Re-throw to be caught by Promise.all
+    }
 }
+
 
 async function mergeAndDownload(blobs, filename) {
-    const mergedBlob = new Blob(blobs);
-    const downloadUrl = URL.createObjectURL(mergedBlob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(downloadUrl);
-    status.value = "下载完成!";
-    addDebugOutput("下载完成!", debugOutput);
-    showToast(`下载完成，请检查是否保存成功`);
-    blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob)));
+    if (!blobs || blobs.length === 0) {
+         addDebugOutput("没有要合并的 Blob。", debugOutput);
+         status.value = "合并失败 (无数据)";
+         showToast("没有数据可供合并下载");
+         return;
+    }
+     addDebugOutput(`开始合并 ${blobs.length} 个 Blob...`, debugOutput);
+     status.value = "正在合并文件..."; // Update status
+
+    try {
+        // Create the merged Blob
+        const mergedBlob = new Blob(blobs, { type: blobs[0]?.type || 'application/octet-stream' }); // Use type of first blob or default
+        addDebugOutput(`合并完成. 总大小: ${(mergedBlob.size / (1024*1024)).toFixed(2)} MB.`, debugOutput);
+
+
+        // Create a download link
+        const downloadUrl = URL.createObjectURL(mergedBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename || 'downloaded-file'; // Use provided filename or a default
+        document.body.appendChild(a); // Append link to body
+        a.click(); // Simulate click to trigger download
+        document.body.removeChild(a); // Remove link from body
+
+        // Clean up the Object URL *after* the download has likely started
+        // Use a small delay to be safer, as `a.click()` is synchronous but the download initiation might not be instantaneous.
+        setTimeout(() => {
+             URL.revokeObjectURL(downloadUrl);
+             addDebugOutput(`已释放合并 Blob 的 Object URL: ${downloadUrl}`, debugOutput);
+        }, 100);
+
+
+        status.value = "下载完成!";
+        addDebugOutput(`文件 "${filename}" 下载已触发。`, debugOutput);
+        showToast(`文件 "${filename}" 下载已开始`);
+
+        // Optional: Clean up individual blob URLs if they were created (though they weren't in this flow)
+        // blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob))); // Not needed here as we didn't create URLs for individual blobs
+
+    } catch (error) {
+         showToast('合并或下载文件时出错');
+         status.value = "合并/下载失败";
+         addDebugOutput(`合并或下载错误: ${error.message}`, debugOutput);
+         console.error("Merge and download error:", error);
+         // Attempt cleanup even on error
+         // Note: downloadUrl might not be defined if error happened before creation
+         if (typeof downloadUrl !== 'undefined' && downloadUrl) {
+            URL.revokeObjectURL(downloadUrl);
+         }
+    }
 }
 
+
 function exportHistory() {
-    const links = uploadHistory.value.map(entry => entry.link).join('\n');
-    helpers.downloadFile('upload_history.txt', links);
+    if (uploadHistory.value.length === 0) {
+        showToast("没有历史记录可导出");
+        return;
+    }
+    // Format: Timestamp - Link (more readable)
+    const historyText = uploadHistory.value
+        .map(entry => `${entry.timestamp} - ${entry.link}`)
+        .join('\n');
+    helpers.downloadFile('upload_history.txt', historyText);
+    addDebugOutput("上传历史已导出。", debugOutput);
 }
 
 function exportLog() {
-    const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
-    const logEntries = log ? JSON.parse(log).join('\n') : '没有日志记录。';
-    helpers.downloadFile('upload_log.txt', logEntries);
+    const logContent = debugOutput.value; // Export current content of the textarea
+    if (!logContent.trim()) {
+         showToast("没有日志内容可导出");
+         return;
+    }
+    helpers.downloadFile('upload_log.txt', logContent);
+     addDebugOutput("调试日志已导出。", debugOutput); // Log the export action itself
 }
 
 function loadLog() {
-    const log = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
-    if (log) {
-        const logEntries = JSON.parse(log);
-        debugOutput.value = logEntries.join('\n');
+    // Load log from localStorage into the ref
+    const storedLog = localStorage.getItem(STORAGE_KEYS.UPLOAD_LOG);
+    if (storedLog) {
+        try {
+            const logEntries = JSON.parse(storedLog);
+            // Join entries with newline for display in textarea/component
+            debugOutput.value = logEntries.join('\n');
+        } catch (e) {
+            console.error("Failed to parse stored log:", e);
+            debugOutput.value = "无法加载之前的日志（格式错误）。";
+            localStorage.removeItem(STORAGE_KEYS.UPLOAD_LOG); // Clear corrupted log
+        }
+    } else {
+         debugOutput.value = "调试日志为空。"; // Initial message
     }
-    loadUploadHistory(uploadHistory);
+    // History is loaded separately in onMounted
 }
 
 function handleClearLog() {
-    clearLog(debugOutput)
+    clearLog(debugOutput); // Pass the ref to the helper
+    showToast("调试日志已清空");
 }
 
 function handleClear() {
-    clearHistory(uploadHistory);
+    clearHistory(uploadHistory); // Pass the ref to the helper
+    showToast("上传历史已清空");
 }
+
+// [!code ++] Handler for the 'select-item' event from UploadHistory
+function handleHistoryItemSelect(selectedLink) {
+  if (selectedLink) {
+    sjurl.value = selectedLink; // Update the input field's bound ref
+    showToast('历史记录链接已填入输入框');
+    addDebugOutput(`从历史记录选择链接: ${selectedLink}`, debugOutput);
+    // Optional: scroll to the input field if needed
+    // document.getElementById('sjurl')?.focus();
+  }
+}
+
 </script>
