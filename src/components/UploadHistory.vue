@@ -1,5 +1,4 @@
 <!-- src/components/UploadHistory.vue -->
-<!-- UploadHistory.vue -->
 <template>
     <div class="upload-history">
         <h3>历史文件</h3>
@@ -8,11 +7,15 @@
                 <thead>
                     <tr>
                         <th>上传时间</th>
-                        <th>文件链接</th>
+                        <th>文件链接 (点击填入)</th> <!-- Indicate clickability -->
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="entry in history" :key="entry.time">
+                    <!-- Add @click handler and a class for styling -->
+                    <tr v-for="entry in history"
+                        :key="entry.time"
+                        @click="selectHistoryItem(entry.link)"
+                        class="history-row">
                         <td>{{ entry.time }}</td>
                         <td class="link-cell">{{ entry.link }}</td>
                     </tr>
@@ -34,7 +37,8 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['clear-history', 'export-history']);
+// Add 'select-item' to the list of emitted events
+const emit = defineEmits(['clear-history', 'export-history', 'select-item']);
 
 const handleClear = () => {
     emit('clear-history');
@@ -43,4 +47,9 @@ const handleClear = () => {
 const handleExport = () => {
     emit('export-history');
 };
+
+// Function to handle row click and emit the selected link
+function selectHistoryItem(link) {
+    emit('select-item', link);
+}
 </script>
