@@ -110,16 +110,16 @@ let bufferPos = 0; // Current buffer write position
 ## 📊 System Architecture (v5.3+)
 
 ```mermaid
-graph TD
+flowchart TD
     A[File Input] --> B{Chunk Detection}
     B -->|Single File Mode| C[FormData Direct Submit]
     B -->|Chunked Mode| D[Streams API Segmentation]
     D --> E[Uint8Array Buffer Chunking]
     E --> F[Concurrency & Rate Limit Queue]
-    F --> G[Three-level Retry (w/ Dynamic Timeout)]
+    F --> G[Three-level Retry w/ Dynamic Timeout]
     G --> H[CDN URL Aggregation]
-    H --> I[URL Encoded Filename (encodeURIComponent)]
-    I --> J[Local History Storage (localStorage)]
+    H --> I[URL Encoded Filename encodeURIComponent]
+    I --> J[Local History Storage localStorage]
 ```
 
 ---
