@@ -7,12 +7,13 @@ export function showToast(message) {
         duration: 3500,
         gravity: "bottom",
         position: 'right',
-        className: 'm3-toast',
+        className: 'm3-toast', // Class controls styling now
         escapeMarkup: false,
-        style: {
-            // 动态属性需要保留
-            margin: '0 16px 16px 0',
-            font: '400 14px/20px Roboto'
-        }
+        // [!code --] style: {
+        // [!code --]     // 动态属性需要保留 - These are now moved to CSS
+        // [!code --]     margin: '0 16px 16px 0',
+        // [!code --]     font: '400 14px/20px Roboto'
+        // [!code --] }
+        // [!code ++] // style object removed - margin and font are handled by .m3-toast class in CSS
     }).showToast();
 }

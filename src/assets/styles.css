@@ -255,7 +255,7 @@ main {
     color: var(--md-sys-color-on-surface-variant-light);
     background-color: var(--surface-color); /* Give it a background to lift shadow */
     border: 1px solid var(--md-sys-color-outline-variant-light); /* Add subtle border */
-    
+
     transition: background-color var(--duration-medium) var(--ease-standard),
                 box-shadow var(--duration-medium) var(--ease-standard),
                 border-color var(--duration-medium) var(--ease-standard); /* Add transition */
@@ -536,7 +536,7 @@ footer a:hover {
 }
 
 /* ===== Responsive Adjustments ===== */
-@media (max-width: 600px) {
+@media (max-width: 300px) {
     body {
         padding: var(--spacing-4) var(--spacing-3); /* Adjust padding */
     }
@@ -570,7 +570,7 @@ footer a:hover {
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 300px) {
     body {
         padding: var(--spacing-3) var(--spacing-2);
     }
@@ -631,8 +631,9 @@ main,
     box-shadow: none !important; /* Use Level 3 shadow */
     border-radius: var(--border-radius-sm) !important; /* Small radius */
     padding: var(--spacing-3) var(--spacing-4) !important; /* 12px 16px */
+    /* Styles moved from JS: */
     font: 400 0.875rem/1.4 Roboto, sans-serif !important; /* M3 Body Medium */
-    margin: 0 var(--spacing-4) var(--spacing-4) 0 !important;
+    margin: 0 var(--spacing-4) var(--spacing-4) 0 !important; /* Same margin as before */
 }
 
 .m3-toast a {
@@ -647,7 +648,8 @@ main,
 body, header, main, footer, button, input, select, textarea,
 .file-upload, .chunk-info, .chunk-toggle, .custom-checkbox,
 #uploadHistory, .table-container, .upload-history-table th, .upload-history-table td,
-.debug-output, .debug-output pre, .m3-toast {
+.debug-output, .debug-output pre /* [!code --] .m3-toast */ {
+/* [!code ++] REMOVED .m3-toast from this list */
     transition:
         background-color var(--duration-medium) var(--ease-standard),
         color var(--duration-medium) var(--ease-standard),
@@ -657,10 +659,5 @@ body, header, main, footer, button, input, select, textarea,
         opacity var(--duration-medium) var(--ease-standard);
 }
 /* Exclude transform/opacity from general transition if handled by specific animations (like toast entry/exit) */
-.m3-toast {
-    /* Override general transition if toast has its own animation */
-    transition: none; /* Or specify only the properties you want to transition generally */
-}
-
 
 /* END OF FILE styles.css */

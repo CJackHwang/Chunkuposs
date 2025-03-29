@@ -60,7 +60,7 @@
             :history="uploadHistory"
             @clear-history="handleClear"
             @export-history="exportHistory"
-            @select-item="handleHistoryItemSelect" /> <!-- [!code ++] Listen for the 'select-item' event -->
+            @select-item="handleHistoryItemSelect" /> <!-- Listen for the 'select-item' event -->
 
     </main>
 </template>
@@ -352,9 +352,9 @@ async function uploadChunkWithRetry(i, chunk, urls) {
 
     try {
         const formData = new FormData();
-        // Use a simple, consistent naming scheme without file extension
-        formData.append('file', chunk, `chunk-${i}.part`); // Add '.part' temporarily? Or keep it simple. Let's try simple first.
-        formData.append('file', chunk, `chunk-${i}`);
+        // [!code --] // Use a simple, consistent naming scheme without file extension
+        // [!code --] formData.append('file', chunk, `chunk-${i}.part`); // Add '.part' temporarily? Or keep it simple. Let's try simple first.
+        formData.append('file', chunk, `chunk-${i}`); // [!code focus] Use simple name, removed duplicate append
         formData.append('path', 'flowchunkflex');
 
         // Calculate a dynamic timeout: Base + time proportional to size (e.g., 1 minute per 10MB)
@@ -675,6 +675,7 @@ async function mergeAndDownload(blobs, filename) {
      addDebugOutput(`开始合并 ${blobs.length} 个 Blob...`, debugOutput);
      status.value = "正在合并文件..."; // Update status
 
+     let downloadUrl; // Define downloadUrl outside try block for cleanup
     try {
         // Create the merged Blob
         const mergedBlob = new Blob(blobs, { type: blobs[0]?.type || 'application/octet-stream' }); // Use type of first blob or default
@@ -682,7 +683,7 @@ async function mergeAndDownload(blobs, filename) {
 
 
         // Create a download link
-        const downloadUrl = URL.createObjectURL(mergedBlob);
+        downloadUrl = URL.createObjectURL(mergedBlob); // Assign here
         const a = document.createElement('a');
         a.href = downloadUrl;
         a.download = filename || 'downloaded-file'; // Use provided filename or a default
@@ -714,6 +715,7 @@ async function mergeAndDownload(blobs, filename) {
          // Note: downloadUrl might not be defined if error happened before creation
          if (typeof downloadUrl !== 'undefined' && downloadUrl) {
             URL.revokeObjectURL(downloadUrl);
+            addDebugOutput(`错误发生后释放合并 Blob 的 Object URL: ${downloadUrl}`, debugOutput);
          }
     }
 }
@@ -771,7 +773,7 @@ function handleClear() {
     showToast("上传历史已清空");
 }
 
-// [!code ++] Handler for the 'select-item' event from UploadHistory
+// Handler for the 'select-item' event from UploadHistory
 function handleHistoryItemSelect(selectedLink) {
   if (selectedLink) {
     sjurl.value = selectedLink; // Update the input field's bound ref
