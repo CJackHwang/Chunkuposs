@@ -276,15 +276,18 @@
 }
 
 /* ===== Toast Notification Styling ===== */
+/* Styles for .m3-toast are inherited from light theme and adjusted via CSS variables */
+/* We only need to override specific things if the variable system isn't sufficient */
 .dark-theme .m3-toast {
     background: var(--md-sys-color-surface-container-highest-dark) !important;
     color: var(--md-sys-color-on-surface-dark) !important;
     border-color: var(--md-sys-color-outline-dark) !important; /* Slightly stronger outline */
-    box-shadow: var(--shadow-3) !important;
+    box-shadow: var(--shadow-3) !important; /* Use a more prominent shadow in dark theme */
 }
 
 .dark-theme .m3-toast a {
     color: var(--primary-color) !important;
 }
+
 
 /* END OF FILE darktheme.css */
