@@ -657,10 +657,5 @@ body, header, main, footer, button, input, select, textarea,
         opacity var(--duration-medium) var(--ease-standard);
 }
 /* Exclude transform/opacity from general transition if handled by specific animations (like toast entry/exit) */
-.m3-toast {
-    /* Override general transition if toast has its own animation */
-    transition: none; /* Or specify only the properties you want to transition generally */
-}
-
 
 /* END OF FILE styles.css */
