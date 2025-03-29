@@ -536,7 +536,7 @@ footer a:hover {
 }
 
 /* ===== Responsive Adjustments ===== */
-@media (max-width: 600px) {
+@media (max-width: 300px) {
     body {
         padding: var(--spacing-4) var(--spacing-3); /* Adjust padding */
     }
@@ -570,7 +570,7 @@ footer a:hover {
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 300px) {
     body {
         padding: var(--spacing-3) var(--spacing-2);
     }
