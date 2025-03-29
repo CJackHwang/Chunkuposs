@@ -110,16 +110,16 @@ let bufferPos = 0; // 当前缓冲区写入位置
 ## 📊 系统架构（v5.3+）
 
 ```mermaid
-graph TD
+flowchart TD
     A[文件输入] --> B{分块检测}
     B -->|单文件模式| C[FormData直接提交]
     B -->|分块模式| D[Streams API切割]
     D --> E[Uint8Array 缓冲区分块]
     E --> F[并发与速率控制队列]
-    F --> G[三级重试机制 (含动态超时)]
+    F --> G[三级重试机制含动态超时]
     G --> H[CDN URL 聚合]
-    H --> I[URL编码文件名 (encodeURIComponent)]
-    I --> J[本地历史存储 (localStorage)]
+    H --> I[URL编码文件名]
+    I --> J[本地历史存储]
 ```
 
 ---
