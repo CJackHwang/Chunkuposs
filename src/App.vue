@@ -5,11 +5,11 @@
       <div class="header-main">
          <h2>FlowChunkFlex微云盘</h2>
          <!-- 版本号使用 span，并添加 class -->
-         <span class="version-tag">Ver: 5.3.4</span>
+         <span class="version-tag">Ver: 5.3.9</span>
       </div>
       <!-- 为描述添加 class -->
       <p class="description">
-        基于Vue3+Vite6开发；流式读取文件分块并发提交至CodemaoCDN以绕过大小限制；中断自动重传，默认单块最大15MB，并发上传数2。
+        基于Vue3+Vite6；流式读取文件，分块并发提交至免费的编程猫七牛云对象存储API以绕过大小限制；支持中断自动重传，默认单块最大15MB，并发上传数2。
       </p>
     </header>
 
