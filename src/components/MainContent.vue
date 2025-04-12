@@ -41,9 +41,16 @@
         <!-- Actions related to URL Input -->
         <div class="action-buttons">
             <button v-if="sjurl" @click="handleCopy">复制链接</button>
-            <button v-if="sjurl" @click="handleShare">分享链接</button>          
+            <button v-if="sjurl" @click="handleShare">分享文件</button>          
             <button v-if="sjurl" @click="downloadFiles">下载文件</button>
         </div>
+
+        <!-- Upload History Table -->
+        <UploadHistory
+            :history="uploadHistory"
+            @clear-history="handleClear"
+            @export-history="exportHistory"
+            @select-item="handleHistoryItemSelect" /> <!-- Listen for the 'select-item' event -->
 
         <!-- Section 3: Status & Information -->
         <div id="status" class="status-message">
@@ -56,12 +63,6 @@
         <!-- Debugging Output -->
         <DebugLogger :debug-output="debugOutput" @clear-log="handleClearLog" @export-log="exportLog" />
 
-        <!-- Upload History Table -->
-        <UploadHistory
-            :history="uploadHistory"
-            @clear-history="handleClear"
-            @export-history="exportHistory"
-            @select-item="handleHistoryItemSelect" /> <!-- Listen for the 'select-item' event -->
 
     </main>
 </template>
@@ -801,7 +802,31 @@ function checkUrlParams() {
             sjurl.value = decodedUrl;
             addDebugOutput(`从分享链接自动填充: ${decodedUrl}`, debugOutput);
             showToast('已从分享链接加载内容');
-            
+
+            // 尝试解析文件名
+            const matches = decodedUrl.match(/^\[(.*?)\](.+)$/);
+            let filename = '未知文件名'; // 默认文件名
+            if (matches && matches[1]) {
+                try {
+                    filename = decodeURIComponent(matches[1]);
+                } catch (decodeError) {
+                    addDebugOutput(`解析分享链接中的文件名失败: ${decodeError.message}`, debugOutput);
+                    filename = '解码失败的文件'; // 出错时的文件名
+                }
+            } else {
+                 addDebugOutput(`分享链接格式不符合预期，无法提取文件名: ${decodedUrl}`, debugOutput);
+            }
+
+            // 弹窗询问用户是否立即下载
+            if (confirm(`获取到分享链接，是否立即下载该文件： 【${filename}】？`)) {
+                addDebugOutput(`用户确认下载分享链接文件: ${filename}`, debugOutput);
+                // 确保 sjurl 已经设置，然后调用下载
+                // downloadFiles 会使用 sjurl.value，所以这里不需要传递参数
+                downloadFiles(); 
+            } else {
+                addDebugOutput(`用户取消了分享链接文件的下载: ${filename}`, debugOutput);
+            }
+
             // 清除URL参数，避免刷新页面时重复加载
             if (window.history && window.history.replaceState) {
                 const cleanUrl = window.location.pathname + window.location.hash;
@@ -814,7 +839,7 @@ function checkUrlParams() {
     }
 }
 
-// 处理分享链接功能
+// 处理分享链接功能-----------------------------------------------
 function handleShare() {
     if (!sjurl.value) {
         showToast("没有链接可分享");
