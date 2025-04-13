@@ -803,26 +803,51 @@ function checkUrlParams() {
             addDebugOutput(`从分享链接自动填充: ${decodedUrl}`, debugOutput);
             showToast('已从分享链接加载内容');
 
-            // 尝试解析文件名
-            const matches = decodedUrl.match(/^\[(.*?)\](.+)$/);
-            let filename = '未知文件名'; // 默认文件名
-            if (matches && matches[1]) {
+            let filename = '文件'; // 默认文件名
+
+            // 1. 检查是否为分块链接格式 [filename]chunk1,chunk2...
+            const chunkMatches = decodedUrl.match(/^\[(.*?)\](.+)$/);
+            if (chunkMatches && chunkMatches[1]) {
                 try {
-                    filename = decodeURIComponent(matches[1]);
+                    filename = decodeURIComponent(chunkMatches[1]);
+                    addDebugOutput(`从分块链接中解析文件名: ${filename}`, debugOutput);
                 } catch (decodeError) {
-                    addDebugOutput(`解析分享链接中的文件名失败: ${decodeError.message}`, debugOutput);
-                    filename = '解码失败的文件'; // 出错时的文件名
+                    addDebugOutput(`解析分块链接中的文件名失败: ${decodeError.message}`, debugOutput);
+                    filename = '解码失败的文件';
                 }
-            } else {
-                 addDebugOutput(`分享链接格式不符合预期，无法提取文件名: ${decodedUrl}`, debugOutput);
+            }
+            // 2. 如果不是分块链接，检查是否为标准 URL https://.../filename.ext?query
+            else if (/^(https?:\/\/)/i.test(decodedUrl)) {
+                 try {
+                    const urlObject = new URL(decodedUrl);
+                    const pathname = urlObject.pathname; // e.g., /flowchunkflex/rJwiGIV6Jg.jpg
+                    const parts = pathname.split('/');
+                    const extractedFilename = parts[parts.length - 1]; // Get the last part
+                    if (extractedFilename) {
+                        // Decode the extracted filename part
+                        filename = decodeURIComponent(extractedFilename);
+                         addDebugOutput(`从标准 URL 链接中解析文件名: ${filename}`, debugOutput);
+                    } else {
+                         addDebugOutput(`无法从标准 URL 路径中提取文件名: ${pathname}`, debugOutput);
+                         filename = '未知文件名 (URL路径)';
+                    }
+                 } catch (urlParseError) {
+                     addDebugOutput(`解析标准 URL 失败: ${urlParseError.message}`, debugOutput);
+                     filename = '无效URL格式';
+                 }
+            }
+            // 3. 既不是分块也不是标准 URL
+            else {
+                 addDebugOutput(`分享链接格式未知，无法提取文件名: ${decodedUrl}`, debugOutput);
+                 filename = '未知格式文件';
             }
 
-            // 弹窗询问用户是否立即下载
-            if (confirm(`获取到分享链接，是否立即下载该文件： 【${filename}】？`)) {
+            // 弹窗询问用户是否立即下载 (使用解析出的 filename)
+            if (confirm(`检测到分享链接，是否立即下载文件 "${filename}"？`)) {
                 addDebugOutput(`用户确认下载分享链接文件: ${filename}`, debugOutput);
                 // 确保 sjurl 已经设置，然后调用下载
                 // downloadFiles 会使用 sjurl.value，所以这里不需要传递参数
-                downloadFiles(); 
+                downloadFiles();
             } else {
                 addDebugOutput(`用户取消了分享链接文件的下载: ${filename}`, debugOutput);
             }
