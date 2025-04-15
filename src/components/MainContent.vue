@@ -24,6 +24,11 @@
                 <span class="custom-checkbox"></span>
                 <span class="label-text">「分块上传模式」</span>
             </label>
+            <label class="chunk-toggle">
+                <input type="checkbox" v-model="isDangBeiOSSMode" :disabled="isDangBeiDisabled" class="toggle-input">
+                <span class="custom-checkbox"></span>
+                <span class="label-text">「DangBeiOSS模式」</span>
+            </label>
             <ThemeToggle /> <!-- Theme toggle kept with other settings -->
         </div>
 
@@ -68,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
@@ -84,6 +89,7 @@ import {
 } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
 import { useTimeEstimation } from '@/services/timeEstimationService';
+import { uploadToOSS } from '@/services/DangBeiOSS'; // 导入DangBeiOSS服务
 const {
     estimatedCompletionTime,
     updateEstimatedCompletionTimeAfterUpload,
@@ -104,10 +110,32 @@ const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
 const isChunkedMode = ref(false);
+const isDangBeiOSSMode = ref(false); // 添加当贝OSS模式开关
 const activeUploads = ref(0);
 const isChunkDisabled = computed(() => {
     // Allow disabling only if file exists and is <= MIN_CHUNK_SIZE
     return file.value && file.value.size <= MIN_CHUNK_SIZE;
+});
+
+// 增加一个计算属性控制当贝OSS模式是否与分块模式互斥
+const isDangBeiDisabled = computed(() => {
+    // 当文件太小或已选择分块模式时，禁用当贝OSS模式
+    return isChunkDisabled.value || isChunkedMode.value;
+});
+
+// 添加监听器，确保当贝OSS模式与分块模式互斥
+watch(isDangBeiOSSMode, (newValue) => {
+    if (newValue) {
+        // 当选择当贝OSS模式时，关闭分块模式
+        isChunkedMode.value = false;
+    }
+});
+
+watch(isChunkedMode, (newValue) => {
+    if (newValue) {
+        // 当选择分块模式时，关闭当贝OSS模式
+        isDangBeiOSSMode.value = false;
+    }
 });
 
 onMounted(() => {
@@ -131,6 +159,7 @@ function updateFileInfo(event) {
         chunkValue.value = 0;
         totalChunks.value = 0;
         isChunkedMode.value = false; // Reset chunk mode
+        isDangBeiOSSMode.value = false; // 重置当贝OSS模式
         sjurl.value = ''; // Optionally clear the URL input
         status.value = ''; // Clear status
         resetEstimatedCompletionTime(); // Reset time estimation
@@ -155,6 +184,7 @@ function updateFileInfo(event) {
     // Automatically disable chunked mode for small files
     if (file.value.size <= MIN_CHUNK_SIZE) {
         isChunkedMode.value = false;
+        isDangBeiOSSMode.value = false; // 小文件时不启用当贝OSS模式
         chunkSizeVisible.value = false; // Hide chunk info for single chunk uploads
         totalChunks.value = 1; // Explicitly set to 1 chunk
         addDebugOutput("文件小于或等于 1MB，强制使用单块上传模式。", debugOutput);
@@ -182,11 +212,15 @@ async function uploadFile() {
 
     // Use a try-finally block to ensure status is updated on completion/error
     try {
-        if (!isChunkedMode.value || file.value.size <= MIN_CHUNK_SIZE) {
-             addDebugOutput("执行单块上传...", debugOutput);
+        // 当选择DangBeiOSS模式时，使用DangBeiOSS服务上传
+        if (isDangBeiOSSMode.value) {
+            addDebugOutput("使用DangBeiOSS模式上传...", debugOutput);
+            await uploadWithDangBeiOSS();
+        } else if (!isChunkedMode.value || file.value.size <= MIN_CHUNK_SIZE) {
+            addDebugOutput("执行单块上传...", debugOutput);
             await uploadSingleFile();
         } else {
-             addDebugOutput(`执行分块上传 (总块数: ${totalChunks.value})...`, debugOutput);
+            addDebugOutput(`执行分块上传 (总块数: ${totalChunks.value})...`, debugOutput);
             await uploadChunks();
         }
     } catch (error) {
@@ -897,6 +931,41 @@ function handleShare() {
     } catch (error) {
         showToast('生成分享链接时出错');
         addDebugOutput(`生成分享链接错误: ${error.message}`, debugOutput);
+    }
+}
+
+// 添加DangBeiOSS上传实现
+async function uploadWithDangBeiOSS() {
+    const startTime = Date.now();
+    status.value = "正在通过DangBeiOSS上传...";
+    
+    try {
+        // 使用进度回调函数更新上传进度
+        const updateProgress = (progress) => {
+            status.value = `DangBeiOSS上传中... ${progress}%`;
+            addDebugOutput(`DangBeiOSS上传进度: ${progress}%`, debugOutput);
+        };
+        
+        // 调用DangBeiOSS服务上传文件
+        const result = await uploadToOSS(file.value, updateProgress);
+        
+        if (result.success) {
+            sjurl.value = result.url;
+            status.value = "DangBeiOSS上传完成!";
+            addDebugOutput(`DangBeiOSS上传成功: ${result.url}`, debugOutput);
+            saveUploadHistory(sjurl.value, uploadHistory); // 保存到历史记录
+            
+            const duration = (Date.now() - startTime) / 1000; // 计算耗时
+            addDebugOutput(`DangBeiOSS上传完成. 耗时: ${duration.toFixed(2)} 秒.`, debugOutput);
+            showToast('上传完成, 链接已生成');
+        } else {
+            throw new Error(result.error || '上传失败');
+        }
+    } catch (error) {
+        showToast(`DangBeiOSS上传失败: ${error.message}`);
+        status.value = "DangBeiOSS上传失败";
+        addDebugOutput(`DangBeiOSS上传错误: ${error.message}`, debugOutput);
+        throw error; // 重新抛出错误以便被uploadFile捕获
     }
 }
  
