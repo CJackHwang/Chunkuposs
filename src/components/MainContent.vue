@@ -24,6 +24,11 @@
                 <span class="custom-checkbox"></span>
                 <span class="label-text">「分块上传模式」</span>
             </label>
+            <label class="chunk-toggle">
+                <input type="checkbox" v-model="isOssMode" :disabled="isOssDisabled" class="toggle-input">
+                <span class="custom-checkbox"></span>
+                <span class="label-text">「DangBeiOSS模式」</span>
+            </label>
             <ThemeToggle /> <!-- Theme toggle kept with other settings -->
         </div>
 
@@ -68,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
@@ -84,6 +89,7 @@ import {
 } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
 import { useTimeEstimation } from '@/services/timeEstimationService';
+import { uploadToOSS } from '@/services/ossUploadService';
 const {
     estimatedCompletionTime,
     updateEstimatedCompletionTimeAfterUpload,
@@ -104,10 +110,20 @@ const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
 const isChunkedMode = ref(false);
+const isOssMode = ref(false);
 const activeUploads = ref(0);
 const isChunkDisabled = computed(() => {
-    // Allow disabling only if file exists and is <= MIN_CHUNK_SIZE
+    // 当DangBeiOSS模式启用时，禁用分块模式切换
+    if (isOssMode.value) {
+        return true;
+    }
+    // 原有逻辑：允许禁用分块模式当文件存在且小于MIN_CHUNK_SIZE
     return file.value && file.value.size <= MIN_CHUNK_SIZE;
+});
+
+const isOssDisabled = computed(() => {
+    // 当分块模式启用时，禁用DangBeiOSS模式切换
+    return isChunkedMode.value;
 });
 
 onMounted(() => {
@@ -131,6 +147,7 @@ function updateFileInfo(event) {
         chunkValue.value = 0;
         totalChunks.value = 0;
         isChunkedMode.value = false; // Reset chunk mode
+        // isOssMode保持不变，允许用户切换模式
         sjurl.value = ''; // Optionally clear the URL input
         status.value = ''; // Clear status
         resetEstimatedCompletionTime(); // Reset time estimation
@@ -138,10 +155,19 @@ function updateFileInfo(event) {
     }
 
     file.value = selectedFile;
-    chunkSizeVisible.value = true; // Show chunk info when a file is selected
-
     const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
     fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
+
+    if (isOssMode.value) {
+        // 在DangBeiOSS模式下隐藏分块信息
+        chunkSizeVisible.value = false;
+        isChunkedMode.value = false; // 确保分块模式被关闭
+        addDebugOutput(`文件已选择，当前为DangBeiOSS上传模式。文件大小: ${fileSizeMB} MB`, debugOutput);
+        return;
+    }
+
+    // 以下是非DangBeiOSS模式的处理
+    chunkSizeVisible.value = true; // Show chunk info when a file is selected
 
     // Calculate chunk size (at least half the file size, capped between MIN and MAX)
     let calculatedChunkSize = Math.ceil(file.value.size / 2); // Start with half size
@@ -160,9 +186,11 @@ function updateFileInfo(event) {
         addDebugOutput("文件小于或等于 1MB，强制使用单块上传模式。", debugOutput);
     } else {
          // If file is larger, *enable* chunked mode by default, but allow user to toggle it
-         isChunkedMode.value = true; // Default to chunked for larger files
-         chunkSizeVisible.value = true; // Ensure chunk info is visible
-         addDebugOutput(`文件大于 1MB，自动计算分块大小: ${chunkValue.value} MB, 总块数: ${totalChunks.value}。默认启用分块模式。`, debugOutput);
+         if (!isOssMode.value) { // 确保只在非DangBeiOSS模式下启用分块模式
+             isChunkedMode.value = true; // Default to chunked for larger files
+         }
+         chunkSizeVisible.value = !isOssMode.value; // 只在非DangBeiOSS模式下显示分块信息
+         addDebugOutput(`文件大于 1MB，自动计算分块大小: ${chunkValue.value} MB, 总块数: ${totalChunks.value}。${isOssMode.value ? '当前为DangBeiOSS模式，未启用分块。' : '默认启用分块模式。'}`, debugOutput);
     }
 }
 
@@ -182,11 +210,14 @@ async function uploadFile() {
 
     // Use a try-finally block to ensure status is updated on completion/error
     try {
-        if (!isChunkedMode.value || file.value.size <= MIN_CHUNK_SIZE) {
-             addDebugOutput("执行单块上传...", debugOutput);
+        if (isOssMode.value) {
+            addDebugOutput("使用DangBeiOSS模式上传...", debugOutput);
+            await uploadWithOSS();
+        } else if (!isChunkedMode.value || file.value.size <= MIN_CHUNK_SIZE) {
+            addDebugOutput("执行单块上传...", debugOutput);
             await uploadSingleFile();
         } else {
-             addDebugOutput(`执行分块上传 (总块数: ${totalChunks.value})...`, debugOutput);
+            addDebugOutput(`执行分块上传 (总块数: ${totalChunks.value})...`, debugOutput);
             await uploadChunks();
         }
     } catch (error) {
@@ -899,5 +930,68 @@ function handleShare() {
         addDebugOutput(`生成分享链接错误: ${error.message}`, debugOutput);
     }
 }
- 
+
+async function uploadWithOSS() {
+    const startTime = Date.now();
+    status.value = "正在使用DangBeiOSS上传...";
+    
+    try {
+        // 实现进度回调函数
+        const updateProgress = (percent) => {
+            status.value = `DangBeiOSS上传中... ${percent}%`;
+            addDebugOutput(`DangBeiOSS上传进度: ${percent}%`, debugOutput);
+        };
+        
+        // 调用OSS上传服务
+        const result = await uploadToOSS(file.value, updateProgress);
+        
+        if (result.success) {
+            const duration = (Date.now() - startTime) / 1000;
+            sjurl.value = result.url;
+            status.value = "上传完成!";
+            showToast('DangBeiOSS上传完成, 链接已生成');
+            addDebugOutput(`DangBeiOSS上传成功: ${result.url}. 耗时: ${duration.toFixed(2)} 秒.`, debugOutput);
+            saveUploadHistory(sjurl.value, uploadHistory);
+        } else {
+            throw new Error(result.error || '上传失败');
+        }
+    } catch (error) {
+        showToast('DangBeiOSS上传失败: ' + error.message);
+        status.value = "DangBeiOSS上传失败";
+        addDebugOutput(`DangBeiOSS上传错误: ${error.message}`, debugOutput);
+        throw error; // 向上传递错误
+    }
+}
+
+// 监听OSS模式变化
+watch(isOssMode, (newValue) => {
+    if (newValue === true) {
+        // 当启用DangBeiOSS模式时，自动禁用分块模式
+        isChunkedMode.value = false;
+        chunkSizeVisible.value = false; // 同时隐藏分块信息
+        addDebugOutput("已启用DangBeiOSS模式，自动禁用分块模式", debugOutput);
+        
+        // 如果当前有文件，更新状态显示
+        if (file.value) {
+            const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+            addDebugOutput(`切换到DangBeiOSS模式，文件大小: ${fileSizeMB} MB`, debugOutput);
+        }
+    }
+});
+
+// 监听分块模式变化
+watch(isChunkedMode, (newValue) => {
+    if (newValue === true) {
+        // 当启用分块模式时，自动禁用DangBeiOSS模式
+        isOssMode.value = false;
+        
+        // 如果当前有文件，更新分块信息显示
+        if (file.value) {
+            chunkSizeVisible.value = true;
+            const fileSizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+            addDebugOutput(`切换到分块模式，文件大小: ${fileSizeMB} MB，分块数: ${totalChunks.value}`, debugOutput);
+        }
+    }
+});
+
 </script>
