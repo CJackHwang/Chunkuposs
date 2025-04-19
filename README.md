@@ -112,14 +112,16 @@ helpers.copyToClipboard(shareUrl, ...);
 
 ```mermaid
 flowchart TD
+    %% Input & Mode Selection
     subgraph "Input & Mode Selection"
         A[File Input]
-        M[Mode Select: CodeMao/DangBei]
+        M[Mode Select: CodeMao / DangBei]
     end
 
     A --> P{File Size Check}
     M --> P
 
+    %% CodeMao OSS Path
     subgraph "CodeMao OSS Path"
         P -->|CodeMao & Size > 1MB| B{Chunk Detection}
         B -->|> 30MB| B_Force[Force Chunking ON] --> D
@@ -127,29 +129,34 @@ flowchart TD
         B -->|Size <= 1MB OR Chunking OFF| C[Single FormData Submit]
 
         D --> E[Uint8Array Buffer Chunking]
-        E --> F[Concurrency(2) & Rate Limit(5/s) Queue]
-        F --> G[Chunk Upload w/ Retry & Dyn Timeout]
+        E --> F["Concurrency x2 & 5/sec Rate Queue"]
+        F --> G[Chunk Upload with Retry & Dynamic Timeout]
         G --> H[URL Aggregation]
-        H --> I[Format Link: [Filename]chunk1,...]
-        C --> I_Single[Get Single URL] --> J
-        I --> J[Display/Store Link]
+        H --> I["Format Link: Filename_chunk1, ..."]
+        C --> I_Single[Get Single File URL] --> J_CodeMao[Display/Store URL]
+        I --> J_CodeMao
     end
 
+    %% DangBei OSS Path
     subgraph "DangBei OSS Path"
-        P -->|DangBei| K[DangBeiOSS Service Call]
-        K --> L[S3 Client Upload w/ Progress]
-        L --> J_DB[Display/Store Direct URL] --> J
+        P -->|DangBei| K[Call DangBeiOSS Service]
+        K --> L[S3 Upload with Progress Display]
+        L --> J_DangBei[Display/Store Direct URL] --> J_Final[Unified Display/Store URL]
     end
 
+    %% Merge CodeMao path into final display
+    J_CodeMao --> J_Final
+
+    %% Download & Share
     subgraph "Download & Share"
-        J --> DL_Input[Paste Link in Input]
+        J_Final --> DL_Input[Paste Link into Input Box]
         DL_Input --> DL_Check{Link Type?}
-        DL_Check -->|CodeMao Link| Merge[Fetch All & Merge Blobs] --> Save[Trigger Browser Download]
-        DL_Check -->|Standard URL| Open[window.open(url)]
-        J --> Share[Share Button] --> ShareLink[Generate ?url=... Link] --> Clipboard[Copy to Clipboard]
+        DL_Check -->|CodeMao Link| Merge[Fetch All Chunks & Merge Blobs] --> Save[Trigger Browser Download]
+        DL_Check -->|Standard URL| Open[Open in New Tab]
+        J_Final --> Share[Share Button Clicked] --> ShareLink[Generate Shareable ?url=... Link] --> Clipboard[Copy to Clipboard]
     end
 
-    J --> Store[Store in localStorage]
+    J_Final --> Store[Store URL in localStorage]
 
 ```
 
