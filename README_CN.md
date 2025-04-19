@@ -112,44 +112,53 @@ helpers.copyToClipboard(shareUrl, ...);
 
 ```mermaid
 flowchart TD
+    %% 输入与模式选择
     subgraph "输入与模式选择"
         A[文件输入]
-        M[模式选择: 编程猫/当贝]
+        M[模式选择：编程猫 / 当贝]
     end
 
     A --> P{文件大小检查}
     M --> P
 
+    %% 编程猫 OSS 路径
     subgraph "编程猫 OSS 路径"
-        P -->|编程猫 & 大于1MB| B{分块检测}
-        B -->|> 30MB| B_Force[强制分块开启] --> D
-        B -->|1MB < 大小 <= 30MB & 分块开启| D[Streams API 切割]
-        B -->|大小 <= 1MB 或 分块关闭| C[单文件 FormData 提交]
+        P -->|编程猫 且 大于 1MB| B{分块检测}
+        B -->|大于 30MB| B_Force[强制分块开启] --> D
+        B -->|1MB < 大小 <= 30MB 且 分块开启| D[使用 Streams API 切割]
+        B -->|小于等于 1MB 或 分块关闭| C[单文件 FormData 提交]
 
         D --> E[Uint8Array 缓冲区分块]
-        E --> F[并发(2) & 速率(5/s)控制队列]
-        F --> G[分块上传含重试与动态超时]
-        G --> H[URL 聚合]
-        H --> I[格式化链接: [文件名]块1,...]
-        C --> I_Single[获取单文件 URL] --> J
-        I --> J[显示/存储链接]
+        E --> F[并发 2，限速 5 次每秒]
+        F --> G[上传分块（重试 + 动态超时）]
+        G --> H[聚合分块链接]
+        H --> I[格式化链接：文件名_chunk1,...]
+        C --> I_Single[获取单文件 URL] --> J_CodeMao[显示/存储链接]
+        I --> J_CodeMao
     end
 
+    %% 当贝 OSS 路径
     subgraph "当贝 OSS 路径"
         P -->|当贝| K[调用 DangBeiOSS 服务]
-        K --> L[S3 客户端上传含进度]
-        L --> J_DB[显示/存储直链] --> J
+        K --> L[S3 客户端上传（带进度）]
+        L --> J_DangBei[显示/存储直链] --> J_Final[统一显示/存储链接]
     end
 
+    %% 合并编程猫路径结果
+    J_CodeMao --> J_Final
+
+    %% 下载与分享
     subgraph "下载与分享"
-        J --> DL_Input[输入框粘贴链接]
-        DL_Input --> DL_Check{链接类型?}
+        J_Final --> DL_Input[输入框粘贴链接]
+        DL_Input --> DL_Check{链接类型？}
         DL_Check -->|编程猫链接| Merge[获取全部分块并合并] --> Save[触发浏览器下载]
-        DL_Check -->|标准 URL| Open[window.open(url)]
-        J --> Share[分享按钮] --> ShareLink[生成 ?url=... 链接] --> Clipboard[复制到剪贴板]
+        DL_Check -->|标准链接| Open[打开浏览器窗口]
+        Open --> J_Final
+        J_Final --> Share[点击分享按钮] --> ShareLink[生成 ?url=... 分享链接] --> Clipboard[复制到剪贴板]
     end
 
-    J --> Store[存储到 localStorage]
+    J_Final --> Store[存储到 localStorage]
+
 
 ```
 
