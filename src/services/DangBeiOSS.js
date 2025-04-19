@@ -68,11 +68,18 @@ export async function uploadToOSS(file, onProgress) {
       url: fileUrl,
       size: file.size,
       type: file.type
-    };
-  } catch (error) {
-    console.error('上传失败:', error);
-    return {
-      success: false,
+     };
+   } catch (error) {
+     // 更详细的错误日志
+     console.error('DangBeiOSS 上传失败:', error);
+     console.error('错误详情:', {
+       message: error.message,
+       stack: error.stack,
+       code: error.code, // OSS specific error code
+       requestId: error.requestId // OSS request ID for tracing
+     });
+     return {
+       success: false,
       name: file.name,
       error: error.message || '上传失败'
     };
@@ -81,4 +88,4 @@ export async function uploadToOSS(file, onProgress) {
 
 export default {
   uploadToOSS
-}; 
+};

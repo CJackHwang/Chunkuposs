@@ -5,11 +5,11 @@
       <div class="header-main">
          <h2>FlowChunkFlex微云盘</h2>
          <!-- 版本号使用 span，并添加 class -->
-         <span class="version-tag">Ver: 5.3.9</span>
+         <span class="version-tag">Ver: 5.4.1</span>
       </div>
       <!-- 为描述添加 class -->
       <p class="description">
-        基于Vue3+Vite6；流式读取文件，分块并发提交至免费的编程猫七牛云对象存储API以绕过大小限制；支持中断自动重传，默认单块最大15MB，并发上传数2。
+        基于Vue3+Vite6；流式读取文件，分块并发提交至【编程猫七牛云对象存储】以解决大小限制；支持中断自动重传，默认单块最大15MB，并发上传数2；新支持【当贝AI阿里云对象存储】（大文件支持）。请注意，该项目接口来源于互联网，仅供学习开发测试，请勿滥用和进行任何商业行为，不当使用造成的所有后果自负，本项目开发及贡献人员不承担任何法律责任，如继续使用本工具则默认您知晓并已同意该条款。
       </p>
     </header>
 
@@ -22,7 +22,7 @@
       </p>
       <!-- 项目链接 -->
       <p class="project-link">
-        <a href="https://github.com/CJackHwang/Fuck-Codemao-Detection" target="_blank">项目仓库：FlowChunkFlex</a>
+        <a href="https://github.com/CJackHwang/FlowChunkFlex" target="_blank">项目仓库：FlowChunkFlex</a>
       </p>
       <!-- 徽章链接 -->
       <p class="badges">

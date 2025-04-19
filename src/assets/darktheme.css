@@ -132,24 +132,55 @@
     border-color: var(--primary-color);
 }
 
-/* ===== Chunk Toggle Switch ===== */
+/* ===== Upload Mode Selector (Radio Buttons) Dark Theme ===== */
+.dark-theme .radio-label {
+    --active-color: var(--primary-color); /* Use dark theme primary */
+    --border-color: var(--divider-color); /* Use dark theme divider */
+    --hover-bg: var(--hover-bg); /* Use dark theme hover */
+    color: var(--md-sys-color-on-surface-variant-dark);
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.dark-theme .radio-label:hover {
+    background-color: var(--hover-bg);
+}
+
+.dark-theme .radio-label::before {
+    border-color: var(--border-color);
+    background-color: transparent;
+}
+
+.dark-theme .radio-label input[type="radio"]:checked + .radio-text::before {
+    border-color: var(--active-color);
+}
+
+.dark-theme .radio-label input[type="radio"]:checked + .radio-text::after {
+    background-color: var(--active-color);
+}
+
+.dark-theme .radio-label input[type="radio"]:focus-visible + .radio-text {
+   outline-color: var(--primary-color);
+}
+
+
+/* ===== M3 Style Checkbox Dark Theme ===== */
 .dark-theme .chunk-toggle {
     --active-color: var(--primary-color);
     --border-color: var(--divider-color);
     --hover-bg: var(--hover-bg);
-    color: var(--md-sys-color-on-surface-variant-dark);
-    background-color: var(--md-sys-color-surface-container-low-dark); /* Give it a background */
-    border: 1px solid var(--md-sys-color-outline-variant-dark); /* Add subtle border */
-    box-shadow: var(--shadow-1); /* <<< 添加阴影 */
+    --text-color: var(--md-sys-color-on-surface-variant-dark);
+    color: var(--text-color);
+    background-color: transparent;
+    border-color: transparent;
 }
 
 .dark-theme .chunk-toggle:hover {
     background: var(--hover-bg);
-    border-color: var(--md-sys-color-outline-dark); /* Slightly lighter border on hover */
 }
 
 .dark-theme .chunk-toggle:focus-within {
-    box-shadow: var(--shadow-2); /* Increase shadow on focus */
+     outline-color: var(--primary-color);
 }
 
 .dark-theme .custom-checkbox {
@@ -163,7 +194,7 @@
 }
 
 .dark-theme .toggle-input:checked + .custom-checkbox::after {
-    border-color: var(--text-on-primary); /* Use on-primary for checkmark */
+    border-color: var(--text-on-primary); /* Use dark theme on-primary */
 }
 
 .dark-theme .toggle-input:focus-visible + .custom-checkbox {
@@ -174,15 +205,13 @@
     border-color: var(--md-sys-color-outline-dark);
     background-color: var(--md-sys-color-surface-variant-dark);
 }
-.dark-theme .chunk-toggle input[disabled] ~ span {
-    color: var(--md-sys-color-on-surface-variant-dark);
-}
-/* Make disabled toggle look flatter */
 .dark-theme .chunk-toggle:has(input:disabled) {
-    box-shadow: none;
-    background-color: var(--md-sys-color-surface-container-dark); /* Slightly darker disabled bg */
-    border-color: var(--md-sys-color-outline-variant-dark);
+    color: var(--md-sys-color-on-surface-variant-dark);
     opacity: 0.7;
+    background-color: transparent;
+}
+.dark-theme .chunk-toggle:has(input:disabled):hover {
+    background-color: transparent;
 }
 
 

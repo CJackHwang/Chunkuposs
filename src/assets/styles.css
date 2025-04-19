@@ -209,7 +209,107 @@ main {
     align-items: center;
     gap: var(--spacing-2);
     margin: var(--spacing-4) 0;
+    flex-wrap: wrap; /* Allow wrapping */
 }
+
+/* ===== Upload Mode Selector (Radio Buttons) ===== */
+.upload-mode-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4); /* Space between label and radios */
+    margin-right: var(--spacing-4); /* Space before next element */
+}
+
+.mode-label {
+    font-size: 0.875rem; /* M3 Label Large */
+    color: var(--md-sys-color-on-surface-variant-light);
+    margin-right: var(--spacing-2);
+}
+
+.radio-label {
+    --radio-size: 20px;
+    --radio-border-width: 2px;
+    --radio-dot-size: 10px; /* Size of the inner dot */
+    --active-color: var(--primary-color);
+    --border-color: var(--divider-color);
+    --hover-bg: var(--hover-bg);
+
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    gap: var(--spacing-2);
+    font-size: 0.875rem; /* M3 Label Large */
+    padding: var(--spacing-2) var(--spacing-3); /* Padding around text + radio */
+    border-radius: var(--border-radius-pill); /* Pill shape for label */
+    position: relative;
+    min-height: 40px; /* Match button height */
+    color: var(--md-sys-color-on-surface-variant-light);
+    background-color: transparent; /* No background initially */
+    border: 1px solid transparent; /* Placeholder for border */
+    transition: background-color var(--duration-medium) var(--ease-standard),
+                border-color var(--duration-medium) var(--ease-standard);
+}
+
+.radio-label:hover {
+    background-color: var(--hover-bg);
+}
+
+/* Custom radio button circle */
+.radio-label::before {
+    content: '';
+    display: inline-block;
+    width: var(--radio-size);
+    height: var(--radio-size);
+    border-radius: 50%;
+    border: var(--radio-border-width) solid var(--border-color);
+    background-color: transparent;
+    transition: all var(--duration-short) var(--ease-standard);
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Style when checked */
+.radio-label input[type="radio"]:checked + .radio-text::before {
+    border-color: var(--active-color);
+}
+
+/* Inner dot for checked state */
+.radio-label input[type="radio"]:checked + .radio-text::after {
+    content: '';
+    position: absolute;
+    /* Calculate position to center the dot inside the circle */
+    left: calc(var(--spacing-3) + var(--radio-border-width) + (var(--radio-size) - var(--radio-border-width)*2 - var(--radio-dot-size)) / 2);
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--radio-dot-size);
+    height: var(--radio-dot-size);
+    border-radius: 50%;
+    background-color: var(--active-color);
+    transition: background-color var(--duration-short) var(--ease-standard);
+}
+
+
+/* Hide actual radio input */
+.radio-label input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* Focus visible style for radio */
+.radio-label input[type="radio"]:focus-visible + .radio-text {
+   /* Apply focus to the text span or label itself */
+   outline: 2px solid var(--primary-color);
+   outline-offset: 2px;
+   border-radius: var(--border-radius-pill); /* Match label shape */
+}
+
 
 /* ===== URL Input Field ===== */
 .url-container {
@@ -235,12 +335,15 @@ main {
     border-color: var(--primary-color);
 }
 
-/* ===== Chunk Toggle Switch ===== */
+/* ===== M3 Style Checkbox (Applied via .chunk-toggle) ===== */
+/* Reusing .chunk-toggle as the label container */
 .chunk-toggle {
-    --toggle-height: 40px; /* Match button height */
+    --checkbox-size: 18px; /* M3 Checkbox size */
+    --checkbox-border-width: 2px;
     --active-color: var(--primary-color);
     --border-color: var(--divider-color);
     --hover-bg: var(--hover-bg);
+    --text-color: var(--md-sys-color-on-surface-variant-light);
 
     display: inline-flex;
     align-items: center;
@@ -248,93 +351,88 @@ main {
     gap: var(--spacing-2);
     margin: var(--spacing-2) 0;
     font-size: 0.875rem; /* M3 Label Large */
-    padding: 9px var(--spacing-3) 9px 44px; /* Adjust left padding for checkbox */
-    border-radius: var(--border-radius-md); /* Medium radius */
+    padding: var(--spacing-2) var(--spacing-3); /* Adjust padding */
+    padding-left: calc(var(--spacing-2) + var(--checkbox-size) + var(--spacing-2)); /* Space for checkbox */
+    border-radius: var(--border-radius-pill); /* Pill shape */
     position: relative;
-    min-height: var(--toggle-height);
-    color: var(--md-sys-color-on-surface-variant-light);
-    background-color: var(--surface-color); /* Give it a background to lift shadow */
-    border: 1px solid var(--md-sys-color-outline-variant-light); /* Add subtle border */
-
-    transition: background-color var(--duration-medium) var(--ease-standard),
-                box-shadow var(--duration-medium) var(--ease-standard),
-                border-color var(--duration-medium) var(--ease-standard); /* Add transition */
+    min-height: 40px; /* Match button height */
+    color: var(--text-color);
+    background-color: transparent; /* No background */
+    border: 1px solid transparent; /* No border */
+    transition: background-color var(--duration-medium) var(--ease-standard);
 }
 
 .chunk-toggle:hover {
     background: var(--hover-bg);
-    border-color: var(--md-sys-color-outline-light); /* Slightly darker border on hover */
-    /* Hover does not necessarily need increased shadow for toggle, background change is primary */
 }
 
-.chunk-toggle:focus-within {
-    /* Optional: Add focus ring to container */
-    /* outline: 2px solid var(--primary-color); */
-    /* outline-offset: 2px; */
-    box-shadow: var(--shadow-2); /* Increase shadow on focus */
-}
-
+/* Custom Checkbox Indicator */
 .custom-checkbox {
-    display: inline-block;
     position: absolute;
-    left: var(--spacing-4); /* Position checkbox inside padding */
+    left: var(--spacing-3); /* Position checkbox inside padding */
     top: 50%;
     transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-color);
+    width: var(--checkbox-size);
+    height: var(--checkbox-size);
+    border: var(--checkbox-border-width) solid var(--border-color);
     border-radius: var(--border-radius-sm); /* Small radius */
     background-color: transparent;
     transition: all var(--duration-short) var(--ease-standard);
+    pointer-events: none; /* Prevent interaction with the span itself */
 }
 
+/* Checked State */
 .toggle-input:checked + .custom-checkbox {
     border-color: var(--active-color);
     background-color: var(--active-color);
 }
 
+/* Checkmark */
 .toggle-input:checked + .custom-checkbox::after {
     content: "";
     position: absolute;
-    left: 5px; /* Centered tick */
-    top: 2px;  /* Centered tick */
-    width: 5px;
-    height: 10px;
+    /* Adjust checkmark position and size for 18px box */
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 9px;
     border: solid var(--text-on-primary);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
 
-/* Focus visible style for checkbox */
+/* Focus Visible Style */
 .toggle-input:focus-visible + .custom-checkbox {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
+/* Apply focus ring to the label as well for better visibility */
+.chunk-toggle:focus-within {
+    /* background-color: var(--hover-bg); */ /* Optional: subtle bg on focus */
+     outline: 2px solid var(--primary-color);
+     outline-offset: 1px;
+}
 
+
+/* Disabled State */
 .toggle-input:disabled + .custom-checkbox {
     opacity: 0.5;
     border-color: var(--md-sys-color-outline-light);
     background-color: var(--md-sys-color-surface-variant-light);
-    cursor: not-allowed;
 }
-.chunk-toggle input[disabled] {
-    cursor: not-allowed;
-}
-.chunk-toggle input[disabled] ~ span { /* Style label text when disabled */
+.chunk-toggle:has(input:disabled) {
     color: var(--md-sys-color-on-surface-variant-light);
     opacity: 0.7;
-}
-/* Make disabled toggle look flatter */
-.chunk-toggle:has(input:disabled) {
-    box-shadow: none;
-    background-color: var(--md-sys-color-surface-container-low-light);
-    border-color: var(--md-sys-color-outline-variant-light);
-    opacity: 0.8;
     cursor: not-allowed;
+    background-color: transparent; /* Ensure no hover effect */
+}
+.chunk-toggle:has(input:disabled):hover {
+    background-color: transparent;
 }
 
 
-.toggle-input { /* Visually hidden input */
+/* Hide actual checkbox input */
+.toggle-input {
     position: absolute;
     opacity: 0;
     width: 1px;
@@ -346,6 +444,7 @@ main {
     -webkit-appearance: none;
     -moz-appearance: none;
 }
+
 
 /* ===== Button System ===== */
 button {

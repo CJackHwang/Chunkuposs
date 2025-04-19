@@ -6,7 +6,7 @@
             <table class="upload-history-table">
                 <thead>
                     <tr>
-                        <th>上传时间</th>
+                        <th>上传时间（由新到旧）</th>
                         <th>文件链接 (点击填入)</th> <!-- Indicate clickability -->
                     </tr>
                 </thead>

@@ -1,6 +1,6 @@
 {
   "name": "cfd.cjack.file",
-  "version": "5.3+",
+  "version": "5.4+",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@vite-pwa/assets-generator": "^0.2.6",
+    "ali-oss": "^6.22.0",
     "toastify-js": "^1.12.0"
   },
   "devDependencies": {
