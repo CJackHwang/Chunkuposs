@@ -8,7 +8,8 @@
     --md-sys-color-on-primary-light: #FFFFFF;
     --md-sys-color-primary-container-light: #6FF7F0;
     --md-sys-color-on-primary-container-light: #00201F;
-    --md-sys-color-primary-hover-light: #00807B; /* Custom lighter hover */
+    --md-sys-color-primary-hover-light: #00807B;
+    /* Custom lighter hover */
 
     --md-sys-color-secondary-light: #4A6361;
     --md-sys-color-on-secondary-light: #FFFFFF;
@@ -25,34 +26,42 @@
     --md-sys-color-error-container-light: #FFDAD6;
     --md-sys-color-on-error-container-light: #410002;
 
-    --md-sys-color-background-light: #F4FBFA; /* Slightly off-white */
+    --md-sys-color-background-light: #F4FBFA;
+    /* Slightly off-white */
     --md-sys-color-on-background-light: #171D1C;
-    --md-sys-color-surface-light: #F4FBFA; /* Same as background */
+    --md-sys-color-surface-light: #F4FBFA;
+    /* Same as background */
     --md-sys-color-on-surface-light: #171D1C;
     --md-sys-color-surface-variant-light: #DAE5E3;
     --md-sys-color-on-surface-variant-light: #3F4947;
-    --md-sys-color-outline-light: #6F7978; /* <<< 用于表格边框 */
+    --md-sys-color-outline-light: #6F7978;
+    /* <<< 用于表格边框 */
     --md-sys-color-outline-variant-light: #BFC9C7;
 
     --md-sys-color-surface-dim-light: #D5DBDA;
     --md-sys-color-surface-bright-light: #F4FBFA;
     --md-sys-color-surface-container-lowest-light: #FFFFFF;
     --md-sys-color-surface-container-low-light: #EEF5F4;
-    --md-sys-color-surface-container-light: #E8EFEE; /* Use for Header/Footer */
+    --md-sys-color-surface-container-light: #E8EFEE;
+    /* Use for Header/Footer */
     --md-sys-color-surface-container-high-light: #E2E9E8;
-    --md-sys-color-surface-container-highest-light: #DCE4E3; /* Use for Inputs/Toasts */
+    --md-sys-color-surface-container-highest-light: #DCE4E3;
+    /* Use for Inputs/Toasts */
 
     /* --- Original Variable Mapping (Legacy Support & Consistency) --- */
     --primary-color: var(--md-sys-color-primary-light);
     --primary-hover: var(--md-sys-color-primary-hover-light);
     --surface-color: var(--md-sys-color-surface-light);
     --background-color: var(--md-sys-color-background-light);
-    --divider-color: var(--md-sys-color-outline-light); /* Mapped to outline */
+    --divider-color: var(--md-sys-color-outline-light);
+    /* Mapped to outline */
     --text-primary: var(--md-sys-color-on-surface-light);
     --text-on-primary: var(--md-sys-color-on-primary-light);
     --error-color: var(--md-sys-color-error-light);
-    /* --success-color: #69F0AE; */ /* Consider using Tertiary or custom success role */
-    --success-color: #006E3E; /* Example: M3 Greenish Success */
+    /* --success-color: #69F0AE; */
+    /* Consider using Tertiary or custom success role */
+    --success-color: #006E3E;
+    /* Example: M3 Greenish Success */
     --on-success-color: #FFFFFF;
     --success-container-color: #89FAAE;
     --on-success-container-color: #00210F;
@@ -65,40 +74,57 @@
     --spacing-5: 24px;
 
     /* --- Border Radii --- */
-    --border-radius-sm: 4px;   /* Extra Small (Inputs, Checkbox, Debug, Chunk Info, Toast, Footer Link) */
-    --border-radius-md: 12px;  /* Medium (Toggle Container) */
-    --border-radius-lg: 16px;  /* Large (Header, Main, Footer, File Upload) */
-    --border-radius-xl: 8px;   /* Small (Table Container) */
-    --border-radius-pill: 20px; /* Full/Pill (Buttons, based on 40px height) */
+    --border-radius-sm: 4px;
+    /* Extra Small (Inputs, Checkbox, Debug, Chunk Info, Toast, Footer Link) */
+    --border-radius-md: 12px;
+    /* Medium (Toggle Container) */
+    --border-radius-lg: 16px;
+    /* Large (Header, Main, Footer, File Upload) */
+    --border-radius-xl: 8px;
+    /* Small (Table Container) */
+    --border-radius-pill: 20px;
+    /* Full/Pill (Buttons, based on 40px height) */
 
     /* --- Shadows (Standard M3 Values) --- */
-    --shadow-level: 0; /* Base level, no shadow */
-    --shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15); /* M3 Level 1 */
-    --shadow-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15); /* M3 Level 2 */
-    --shadow-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3); /* M3 Level 3 */
+    --shadow-level: 0;
+    /* Base level, no shadow */
+    --shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+    /* M3 Level 1 */
+    --shadow-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+    /* M3 Level 2 */
+    --shadow-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+    /* M3 Level 3 */
     /* NOTE: These values are standard M3. The adjustment is in their application below. */
 
     /* --- Motion --- */
-    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* M3 Standard Easing */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    /* M3 Standard Easing */
     --duration-short: 100ms;
     --duration-medium: 250ms;
     --duration-long: 400ms;
 
     /* --- Interaction States --- */
-    --hover-opacity: 0.08; /* 8% */
-    --focus-opacity: 0.12; /* 12% */
-    --pressed-opacity: 0.12; /* 12% */
-    --dragged-opacity: 0.16; /* 16% */
+    --hover-opacity: 0.08;
+    /* 8% */
+    --focus-opacity: 0.12;
+    /* 12% */
+    --pressed-opacity: 0.12;
+    /* 12% */
+    --dragged-opacity: 0.16;
+    /* 16% */
     /* Calculated state layers */
     --hover-bg: color-mix(in srgb, var(--primary-color) calc(var(--hover-opacity) * 100%), transparent);
     --active-bg: color-mix(in srgb, var(--primary-color) calc(var(--pressed-opacity) * 100%), transparent);
 
     /* --- Icon Color --- */
-    --icon-color: var(--text-primary); /* Default icon color */
+    --icon-color: var(--text-primary);
+    /* Default icon color */
 }
 
 /* ===== Base Reset & Body ===== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
@@ -118,14 +144,17 @@ body {
 header,
 main,
 footer {
-    border-radius: var(--border-radius-lg); /* Large radius for main containers */
+    border-radius: var(--border-radius-lg);
+    /* Large radius for main containers */
     /* box-shadow: var(--shadow-1); <<< REMOVED default shadow */
-    border: 1px solid var(--md-sys-color-outline-variant-light); /* Rely on border and bg color */
+    border: 1px solid var(--md-sys-color-outline-variant-light);
+    /* Rely on border and bg color */
 }
 
 /* ===== Header ===== */
 header {
-    background: var(--md-sys-color-surface-container-light); /* Use Surface Container */
+    background: var(--md-sys-color-surface-container-light);
+    /* Use Surface Container */
     color: var(--md-sys-color-on-surface-light);
     padding: var(--spacing-4) var(--spacing-5);
     /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
@@ -133,7 +162,8 @@ header {
 
     h2 {
         margin: 0;
-        font-size: 1.375rem; /* M3 Title Large */
+        font-size: 1.375rem;
+        /* M3 Title Large */
         font-weight: 500;
         letter-spacing: 0.25px;
         line-height: 1.6;
@@ -144,23 +174,31 @@ header {
 main {
     background: var(--surface-color);
     padding: var(--spacing-5);
-    position: relative; /* Keep for potential absolute children */
-    z-index: 1; /* Keep for stacking context */
+    position: relative;
+    /* Keep for potential absolute children */
+    z-index: 1;
+    /* Keep for stacking context */
     /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
 }
 
 /* ===== File Upload Component ===== */
 .file-upload {
     --highlight-color: var(--primary-color);
-    --info-bg: var(--md-sys-color-surface-container-low-light); /* Subtle bg for info */
-    background: transparent; /* Make it blend more, rely on border */
-    border: 1.5px dashed var(--divider-color); /* Keep dashed style */
-    border-radius: var(--border-radius-lg); /* Large radius */
-    padding: calc(var(--spacing-5) * 1.5) var(--spacing-5); /* More padding */
+    --info-bg: var(--md-sys-color-surface-container-low-light);
+    /* Subtle bg for info */
+    background: transparent;
+    /* Make it blend more, rely on border */
+    border: 1.5px dashed var(--divider-color);
+    /* Keep dashed style */
+    border-radius: var(--border-radius-lg);
+    /* Large radius */
+    padding: calc(var(--spacing-5) * 1.5) var(--spacing-5);
+    /* More padding */
     text-align: center;
     position: relative;
     margin: var(--spacing-4) auto;
-    color: var(--md-sys-color-on-surface-variant-light); /* Less prominent text */
+    color: var(--md-sys-color-on-surface-variant-light);
+    /* Less prominent text */
 }
 
 .file-upload:hover {
@@ -179,7 +217,8 @@ main {
 }
 
 .upload-area {
-    pointer-events: none; /* Clicks pass through to hidden input */
+    pointer-events: none;
+    /* Clicks pass through to hidden input */
 }
 
 .highlight {
@@ -189,9 +228,9 @@ main {
 }
 
 .file-info {
-     margin-top: var(--spacing-4);
-     color: var(--text-primary);
-     font-size: 0.9em;
+    margin-top: var(--spacing-4);
+    color: var(--text-primary);
+    font-size: 0.9em;
 }
 
 .chunk-info {
@@ -200,7 +239,8 @@ main {
     font-size: 0.875em;
     padding: var(--spacing-2) var(--spacing-3);
     background: var(--info-bg);
-    border-radius: var(--border-radius-sm); /* Small radius */
+    border-radius: var(--border-radius-sm);
+    /* Small radius */
     border: 1px solid var(--md-sys-color-outline-variant-light);
 }
 
@@ -209,35 +249,32 @@ main {
     align-items: center;
     gap: var(--spacing-2);
     margin: var(--spacing-4) 0;
+    flex-wrap: wrap;
+    /* Allow wrapping */
 }
 
-/* ===== URL Input Field ===== */
-.url-container {
-    width: 100%;
-    margin: var(--spacing-4) 0;
+/* ===== Upload Mode Selector (Radio Buttons) ===== */
+.upload-mode-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    /* Space between label and radios */
+    margin-right: var(--spacing-4);
+    /* Space before next element */
 }
 
-#sjurl {
-    width: 100%;
-    height: 56px; /* M3 Filled Text Field Height */
-    border: 1px solid var(--divider-color);
-    border-radius: var(--border-radius-sm); /* Small radius */
-    background: var(--md-sys-color-surface-container-highest-light); /* Distinct background */
-    padding: var(--spacing-2) var(--spacing-3);
-    color: var(--text-primary);
-    font-size: 1rem;
-    line-height: 1.5;
+.mode-label {
+    font-size: 0.875rem;
+    /* M3 Label Large */
+    color: var(--md-sys-color-on-surface-variant-light);
+    margin-right: var(--spacing-2);
 }
 
-#sjurl:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 1px;
-    border-color: var(--primary-color);
-}
-
-/* ===== Chunk Toggle Switch ===== */
-.chunk-toggle {
-    --toggle-height: 40px; /* Match button height */
+.radio-label {
+    --radio-size: 20px;
+    --radio-border-width: 2px;
+    --radio-dot-size: 10px;
+    /* Size of the inner dot */
     --active-color: var(--primary-color);
     --border-color: var(--divider-color);
     --hover-bg: var(--hover-bg);
@@ -246,95 +283,65 @@ main {
     align-items: center;
     cursor: pointer;
     gap: var(--spacing-2);
-    margin: var(--spacing-2) 0;
-    font-size: 0.875rem; /* M3 Label Large */
-    padding: 9px var(--spacing-3) 9px 44px; /* Adjust left padding for checkbox */
-    border-radius: var(--border-radius-md); /* Medium radius */
+    font-size: 0.875rem;
+    /* M3 Label Large */
+    padding: var(--spacing-2) var(--spacing-3);
+    /* Padding around text + radio */
+    border-radius: var(--border-radius-pill);
+    /* Pill shape for label */
     position: relative;
-    min-height: var(--toggle-height);
+    min-height: 40px;
+    /* Match button height */
     color: var(--md-sys-color-on-surface-variant-light);
-    background-color: var(--surface-color); /* Give it a background to lift shadow */
-    border: 1px solid var(--md-sys-color-outline-variant-light); /* Add subtle border */
-
+    background-color: transparent;
+    /* No background initially */
+    border: 1px solid transparent;
+    /* Placeholder for border */
     transition: background-color var(--duration-medium) var(--ease-standard),
-                box-shadow var(--duration-medium) var(--ease-standard),
-                border-color var(--duration-medium) var(--ease-standard); /* Add transition */
+        border-color var(--duration-medium) var(--ease-standard);
 }
 
-.chunk-toggle:hover {
-    background: var(--hover-bg);
-    border-color: var(--md-sys-color-outline-light); /* Slightly darker border on hover */
-    /* Hover does not necessarily need increased shadow for toggle, background change is primary */
+.radio-label:hover {
+    background-color: var(--hover-bg);
 }
 
-.chunk-toggle:focus-within {
-    /* Optional: Add focus ring to container */
-    /* outline: 2px solid var(--primary-color); */
-    /* outline-offset: 2px; */
-    box-shadow: var(--shadow-2); /* Increase shadow on focus */
-}
-
-.custom-checkbox {
+/* Custom radio button circle */
+.radio-label::before {
+    content: '';
     display: inline-block;
-    position: absolute;
-    left: var(--spacing-4); /* Position checkbox inside padding */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius-sm); /* Small radius */
+    width: var(--radio-size);
+    height: var(--radio-size);
+    border-radius: 50%;
+    border: var(--radio-border-width) solid var(--border-color);
     background-color: transparent;
     transition: all var(--duration-short) var(--ease-standard);
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
-.toggle-input:checked + .custom-checkbox {
+/* Style when checked */
+.radio-label input[type="radio"]:checked+.radio-text::before {
     border-color: var(--active-color);
-    background-color: var(--active-color);
 }
 
-.toggle-input:checked + .custom-checkbox::after {
-    content: "";
+/* Inner dot for checked state */
+.radio-label input[type="radio"]:checked+.radio-text::after {
+    content: '';
     position: absolute;
-    left: 5px; /* Centered tick */
-    top: 2px;  /* Centered tick */
-    width: 5px;
-    height: 10px;
-    border: solid var(--text-on-primary);
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-/* Focus visible style for checkbox */
-.toggle-input:focus-visible + .custom-checkbox {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-.toggle-input:disabled + .custom-checkbox {
-    opacity: 0.5;
-    border-color: var(--md-sys-color-outline-light);
-    background-color: var(--md-sys-color-surface-variant-light);
-    cursor: not-allowed;
-}
-.chunk-toggle input[disabled] {
-    cursor: not-allowed;
-}
-.chunk-toggle input[disabled] ~ span { /* Style label text when disabled */
-    color: var(--md-sys-color-on-surface-variant-light);
-    opacity: 0.7;
-}
-/* Make disabled toggle look flatter */
-.chunk-toggle:has(input:disabled) {
-    box-shadow: none;
-    background-color: var(--md-sys-color-surface-container-low-light);
-    border-color: var(--md-sys-color-outline-variant-light);
-    opacity: 0.8;
-    cursor: not-allowed;
+    /* Calculate position to center the dot inside the circle */
+    left: calc(var(--spacing-3) + var(--radio-border-width) + (var(--radio-size) - var(--radio-border-width)*2 - var(--radio-dot-size)) / 2);
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--radio-dot-size);
+    height: var(--radio-dot-size);
+    border-radius: 50%;
+    background-color: var(--active-color);
+    transition: background-color var(--duration-short) var(--ease-standard);
 }
 
 
-.toggle-input { /* Visually hidden input */
+/* Hide actual radio input */
+.radio-label input[type="radio"] {
     position: absolute;
     opacity: 0;
     width: 1px;
@@ -347,41 +354,219 @@ main {
     -moz-appearance: none;
 }
 
+/* Focus visible style for radio */
+.radio-label input[type="radio"]:focus-visible+.radio-text {
+    /* Apply focus to the text span or label itself */
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: var(--border-radius-pill);
+    /* Match label shape */
+}
+
+
+/* ===== URL Input Field ===== */
+.url-container {
+    width: 100%;
+    margin: var(--spacing-4) 0;
+}
+
+#sjurl {
+    width: 100%;
+    height: 56px;
+    /* M3 Filled Text Field Height */
+    border: 1px solid var(--divider-color);
+    border-radius: var(--border-radius-sm);
+    /* Small radius */
+    background: var(--md-sys-color-surface-container-highest-light);
+    /* Distinct background */
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+#sjurl:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+    border-color: var(--primary-color);
+}
+
+/* ===== M3 Style Checkbox (Applied via .chunk-toggle) ===== */
+/* Reusing .chunk-toggle as the label container */
+.chunk-toggle {
+    --checkbox-size: 18px;
+    /* M3 Checkbox size */
+    --checkbox-border-width: 2px;
+    --active-color: var(--primary-color);
+    --border-color: var(--divider-color);
+    --hover-bg: var(--hover-bg);
+    --text-color: var(--md-sys-color-on-surface-variant-light);
+
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    gap: var(--spacing-2);
+    margin: var(--spacing-2) 0;
+    font-size: 0.875rem;
+    /* M3 Label Large */
+    padding: var(--spacing-2) var(--spacing-3);
+    /* Adjust padding */
+    padding-left: calc(var(--spacing-2) + var(--checkbox-size) + var(--spacing-2));
+    /* Space for checkbox */
+    border-radius: var(--border-radius-pill);
+    /* Pill shape */
+    position: relative;
+    min-height: 40px;
+    /* Match button height */
+    color: var(--text-color);
+    background-color: transparent;
+    /* No background */
+    border: 1px solid transparent;
+    /* No border */
+    transition: background-color var(--duration-medium) var(--ease-standard);
+}
+
+.chunk-toggle:hover {
+    background: var(--hover-bg);
+}
+
+/* Custom Checkbox Indicator */
+.custom-checkbox {
+    position: absolute;
+    left: var(--spacing-3);
+    /* Position checkbox inside padding */
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--checkbox-size);
+    height: var(--checkbox-size);
+    border: var(--checkbox-border-width) solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    /* Small radius */
+    background-color: transparent;
+    transition: all var(--duration-short) var(--ease-standard);
+    pointer-events: none;
+    /* Prevent interaction with the span itself */
+}
+
+/* Checked State */
+.toggle-input:checked+.custom-checkbox {
+    border-color: var(--active-color);
+    background-color: var(--active-color);
+}
+
+/* Checkmark */
+.toggle-input:checked+.custom-checkbox::after {
+    content: "";
+    position: absolute;
+    /* Adjust checkmark position and size for 18px box */
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 9px;
+    border: solid var(--text-on-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Focus Visible Style */
+.toggle-input:focus-visible+.custom-checkbox {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Apply focus ring to the label as well for better visibility */
+.chunk-toggle:focus-within {
+    /* background-color: var(--hover-bg); */
+    /* Optional: subtle bg on focus */
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+}
+
+
+/* Disabled State */
+.toggle-input:disabled+.custom-checkbox {
+    opacity: 0.5;
+    border-color: var(--md-sys-color-outline-light);
+    background-color: var(--md-sys-color-surface-variant-light);
+}
+
+.chunk-toggle:has(input:disabled) {
+    color: var(--md-sys-color-on-surface-variant-light);
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: transparent;
+    /* Ensure no hover effect */
+}
+
+.chunk-toggle:has(input:disabled):hover {
+    background-color: transparent;
+}
+
+
+/* Hide actual checkbox input */
+.toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+
 /* ===== Button System ===== */
 button {
-    padding: 10px var(--spacing-5); /* M3 standard padding */
+    padding: 10px var(--spacing-5);
+    /* M3 standard padding */
     background: var(--primary-color);
     color: var(--text-on-primary);
-    border: none; /* M3 buttons usually have no border */
-    border-radius: var(--border-radius-pill); /* Pill shape */
-    box-shadow: var(--shadow-1); /* <<< Keep shadow for buttons */
-    font-size: 0.875rem; /* M3 Label Large */
+    border: none;
+    /* M3 buttons usually have no border */
+    border-radius: var(--border-radius-pill);
+    /* Pill shape */
+    box-shadow: var(--shadow-1);
+    /* <<< Keep shadow for buttons */
+    font-size: 0.875rem;
+    /* M3 Label Large */
     font-weight: 500;
     letter-spacing: 0.1px;
     cursor: pointer;
-    height: 40px; /* M3 standard height */
+    height: 40px;
+    /* M3 standard height */
     display: inline-flex;
     align-items: center;
-    justify-content: center; /* Center content */
+    justify-content: center;
+    /* Center content */
     gap: var(--spacing-2);
-    text-transform: none; /* M3 usually doesn't uppercase */
-    transition: all var(--duration-medium) var(--ease-standard); /* Use defined duration */
+    text-transform: none;
+    /* M3 usually doesn't uppercase */
+    transition: all var(--duration-medium) var(--ease-standard);
+    /* Use defined duration */
 }
 
 button:hover {
     background: var(--primary-hover);
-    box-shadow: var(--shadow-2); /* Increase shadow on hover */
+    box-shadow: var(--shadow-2);
+    /* Increase shadow on hover */
 }
 
 button:active {
-    box-shadow: var(--shadow-1); /* Slightly less shadow on press */
+    box-shadow: var(--shadow-1);
+    /* Slightly less shadow on press */
 }
 
 button:disabled {
-    background-color: var(--md-sys-color-surface-variant-light); /* Disabled background */
-    color: var(--md-sys-color-on-surface-variant-light); /* Disabled text */
+    background-color: var(--md-sys-color-surface-variant-light);
+    /* Disabled background */
+    color: var(--md-sys-color-on-surface-variant-light);
+    /* Disabled text */
     opacity: 0.7;
-    box-shadow: none; /* No shadow when disabled */
+    box-shadow: none;
+    /* No shadow when disabled */
     cursor: not-allowed;
 }
 
@@ -398,19 +583,27 @@ button:disabled {
 
 /* ===== Table System ===== */
 #uploadHistory {
-    margin-top: var(--spacing-5); /* More space before table */
-    background: var(--surface-color); /* Use base surface */
-    overflow: hidden; /* Clip content */
-    display: flex; /* Needed if table-container is direct child */
-    flex-direction: column; /* Needed if table-container is direct child */
-    box-shadow: var(--shadow-1); /* <<< Keep subtle shadow to lift table */
+    margin-top: var(--spacing-5);
+    /* More space before table */
+    background: var(--surface-color);
+    /* Use base surface */
+    overflow: hidden;
+    /* Clip content */
+    display: flex;
+    /* Needed if table-container is direct child */
+    flex-direction: column;
+    /* Needed if table-container is direct child */
+    box-shadow: var(--shadow-1);
+    /* <<< Keep subtle shadow to lift table */
 }
 
 .table-container {
     max-height: 400px;
     overflow: auto;
-    border-radius: var(--border-radius-xl); /* Small radius for table container */
-    border: 1px solid var(--md-sys-color-outline-light); /* <<< 使用更深的 outline 颜色 */
+    border-radius: var(--border-radius-xl);
+    /* Small radius for table container */
+    border: 1px solid var(--md-sys-color-outline-light);
+    /* <<< 使用更深的 outline 颜色 */
     scrollbar-color: var(--md-sys-color-surface-container-high-light) var(--md-sys-color-surface-container-low-light);
 }
 
@@ -422,29 +615,41 @@ button:disabled {
 
 /* Table Header */
 .upload-history-table thead {
-    position: sticky; /* Keep header visible */
+    position: sticky;
+    /* Keep header visible */
     top: 0;
     z-index: 1;
 }
 
 .upload-history-table th {
-    background: var(--md-sys-color-surface-container-low-light); /* Subtle header bg */
-    padding: var(--spacing-3) var(--spacing-4); /* 12px 16px */
-    height: 56px; /* M3 Header Row Height */
-    font-weight: 500; /* M3 Medium weight */
-    font-size: 0.875rem; /* M3 Label Large */
+    background: var(--md-sys-color-surface-container-low-light);
+    /* Subtle header bg */
+    padding: var(--spacing-3) var(--spacing-4);
+    /* 12px 16px */
+    height: 56px;
+    /* M3 Header Row Height */
+    font-weight: 500;
+    /* M3 Medium weight */
+    font-size: 0.875rem;
+    /* M3 Label Large */
     text-align: left;
     color: var(--text-primary);
-    border-bottom: 1px solid var(--md-sys-color-outline-variant-light); /* Use variant for internal lines */
+    border-bottom: 1px solid var(--md-sys-color-outline-variant-light);
+    /* Use variant for internal lines */
 }
 
 /* Table Body Cells */
 .upload-history-table td {
-    padding: var(--spacing-3) var(--spacing-4); /* 12px 16px */
-    height: 52px; /* M3 Body Row Height */
-    border-bottom: 1px solid var(--md-sys-color-outline-variant-light); /* Use variant for internal lines */
-    font-size: 0.875rem; /* M3 Body Medium or Label Large */
-    vertical-align: middle; /* Align content vertically */
+    padding: var(--spacing-3) var(--spacing-4);
+    /* 12px 16px */
+    height: 52px;
+    /* M3 Body Row Height */
+    border-bottom: 1px solid var(--md-sys-color-outline-variant-light);
+    /* Use variant for internal lines */
+    font-size: 0.875rem;
+    /* M3 Body Medium or Label Large */
+    vertical-align: middle;
+    /* Align content vertically */
 }
 
 /* Remove bottom border for last row */
@@ -459,15 +664,19 @@ button:disabled {
 
 /* Link Cell Styling */
 .link-cell {
-    word-break: break-all; /* Prevent long URLs from breaking layout */
+    word-break: break-all;
+    /* Prevent long URLs from breaking layout */
 }
+
 .link-cell a {
     color: var(--primary-color);
     text-decoration: none;
     padding: 2px 4px;
-    margin: -2px -4px; /* Negative margin to make hover bg fit better */
+    margin: -2px -4px;
+    /* Negative margin to make hover bg fit better */
     border-radius: var(--border-radius-sm);
 }
+
 .link-cell a:hover {
     text-decoration: underline;
     background-color: var(--hover-bg);
@@ -476,45 +685,61 @@ button:disabled {
 
 /* ===== Debug Output ===== */
 .debug-output {
-    background: var(--md-sys-color-surface-container-low-light); /* Subtle background */
+    background: var(--md-sys-color-surface-container-low-light);
+    /* Subtle background */
     border: 1px solid var(--md-sys-color-outline-variant-light);
-    border-radius: var(--border-radius-sm); /* Small radius */
+    border-radius: var(--border-radius-sm);
+    /* Small radius */
     padding: var(--spacing-3);
     margin: var(--spacing-4) 0;
-    font-family: 'Roboto Mono', monospace; /* Monospace font */
-    overflow: auto; /* Scrollbars */
+    font-family: 'Roboto Mono', monospace;
+    /* Monospace font */
+    overflow: auto;
+    /* Scrollbars */
     max-height: 200px;
     scrollbar-color: var(--md-sys-color-surface-container-high-light) var(--md-sys-color-surface-container-low-light);
 }
 
 .debug-output pre {
     margin: 0;
-    font-size: 0.8125rem; /* Slightly smaller */
+    font-size: 0.8125rem;
+    /* Slightly smaller */
     line-height: 1.6;
-    color: var(--md-sys-color-on-surface-variant-light); /* Use variant color */
-    white-space: pre-wrap; /* Allow wrapping */
-    word-break: break-all; /* Break long lines */
+    color: var(--md-sys-color-on-surface-variant-light);
+    /* Use variant color */
+    white-space: pre-wrap;
+    /* Allow wrapping */
+    word-break: break-all;
+    /* Break long lines */
 }
 
 /* ===== Footer ===== */
 footer {
-    background: var(--md-sys-color-surface-container-light); /* Consistent with Header */
+    background: var(--md-sys-color-surface-container-light);
+    /* Consistent with Header */
     margin-top: var(--spacing-5);
-    padding: var(--spacing-4); /* Consistent padding */
+    padding: var(--spacing-4);
+    /* Consistent padding */
     /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
     /* border-radius is --border-radius-lg from general rule */
 }
 
 footer p {
-    max-width: 800px; /* Match body max-width */
-    margin: var(--spacing-1) auto; /* Reduced vertical margin */
-    padding: 0; /* Remove inner padding */
-    color: var(--md-sys-color-on-surface-variant-light); /* Less prominent text */
-    font-size: 0.875rem; /* M3 Body Small or Label Medium */
+    max-width: 800px;
+    /* Match body max-width */
+    margin: var(--spacing-1) auto;
+    /* Reduced vertical margin */
+    padding: 0;
+    /* Remove inner padding */
+    color: var(--md-sys-color-on-surface-variant-light);
+    /* Less prominent text */
+    font-size: 0.875rem;
+    /* M3 Body Small or Label Medium */
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: wrap;
+    /* Allow wrapping on small screens */
 }
 
 footer p:last-child {
@@ -527,9 +752,12 @@ footer a {
     color: var(--primary-color);
     text-decoration: none;
     padding: 2px 4px;
-    margin: -2px -4px; /* Counteract padding for hover */
-    border-radius: var(--border-radius-sm); /* Small radius */
+    margin: -2px -4px;
+    /* Counteract padding for hover */
+    border-radius: var(--border-radius-sm);
+    /* Small radius */
 }
+
 footer a:hover {
     text-decoration: underline;
     background-color: var(--hover-bg);
@@ -538,32 +766,46 @@ footer a:hover {
 /* ===== Responsive Adjustments ===== */
 @media (max-width: 300px) {
     body {
-        padding: var(--spacing-4) var(--spacing-3); /* Adjust padding */
+        padding: var(--spacing-4) var(--spacing-3);
+        /* Adjust padding */
     }
-    header, main, footer {
-        padding: var(--spacing-4); /* Adjust padding */
+
+    header,
+    main,
+    footer {
+        padding: var(--spacing-4);
+        /* Adjust padding */
     }
+
     header h2 {
-        font-size: 1.25rem; /* Slightly smaller title */
+        font-size: 1.25rem;
+        /* Slightly smaller title */
     }
+
     .settings-group {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .button-group,
     .debug-buttons,
     .action-buttons,
     .history-actions {
-        gap: var(--spacing-3); /* Slightly more gap */
+        gap: var(--spacing-3);
+        /* Slightly more gap */
     }
+
     /* Ensure table cells don't get too cramped */
     .upload-history-table th,
     .upload-history-table td {
         padding: var(--spacing-2) var(--spacing-3);
-        white-space: nowrap; /* Prevent wrapping initially */
+        white-space: nowrap;
+        /* Prevent wrapping initially */
         overflow: hidden;
-        text-overflow: ellipsis; /* Add ellipsis */
+        text-overflow: ellipsis;
+        /* Add ellipsis */
     }
+
     /* Allow link cell to wrap if needed */
     .upload-history-table td.link-cell {
         white-space: normal;
@@ -574,42 +816,60 @@ footer a:hover {
     body {
         padding: var(--spacing-3) var(--spacing-2);
     }
-    header, main, footer {
+
+    header,
+    main,
+    footer {
         padding: var(--spacing-3);
-        border-radius: var(--border-radius-md); /* Smaller radius on small screens */
+        border-radius: var(--border-radius-md);
+        /* Smaller radius on small screens */
     }
+
     .file-upload {
         padding: var(--spacing-5) var(--spacing-4);
         border-radius: var(--border-radius-md);
     }
+
     button {
-        width: 100%; /* Full width buttons */
+        width: 100%;
+        /* Full width buttons */
         justify-content: center;
     }
+
     footer p {
         flex-direction: column;
-        align-items: center; /* Center align items */
+        align-items: center;
+        /* Center align items */
         gap: var(--spacing-1);
         text-align: center;
     }
+
     footer p:last-child {
         padding-top: var(--spacing-2);
         margin-top: var(--spacing-2);
     }
+
     /* Make table horizontally scrollable */
-     #uploadHistory {
-        border-radius: var(--border-radius-xl); /* Keep 8px */
-     }
+    #uploadHistory {
+        border-radius: var(--border-radius-xl);
+        /* Keep 8px */
+    }
+
     .table-container {
         overflow-x: auto;
     }
+
     .upload-history-table {
-        min-width: 600px; /* Force scroll if needed */
-        table-layout: auto; /* Allow columns to resize */
+        min-width: 600px;
+        /* Force scroll if needed */
+        table-layout: auto;
+        /* Allow columns to resize */
     }
+
     .upload-history-table th,
     .upload-history-table td {
-        white-space: normal; /* Allow wrapping again */
+        white-space: normal;
+        /* Allow wrapping again */
     }
 }
 
@@ -619,37 +879,64 @@ main,
 #uploadHistory {
     /* Promote layers for potentially complex/animated elements */
     /* Use sparingly as it can increase memory usage */
-    will-change: transform; /* Keep will-change if animations/transitions are complex */
+    will-change: transform;
+    /* Keep will-change if animations/transitions are complex */
     transform: translateZ(0);
 }
 
 /* ===== Toast Notification Styling ===== */
 .m3-toast {
-    background: var(--md-sys-color-surface-container-highest-light) !important; /* Use highest container */
-    color: var(--md-sys-color-on-surface-light) !important; /* Standard text on surface */
+    background: var(--md-sys-color-surface-container-highest-light) !important;
+    /* Use highest container */
+    color: var(--md-sys-color-on-surface-light) !important;
+    /* Standard text on surface */
     border: 1px solid var(--md-sys-color-outline-variant-light) !important;
-    box-shadow: none !important; /* Use Level 3 shadow */
-    border-radius: var(--border-radius-sm) !important; /* Small radius */
-    padding: var(--spacing-3) var(--spacing-4) !important; /* 12px 16px */
+    box-shadow: none !important;
+    /* Use Level 3 shadow */
+    border-radius: var(--border-radius-sm) !important;
+    /* Small radius */
+    padding: var(--spacing-3) var(--spacing-4) !important;
+    /* 12px 16px */
     /* Styles moved from JS: */
-    font: 400 0.875rem/1.4 Roboto, sans-serif !important; /* M3 Body Medium */
-    margin: 0 var(--spacing-4) var(--spacing-4) 0 !important; /* Same margin as before */
+    font: 400 0.875rem/1.4 Roboto, sans-serif !important;
+    /* M3 Body Medium */
+    margin: 0 var(--spacing-4) var(--spacing-4) 0 !important;
+    /* Same margin as before */
 }
 
 .m3-toast a {
-    color: var(--primary-color) !important; /* Primary color for links */
+    color: var(--primary-color) !important;
+    /* Primary color for links */
     text-decoration: none !important;
 }
+
 .m3-toast a:hover {
     text-decoration: underline !important;
 }
 
 /* ===== General Transitions for Theme Switching ===== */
-body, header, main, footer, button, input, select, textarea,
-.file-upload, .chunk-info, .chunk-toggle, .custom-checkbox,
-#uploadHistory, .table-container, .upload-history-table th, .upload-history-table td,
-.debug-output, .debug-output pre /* [!code --] .m3-toast */ {
-/* [!code ++] REMOVED .m3-toast from this list */
+body,
+header,
+main,
+footer,
+button,
+input,
+select,
+textarea,
+.file-upload,
+.chunk-info,
+.chunk-toggle,
+.custom-checkbox,
+#uploadHistory,
+.table-container,
+.upload-history-table th,
+.upload-history-table td,
+.debug-output,
+.debug-output pre
+
+/* [!code --] .m3-toast */
+    {
+    /* [!code ++] REMOVED .m3-toast from this list */
     transition:
         background-color var(--duration-medium) var(--ease-standard),
         color var(--duration-medium) var(--ease-standard),
@@ -658,6 +945,7 @@ body, header, main, footer, button, input, select, textarea,
         outline-color var(--duration-medium) var(--ease-standard),
         opacity var(--duration-medium) var(--ease-standard);
 }
+
 /* Exclude transform/opacity from general transition if handled by specific animations (like toast entry/exit) */
 
 /* END OF FILE styles.css */

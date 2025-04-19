@@ -1,44 +1,36 @@
-# FlowChunkFlex - 流式分块上传工具 (v5.3+)
+# FlowChunkFlex - 双 OSS 分块上传工具 (v5.4+)
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
-**English Version**: [README.md](./README.md)
+**英文版本 (English Version)**: [README.md](./README.md)
 
-> 专为绕过编程猫大文件限制设计的分块上传工具，保障文件传输可靠性（v5.3+）
+> 一款支持编程猫和当贝双 OSS 的多功能分块上传工具，旨在绕过大文件限制并提升传输可靠性 (v5.4+)
 
 ---
 
-## 🚀 核心功能升级（v5.3+）
+## 🚀 核心功能升级（v5.4+）
 
-### 技术增强
-- **全面迁移至 Material Design 3 (M3) 主题系统**：
-  - 基于 CSS 自定义属性 (变量) 构建，支持动态切换。
-  - 提供精细的亮色 (Light) 与暗色 (Dark) 主题模式。
-- **智能分块策略**：
-  - 动态分块计算（最小1MB/最大15MB）
-  - 小文件自动禁用分块（≤1MB）
-  - 缓冲区流式切割（Uint8Array优化）
-- **增强型并发控制**：
-  - 并行上传限制（最大2个并发请求）
-  - 动态请求频率控制（每秒≤5次）
-- **可靠性优化**：
-  - 分块超时重传（动态超时：10s~300s，基于块大小计算）
-  - 三级重试机制（指数退避策略：1s/2s/4s）
-  - 实时并发计数器（`activeUploads`状态追踪）
-- **本地持久化**：
-  - 操作日志支持分页存储（最大1000条）
-  - 上传历史自动去重（基于链接哈希）
+### 技术增强与新特性
+- **双 OSS 支持**: 可在 **编程猫 OSS** 和 **当贝 OSS** 之间自由选择上传目标。
+- **当贝 OSS 集成**:
+    - 通过 `DangBeiOSS.js` 服务，利用 `@aws-sdk/client-s3` 实现文件直接上传。
+    - 支持上传过程中的进度追踪。
+- **编程猫 OSS 增强**:
+    - **智能分块策略**: 动态计算块大小 (最小1MB/最大15MB)，小文件 (≤1MB) 自动禁用分块，流式缓冲区切割。
+    - **强制分块**: 对大于 30MB 的文件自动强制启用并锁定分块上传选项。
+    - **高级并发与速率控制**: 并行限制 (2)，速率限制 (≤5次/秒)。
+    - **可靠性优化**: 分块重传机制（动态超时10s-300s），指数退避策略 (1s/2s/4s)。
+- **增强分享**: 可生成包含目标链接的分享 URL (`?url=...`)，方便接收者直接加载。
+- **M3 主题系统**: 全面集成 Material Design 3，通过 CSS 变量实现动态亮/暗模式切换。
+- **本地持久化**: 操作日志和上传历史记录存储于 `localStorage`。
 
 ### 交互改进
-- **修复 Toast 通知动画**：通过优化 CSS 过渡规则，恢复了 Toastify.js 的原生滑入/淡入效果。
-- **状态监控增强**：
-  - 分块进度实时显示（已提交块数/总块数）
-  - 预估完成时间计算（基于历史上传速度）
-- **组件化重构**：
-  - 独立调试日志模块（支持清除/导出）
-  - 历史记录表格支持 M3 明暗主题样式
-  - 主题切换动画优化（CSS 变量平滑过渡）
+- **统一界面**: 在编程猫和当贝模式间无缝切换。
+- **清晰状态监控**: 为两种 OSS 提供实时进度显示（编程猫显示块进度，当贝显示百分比），支持 ETA 计算。
+- **历史记录整合**: 可从历史记录中选择过去的链接（编程猫或当贝）来填充下载输入框。
+- **Toast 通知**: 对操作、错误及强制设定（如 >30MB 强制分块）提供清晰反馈。
+- **组件化结构**: 重构了 `DebugLogger`, `UploadHistory`, `ThemeToggle` 等组件，提升代码清晰度。
 
 ---
 
@@ -71,55 +63,103 @@ npm run build
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/FlowChunkFlex)
 
 ### 工作流程
-1. **文件选择**：拖放区域支持Hover状态反馈（最大30MB）
-2. **模式切换**：智能分块开关（文件>1MB自动启用）
-3. **上传监控**：
-   - 实时分块进度（`上传中... (x/y 块完成)`）
-   - 服务器响应耗时统计（调试日志可见）
-4. **结果处理**：
-   - 链接智能解析（兼容`[文件名]块1,块2,...`格式）
-   - 浏览器流式合并下载（自动拼接CDN路径）
+1. **选择模式**: 选择 "当贝OSS" 或 "编程猫OSS"。
+2. **选择文件**: 拖放或点击选择文件。
+    - *编程猫模式*: 分块开关自动管理 (>1MB 启用, >30MB 强制启用并锁定)。
+3. **上传**: 点击 "上传文件"。
+4. **监控**: 观察实时状态更新和进度。
+5. **获取链接**: 成功后，生成可分享的链接（编程猫分块格式或当贝直链）。
+6. **下载 (可选)**: 粘贴链接 (编程猫或标准 URL) 并点击 "下载文件"。
+7. **分享 (可选)**: 点击 "分享文件" 复制包含当前链接的 URL，便于分享。
 
 ---
 
-## ⚙️ 核心配置参数
+## ⚙️ 核心配置与逻辑
 
-### 网络层配置（MainContent.vue）
+### 编程猫网络配置 (MainContent.vue)
 ```javascript
-const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'; // 上传端点
+const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'; // 编程猫上传端点
 const REQUEST_RATE_LIMIT = 5;  // 每秒最大请求数
-const CONCURRENT_LIMIT = 2;    // 并行上传数
-const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 最大分块15MB
-const MIN_CHUNK_SIZE = 1 * 1024 * 1024;  // 最小分块1MB
+const CONCURRENT_LIMIT = 2;    // 并行分块数
+const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 最大分块 15MB
+const MIN_CHUNK_SIZE = 1 * 1024 * 1024;  // 最小分块 1MB (小于此值则单文件上传)
+const THIRTY_MB_THRESHOLD = 30 * 1024 * 1024; // 文件大于此阈值强制分块
 ```
 
-### 分块策略（MainContent.vue）
-```javascript
-// 动态超时计算（基于分块大小, 单位: ms, 范围: 10秒 - 5分钟）
-const sizeMB = chunk.size / (1024 * 1024);
-const calculatedTimeout = 10000 + sizeMB * 6000; // 10s 基础 + 6s 每 MB
-const dynamicTimeout = Math.min(Math.max(calculatedTimeout, 10000), 300000);
+### 当贝网络配置 (services/DangBeiOSS.js)
+- 使用 `@aws-sdk/client-s3` 进行通信。
+- 凭证信息 (区域, Bucket, Key ID/Secret) 应在服务内部或环境变量中配置。*(注意: 实际凭证处理方式可能因部署环境而异)*
 
-// 缓冲区管理
-let buffer = new Uint8Array(CHUNK_SIZE);
-let bufferPos = 0; // 当前缓冲区写入位置
+### 关键逻辑片段 (MainContent.vue)
+```javascript
+// 大于 30MB 强制分块 (位于 updateFileInfo 及 watch uploadMode 中)
+if (uploadMode.value === 'codemao' && fileSize > THIRTY_MB_THRESHOLD) {
+    isLargeFileSupport.value = true; // 强制启用
+    isChunkCheckboxDisabled.value = true; // 禁用复选框
+}
+
+// 生成分享链接 (位于 handleShare 中)
+const currentUrl = new URL(window.location.href);
+currentUrl.search = ''; // 清除现有参数
+currentUrl.searchParams.set('url', encodeURIComponent(sjurl.value));
+const shareUrl = currentUrl.toString();
+helpers.copyToClipboard(shareUrl, ...);
 ```
 
 ---
 
-## 📊 系统架构（v5.3+）
+## 📊 系统架构（v5.4+）
 
 ```mermaid
 flowchart TD
-    A[文件输入] --> B{分块检测}
-    B -->|单文件模式| C[FormData直接提交]
-    B -->|分块模式| D[Streams API切割]
-    D --> E[Uint8Array 缓冲区分块]
-    E --> F[并发与速率控制队列]
-    F --> G[三级重试机制含动态超时]
-    G --> H[CDN URL 聚合]
-    H --> I[URL编码文件名]
-    I --> J[本地历史存储]
+    %% 输入与模式选择
+    subgraph "输入与模式选择"
+        A[文件输入]
+        M[模式选择：编程猫 / 当贝]
+    end
+
+    A --> P{文件大小检查}
+    M --> P
+
+    %% 编程猫 OSS 路径
+    subgraph "编程猫 OSS 路径"
+        P -->|编程猫 且 大于 1MB| B{分块检测}
+        B -->|大于 30MB| B_Force[强制分块开启] --> D
+        B -->|1MB < 大小 <= 30MB 且 分块开启| D[使用 Streams API 切割]
+        B -->|小于等于 1MB 或 分块关闭| C[单文件 FormData 提交]
+
+        D --> E[Uint8Array 缓冲区分块]
+        E --> F[并发 2，限速 5 次每秒]
+        F --> G[上传分块（重试 + 动态超时）]
+        G --> H[聚合分块链接]
+        H --> I[格式化链接：文件名_chunk1,...]
+        C --> I_Single[获取单文件 URL] --> J_CodeMao[显示/存储链接]
+        I --> J_CodeMao
+    end
+
+    %% 当贝 OSS 路径
+    subgraph "当贝 OSS 路径"
+        P -->|当贝| K[调用 DangBeiOSS 服务]
+        K --> L[S3 客户端上传（带进度）]
+        L --> J_DangBei[显示/存储直链] --> J_Final[统一显示/存储链接]
+    end
+
+    %% 合并编程猫路径结果
+    J_CodeMao --> J_Final
+
+    %% 下载与分享
+    subgraph "下载与分享"
+        J_Final --> DL_Input[输入框粘贴链接]
+        DL_Input --> DL_Check{链接类型？}
+        DL_Check -->|编程猫链接| Merge[获取全部分块并合并] --> Save[触发浏览器下载]
+        DL_Check -->|标准链接| Open[打开浏览器窗口]
+        Open --> J_Final
+        J_Final --> Share[点击分享按钮] --> ShareLink[生成 ?url=... 分享链接] --> Clipboard[复制到剪贴板]
+    end
+
+    J_Final --> Store[存储到 localStorage]
+
+
 ```
 
 ---
@@ -138,14 +178,18 @@ flowchart TD
 
 ---
 
-## 🧩 组件说明（v5.3+）
+## 🧩 组件说明（v5.4+）
 
-| 组件                | 功能特性                                           |
-|---------------------|---------------------------------------------------|
-| `DebugLogger.vue`   | 实时日志显示（时间戳+分隔符），支持导出/清除       |
-| `UploadHistory.vue` | 表格展示历史记录，支持 M3 主题，支持点击填充链接   |
-| `MainContent.vue`   | 核心业务逻辑（文件处理、上传、下载、状态管理）     |
-| `ThemeToggle.vue`   | M3 主题切换按钮（自动检测系统偏好，手动切换）      |
+| 组件/服务             | 功能特性                                                                    |
+|-----------------------|-----------------------------------------------------------------------------|
+| `MainContent.vue`     | 核心逻辑: 模式切换, 文件处理, 上传/下载流程编排。                           |
+| `DangBeiOSS.js` (服务) | 处理当贝 S3 上传, 进度报告。                                                |
+| `DebugLogger.vue`     | 实时日志显示 (带时间戳), 导出/清除功能。                                    |
+| `UploadHistory.vue`   | 显示历史记录表格 (M3 主题), 支持点击链接填充输入框。                        |
+| `ThemeToggle.vue`     | M3 主题切换按钮 (检测系统偏好, 手动覆盖)。                                  |
+| `toast.js` (服务)     | 通过 Toastify.js 提供用户反馈通知。                                         |
+| `helpers.js` (工具)   | 实用函数 (剪贴板复制, 文件下载触发, 重置页面)。                             |
+| `storageHelper.js` (工具)| 管理 `localStorage` 中的日志和历史记录。                                  |
 
 ---
 

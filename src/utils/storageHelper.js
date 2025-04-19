@@ -23,16 +23,23 @@ export const saveUploadHistory = (sjurl, uploadHistoryRef) => {
     const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY)) || [];
     const existing = history.find(entry => entry.link === sjurl);
     if (!existing) {
-        history.push({
+        // 使用 unshift 将新记录添加到数组开头
+        history.unshift({
             time: new Date().toLocaleString(),
             link: sjurl
         });
+        // 可选：限制历史记录数量，例如只保留最近 50 条
+        // if (history.length > 50) {
+        //     history.pop(); // 移除最旧的记录
+        // }
         localStorage.setItem(STORAGE_KEYS.UPLOAD_HISTORY, JSON.stringify(history));
-        uploadHistoryRef.value = history; // 更新组件的响应式变量
+        // 直接更新 ref，因为 unshift 修改了原数组
+        uploadHistoryRef.value = history;
     }
 };
 
 export const loadUploadHistory = (uploadHistoryRef) => {
+    // 加载时已经是倒序的了
     const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY)) || [];
     uploadHistoryRef.value = history;
 };

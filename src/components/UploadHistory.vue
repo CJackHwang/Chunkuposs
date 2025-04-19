@@ -6,15 +6,13 @@
             <table class="upload-history-table">
                 <thead>
                     <tr>
-                        <th>上传时间</th>
+                        <th>上传时间（由新到旧）</th>
                         <th>文件链接 (点击填入)</th> <!-- Indicate clickability -->
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Add @click handler and a class for styling -->
-                    <tr v-for="entry in history"
-                        :key="entry.time"
-                        @click="selectHistoryItem(entry.link)"
+                    <tr v-for="entry in history" :key="entry.time" @click="selectHistoryItem(entry.link)"
                         class="history-row">
                         <td>{{ entry.time }}</td>
                         <td class="link-cell">{{ entry.link }}</td>

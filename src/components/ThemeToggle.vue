@@ -71,31 +71,25 @@ export default {
 </script>
 
 <style scoped>
-.theme-icon {
-    width: 24px;
-    height: 24px;
-    transition:
-        opacity 0.3s var(--ease-standard),
-        transform 0.3s var(--ease-standard),
-        fill 0.3s var(--ease-standard);
-    /* 新增颜色过渡 */
-}
-
 .theme-toggle {
-    background: none;
-    border: none;
-    padding: 8px;
-    color: var(--text-primary);
-    transition: all 0.3s var(--ease-standard);
-    border-radius: var(--border-radius-md);
+    /* Match checkbox label style */
+    display: inline-flex; /* Ensure flex behavior */
+    align-items: center; /* Center icon vertically */
+    justify-content: center; /* Center icon horizontally */
+    background: transparent; /* No initial background */
+    border: 1px solid transparent; /* No initial border */
+    padding: 0; /* Remove padding, control size with width/height */
+    width: 40px; /* Fixed width */
+    height: 40px; /* Fixed height to match buttons/toggles */
+    color: var(--icon-color); /* Use icon color variable */
+    border-radius: var(--border-radius-pill); /* Pill shape (becomes circle) */
     cursor: pointer;
-    transition:
-        background 0.3s var(--ease-standard),
-        transform 0.15s var(--ease-standard) !important;
+    transition: background-color var(--duration-medium) var(--ease-standard); /* Smooth transition */
+    flex-shrink: 0; /* Prevent shrinking in flex layout */
 }
 
 .theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--hover-bg); /* Use M3 hover background */
 }
 
 .theme-toggle:focus-visible {
@@ -104,14 +98,14 @@ export default {
 }
 
 .theme-icon {
-    width: 24px;
-    height: 24px;
-    transition:
-        opacity 0.3s var(--ease-standard),
-        transform 0.3s var(--ease-standard);
+    width: 20px; /* Slightly smaller icon */
+    height: 20px;
+    transition: fill var(--duration-medium) var(--ease-standard); /* Only transition fill */
+    /* Removed opacity/transform transitions from here */
 }
 
-.theme-toggle:active .theme-icon {
+/* Removed active scaling for icon */
+/* .theme-toggle:active .theme-icon {
     transform: scale(0.9);
-}
+} */
 </style>

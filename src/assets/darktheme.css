@@ -4,11 +4,13 @@
 
 .dark-theme {
     /* === M3 Dark Theme Color Palette (Overrides from :root in styles.css) === */
-    --md-sys-color-primary-dark: #4FD1C7; /* Brighter Teal for Dark */
+    --md-sys-color-primary-dark: #4FD1C7;
+    /* Brighter Teal for Dark */
     --md-sys-color-on-primary-dark: #003735;
     --md-sys-color-primary-container-dark: #00504C;
     --md-sys-color-on-primary-container-dark: #6FF7F0;
-    --md-sys-color-primary-hover-dark: #5CDBCF; /* Custom lighter hover */
+    --md-sys-color-primary-hover-dark: #5CDBCF;
+    /* Custom lighter hover */
 
     --md-sys-color-secondary-dark: #B1CCC9;
     --md-sys-color-on-secondary-dark: #1C3533;
@@ -25,9 +27,11 @@
     --md-sys-color-error-container-dark: #93000A;
     --md-sys-color-on-error-container-dark: #FFDAD6;
 
-    --md-sys-color-background-dark: #0F1514; /* Very dark base */
+    --md-sys-color-background-dark: #0F1514;
+    /* Very dark base */
     --md-sys-color-on-background-dark: #DEE4E3;
-    --md-sys-color-surface-dark: #0F1514; /* Same as background */
+    --md-sys-color-surface-dark: #0F1514;
+    /* Same as background */
     --md-sys-color-on-surface-dark: #DEE4E3;
     --md-sys-color-surface-variant-dark: #3F4947;
     --md-sys-color-on-surface-variant-dark: #BFC9C7;
@@ -38,9 +42,11 @@
     --md-sys-color-surface-bright-dark: #353B3A;
     --md-sys-color-surface-container-lowest-dark: #0A0F0F;
     --md-sys-color-surface-container-low-dark: #171D1C;
-    --md-sys-color-surface-container-dark: #1B2120; /* Use for Header/Footer */
+    --md-sys-color-surface-container-dark: #1B2120;
+    /* Use for Header/Footer */
     --md-sys-color-surface-container-high-dark: #252B2A;
-    --md-sys-color-surface-container-highest-dark: #303635; /* Use for Inputs/Toasts */
+    --md-sys-color-surface-container-highest-dark: #303635;
+    /* Use for Inputs/Toasts */
 
     /* --- Legacy Variable Mapping Overrides --- */
     --primary-color: var(--md-sys-color-primary-dark);
@@ -52,7 +58,8 @@
     --text-on-primary: var(--md-sys-color-on-primary-dark);
     --error-color: var(--md-sys-color-error-dark);
     /* --success-color: #69F0AE; */
-    --success-color: #6EDB94; /* Example Dark Success */
+    --success-color: #6EDB94;
+    /* Example Dark Success */
     --on-success-color: #00391B;
     --success-container-color: #00522A;
     --on-success-container-color: #89FAAE;
@@ -86,14 +93,16 @@
     background: var(--md-sys-color-surface-container-dark);
     color: var(--md-sys-color-on-surface-dark);
     border-color: var(--md-sys-color-outline-variant-dark);
-    box-shadow: var(--shadow-1); /* Keep shadow consistent */
+    box-shadow: var(--shadow-1);
+    /* Keep shadow consistent */
 }
 
 /* ===== Main Content Area ===== */
 .dark-theme main {
     background: var(--surface-color);
     border-color: var(--md-sys-color-outline-variant-dark);
-    box-shadow: var(--shadow-1); /* Keep shadow consistent */
+    box-shadow: var(--shadow-1);
+    /* Keep shadow consistent */
 }
 
 /* ===== File Upload Component ===== */
@@ -132,24 +141,58 @@
     border-color: var(--primary-color);
 }
 
-/* ===== Chunk Toggle Switch ===== */
+/* ===== Upload Mode Selector (Radio Buttons) Dark Theme ===== */
+.dark-theme .radio-label {
+    --active-color: var(--primary-color);
+    /* Use dark theme primary */
+    --border-color: var(--divider-color);
+    /* Use dark theme divider */
+    --hover-bg: var(--hover-bg);
+    /* Use dark theme hover */
+    color: var(--md-sys-color-on-surface-variant-dark);
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.dark-theme .radio-label:hover {
+    background-color: var(--hover-bg);
+}
+
+.dark-theme .radio-label::before {
+    border-color: var(--border-color);
+    background-color: transparent;
+}
+
+.dark-theme .radio-label input[type="radio"]:checked+.radio-text::before {
+    border-color: var(--active-color);
+}
+
+.dark-theme .radio-label input[type="radio"]:checked+.radio-text::after {
+    background-color: var(--active-color);
+}
+
+.dark-theme .radio-label input[type="radio"]:focus-visible+.radio-text {
+    outline-color: var(--primary-color);
+}
+
+
+/* ===== M3 Style Checkbox Dark Theme ===== */
 .dark-theme .chunk-toggle {
     --active-color: var(--primary-color);
     --border-color: var(--divider-color);
     --hover-bg: var(--hover-bg);
-    color: var(--md-sys-color-on-surface-variant-dark);
-    background-color: var(--md-sys-color-surface-container-low-dark); /* Give it a background */
-    border: 1px solid var(--md-sys-color-outline-variant-dark); /* Add subtle border */
-    box-shadow: var(--shadow-1); /* <<< 添加阴影 */
+    --text-color: var(--md-sys-color-on-surface-variant-dark);
+    color: var(--text-color);
+    background-color: transparent;
+    border-color: transparent;
 }
 
 .dark-theme .chunk-toggle:hover {
     background: var(--hover-bg);
-    border-color: var(--md-sys-color-outline-dark); /* Slightly lighter border on hover */
 }
 
 .dark-theme .chunk-toggle:focus-within {
-    box-shadow: var(--shadow-2); /* Increase shadow on focus */
+    outline-color: var(--primary-color);
 }
 
 .dark-theme .custom-checkbox {
@@ -157,32 +200,33 @@
     background-color: transparent;
 }
 
-.dark-theme .toggle-input:checked + .custom-checkbox {
+.dark-theme .toggle-input:checked+.custom-checkbox {
     border-color: var(--active-color);
     background-color: var(--active-color);
 }
 
-.dark-theme .toggle-input:checked + .custom-checkbox::after {
-    border-color: var(--text-on-primary); /* Use on-primary for checkmark */
+.dark-theme .toggle-input:checked+.custom-checkbox::after {
+    border-color: var(--text-on-primary);
+    /* Use dark theme on-primary */
 }
 
-.dark-theme .toggle-input:focus-visible + .custom-checkbox {
+.dark-theme .toggle-input:focus-visible+.custom-checkbox {
     outline-color: var(--primary-color);
 }
 
-.dark-theme .toggle-input:disabled + .custom-checkbox {
+.dark-theme .toggle-input:disabled+.custom-checkbox {
     border-color: var(--md-sys-color-outline-dark);
     background-color: var(--md-sys-color-surface-variant-dark);
 }
-.dark-theme .chunk-toggle input[disabled] ~ span {
-    color: var(--md-sys-color-on-surface-variant-dark);
-}
-/* Make disabled toggle look flatter */
+
 .dark-theme .chunk-toggle:has(input:disabled) {
-    box-shadow: none;
-    background-color: var(--md-sys-color-surface-container-dark); /* Slightly darker disabled bg */
-    border-color: var(--md-sys-color-outline-variant-dark);
+    color: var(--md-sys-color-on-surface-variant-dark);
     opacity: 0.7;
+    background-color: transparent;
+}
+
+.dark-theme .chunk-toggle:has(input:disabled):hover {
+    background-color: transparent;
 }
 
 
@@ -210,9 +254,12 @@
 
 /* ===== Table System ===== */
 .dark-theme #uploadHistory {
-     background: var(--md-sys-color-surface-container-low-dark); /* Slightly elevated table bg */
-     border-color: var(--md-sys-color-outline-dark); /* <<< 使用 outline 颜色 */
-     box-shadow: var(--shadow-1); /* Add subtle shadow */
+    background: var(--md-sys-color-surface-container-low-dark);
+    /* Slightly elevated table bg */
+    border-color: var(--md-sys-color-outline-dark);
+    /* <<< 使用 outline 颜色 */
+    box-shadow: var(--shadow-1);
+    /* Add subtle shadow */
 }
 
 .dark-theme .table-container {
@@ -221,14 +268,18 @@
 }
 
 .dark-theme .upload-history-table th {
-    background: var(--md-sys-color-surface-container-dark); /* Header slightly darker */
+    background: var(--md-sys-color-surface-container-dark);
+    /* Header slightly darker */
     color: var(--md-sys-color-on-surface-dark);
-    border-bottom-color: var(--md-sys-color-outline-variant-dark); /* Use variant for internal lines */
+    border-bottom-color: var(--md-sys-color-outline-variant-dark);
+    /* Use variant for internal lines */
 }
 
 .dark-theme .upload-history-table td {
-    border-bottom-color: var(--md-sys-color-outline-variant-dark); /* Use variant for internal lines */
-    color: var(--md-sys-color-on-surface-dark); /* Ensure text color is correct */
+    border-bottom-color: var(--md-sys-color-outline-variant-dark);
+    /* Use variant for internal lines */
+    color: var(--md-sys-color-on-surface-dark);
+    /* Ensure text color is correct */
 }
 
 .dark-theme .upload-history-table tbody tr:hover td {
@@ -238,13 +289,15 @@
 .dark-theme .link-cell a {
     color: var(--primary-color);
 }
+
 .dark-theme .link-cell a:hover {
-     background-color: var(--hover-bg);
+    background-color: var(--hover-bg);
 }
 
 /* ===== Debug Output ===== */
 .dark-theme .debug-output {
-    background: var(--md-sys-color-surface-container-lowest-dark); /* Darkest container */
+    background: var(--md-sys-color-surface-container-lowest-dark);
+    /* Darkest container */
     border-color: var(--md-sys-color-outline-variant-dark);
     scrollbar-color: var(--md-sys-color-surface-container-high-dark) var(--md-sys-color-surface-container-lowest-dark);
 }
@@ -257,7 +310,8 @@
 .dark-theme footer {
     background: var(--md-sys-color-surface-container-dark);
     border-color: var(--md-sys-color-outline-variant-dark);
-    box-shadow: var(--shadow-1); /* Keep shadow consistent */
+    box-shadow: var(--shadow-1);
+    /* Keep shadow consistent */
 }
 
 .dark-theme footer p {
@@ -271,6 +325,7 @@
 .dark-theme footer a {
     color: var(--primary-color);
 }
+
 .dark-theme footer a:hover {
     background-color: var(--hover-bg);
 }
@@ -281,8 +336,10 @@
 .dark-theme .m3-toast {
     background: var(--md-sys-color-surface-container-highest-dark) !important;
     color: var(--md-sys-color-on-surface-dark) !important;
-    border-color: var(--md-sys-color-outline-dark) !important; /* Slightly stronger outline */
-    box-shadow: var(--shadow-3) !important; /* Use a more prominent shadow in dark theme */
+    border-color: var(--md-sys-color-outline-dark) !important;
+    /* Slightly stronger outline */
+    box-shadow: var(--shadow-3) !important;
+    /* Use a more prominent shadow in dark theme */
 }
 
 .dark-theme .m3-toast a {
