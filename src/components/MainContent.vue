@@ -10,7 +10,8 @@
                 {{ fileInfo }}
             </div>
             <!-- Conditional Chunk Info Display -->
-            <div id="chunkSize" v-if="chunkSizeVisible && uploadMode === 'codemao' && isLargeFileSupport" class="chunk-info">
+            <div id="chunkSize" v-if="chunkSizeVisible && uploadMode === 'codemao' && isLargeFileSupport"
+                class="chunk-info">
                 <div>
                     <p>每块大小（自动设置）: {{ chunkValue }} MB</p>
                     <p>总上传块数: {{ totalChunks }}</p>
@@ -37,7 +38,8 @@
 
             <!-- Conditional Large File Support Checkbox -->
             <label class="chunk-toggle" v-if="uploadMode === 'codemao'">
-                <input type="checkbox" v-model="isLargeFileSupport" :disabled="isChunkCheckboxDisabled" class="toggle-input">
+                <input type="checkbox" v-model="isLargeFileSupport" :disabled="isChunkCheckboxDisabled"
+                    class="toggle-input">
                 <span class="custom-checkbox"></span>
                 <span class="label-text">分块提交-解除大小限制</span>
             </label>
@@ -64,10 +66,7 @@
         </div>
 
         <!-- Upload History Table -->
-        <UploadHistory
-            :history="uploadHistory"
-            @clear-history="handleClear"
-            @export-history="exportHistory"
+        <UploadHistory :history="uploadHistory" @clear-history="handleClear" @export-history="exportHistory"
             @select-item="handleHistoryItemSelect" /> <!-- Listen for the 'select-item' event -->
 
         <!-- Section 3: Status & Information -->
@@ -122,7 +121,7 @@ const sjurl = ref('');
 const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
-const uploadMode = ref('codemao'); // 'codemao' or 'dangbei'
+const uploadMode = ref('dangbei'); // 'codemao' or 'dangbei'
 const isLargeFileSupport = ref(true); // Default to true for large file support in codemao mode
 const isChunkCheckboxDisabled = ref(false); // To disable checkbox when file > 30MB
 const isUploading = ref(false); // Track if an upload/download is in progress
@@ -182,18 +181,18 @@ function updateFileInfo(event) {
         isChunkCheckboxDisabled.value = false; // Ensure checkbox is enabled for small files
         addDebugOutput("文件小于或等于 1MB，建议在编程猫模式下关闭“分块提交”。", debugOutput);
     } else {
-         chunkSizeVisible.value = true; // Ensure chunk info is visible for larger files
-         addDebugOutput(`文件大于 1MB，自动计算分块大小: ${chunkValue.value} MB, 总块数: ${totalChunks.value}。`, debugOutput);
-         // Feature 1: Force chunked for > 30MB in Codemao mode
-         const thirtyMB = 30 * 1024 * 1024;
-         if (uploadMode.value === 'codemao' && fileSize > thirtyMB) {
-             isLargeFileSupport.value = true; // Force enable
-             isChunkCheckboxDisabled.value = true; // Disable checkbox
-             addDebugOutput(`文件大于 30MB，在编程猫模式下强制启用并锁定“分块提交”。`, debugOutput);
-             showToast('文件大于30MB，已强制启用分块提交');
-         } else {
-             isChunkCheckboxDisabled.value = false; // Ensure checkbox is enabled otherwise
-         }
+        chunkSizeVisible.value = true; // Ensure chunk info is visible for larger files
+        addDebugOutput(`文件大于 1MB，自动计算分块大小: ${chunkValue.value} MB, 总块数: ${totalChunks.value}。`, debugOutput);
+        // Feature 1: Force chunked for > 30MB in Codemao mode
+        const thirtyMB = 30 * 1024 * 1024;
+        if (uploadMode.value === 'codemao' && fileSize > thirtyMB) {
+            isLargeFileSupport.value = true; // Force enable
+            isChunkCheckboxDisabled.value = true; // Disable checkbox
+            addDebugOutput(`文件大于 30MB，在编程猫模式下强制启用并锁定“分块提交”。`, debugOutput);
+            showToast('文件大于30MB，已强制启用分块提交');
+        } else {
+            isChunkCheckboxDisabled.value = false; // Ensure checkbox is enabled otherwise
+        }
     }
 }
 
@@ -242,12 +241,12 @@ async function uploadFile() {
                 if (!isLargeFileSupport.value) {
                     addDebugOutput("使用【编程猫 OSS】模式 (无大文件支持) - 执行单链接上传...", debugOutput);
                 } else {
-                     addDebugOutput("使用【编程猫 OSS】模式 (文件较小) - 执行单链接上传...", debugOutput);
+                    addDebugOutput("使用【编程猫 OSS】模式 (文件较小) - 执行单链接上传...", debugOutput);
                 }
                 await uploadSingleFile(); // Existing single file logic
             }
         } else {
-             throw new Error(`未知的上传模式: ${uploadMode.value}`);
+            throw new Error(`未知的上传模式: ${uploadMode.value}`);
         }
     } catch (error) {
         // Error handling is mostly within specific upload functions
@@ -276,8 +275,8 @@ async function uploadSingleFile() {
 
         // Check HTTP status first
         if (!response.ok) {
-             const errorText = await response.text(); // Try to get error body
-             throw new Error(`HTTP ${response.status} ${response.statusText}. Server response: ${errorText}`);
+            const errorText = await response.text(); // Try to get error body
+            throw new Error(`HTTP ${response.status} ${response.statusText}. Server response: ${errorText}`);
         }
 
         const data = await response.json();
@@ -332,7 +331,7 @@ async function uploadChunks() {
     async function processStream() {
         while (true) {
             try {
-                 const { done, value } = await reader.read();
+                const { done, value } = await reader.read();
 
                 if (done) {
                     // Process any remaining data in the buffer
@@ -340,9 +339,9 @@ async function uploadChunks() {
                         const finalChunkBlob = new Blob([buffer.subarray(0, bufferPos)]);
                         await waitForConcurrencySlot(); // Wait for slot before last chunk
                         await waitForRateLimitSlot();   // Wait for rate limit
-                         addDebugOutput(`准备上传最后一块 (块 ${chunkIndex})...`, debugOutput);
+                        addDebugOutput(`准备上传最后一块 (块 ${chunkIndex})...`, debugOutput);
                         // Don't await here directly to allow processing loop to potentially finish
-                         uploadChunkWithRetry(chunkIndex, finalChunkBlob, urls)
+                        uploadChunkWithRetry(chunkIndex, finalChunkBlob, urls)
                             .catch(e => { /* error already logged in retry func */ });
                         chunkIndex++;
                     }
@@ -360,12 +359,12 @@ async function uploadChunks() {
 
                     // If buffer is full, upload the chunk
                     if (bufferPos === CHUNK_SIZE) {
-                         const chunkBlob = new Blob([buffer]); // Create blob from the *full* buffer
-                         const currentIndex = chunkIndex++; // Capture current index and increment
+                        const chunkBlob = new Blob([buffer]); // Create blob from the *full* buffer
+                        const currentIndex = chunkIndex++; // Capture current index and increment
 
                         await waitForConcurrencySlot();
                         await waitForRateLimitSlot();
-                         addDebugOutput(`准备上传块 ${currentIndex}...`, debugOutput);
+                        addDebugOutput(`准备上传块 ${currentIndex}...`, debugOutput);
                         // Don't await here; let uploads happen concurrently
                         uploadChunkWithRetry(currentIndex, chunkBlob, urls)
                             .then(() => {
@@ -392,9 +391,9 @@ async function uploadChunks() {
         } // end while(true)
 
         // After the loop, wait for all pending uploads to finish
-         addDebugOutput("所有块已提交，等待上传完成...", debugOutput);
+        addDebugOutput("所有块已提交，等待上传完成...", debugOutput);
         await waitForPendingChunks();
-         addDebugOutput("所有块上传尝试已结束.", debugOutput);
+        addDebugOutput("所有块上传尝试已结束.", debugOutput);
 
         // Final check and completion handling
         handleChunkUploadCompletion(urls.value); // Pass the final array of URLs
@@ -441,12 +440,12 @@ async function uploadChunkWithRetry(i, chunk, urls) {
                 const duration = Date.now() - start;
 
                 if (!response.ok) {
-                     // Try reading response body for more details if available
-                     let errorBody = '';
-                     try {
-                       errorBody = await response.text();
-                     } catch (e) { /* ignore if can't read body */ }
-                     throw new Error(`HTTP ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`); // Limit body length in error
+                    // Try reading response body for more details if available
+                    let errorBody = '';
+                    try {
+                        errorBody = await response.text();
+                    } catch (e) { /* ignore if can't read body */ }
+                    throw new Error(`HTTP ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`); // Limit body length in error
                 }
 
                 const data = await response.json();
@@ -459,8 +458,8 @@ async function uploadChunkWithRetry(i, chunk, urls) {
                 urls.value[i] = data.url; // Store URL in the reactive array
                 addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${data.url}`, debugOutput);
                 // Update progress immediately after success
-                 const completedCount = urls.value.filter(u => u !== null).length;
-                 status.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks.value} 块完成)`;
+                const completedCount = urls.value.filter(u => u !== null).length;
+                status.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks.value} 块完成)`;
                 return; // Exit retry loop on success
 
             } catch (error) {
@@ -480,15 +479,15 @@ async function uploadChunkWithRetry(i, chunk, urls) {
         throw new Error(`块 ${i} 上传失败，已达最大重试次数. 最后错误: ${lastError?.message}`);
 
     } catch (finalError) {
-         addDebugOutput(`块 ${i} 彻底失败: ${finalError.message}`, debugOutput);
-         status.value = `上传失败 (编程猫 OSS - 块 ${i} 错误)`;
-         // We don't re-throw here, failure is recorded by the null in urls.value[i]
-         // The final check in handleChunkUploadCompletion will detect this.
+        addDebugOutput(`块 ${i} 彻底失败: ${finalError.message}`, debugOutput);
+        status.value = `上传失败 (编程猫 OSS - 块 ${i} 错误)`;
+        // We don't re-throw here, failure is recorded by the null in urls.value[i]
+        // The final check in handleChunkUploadCompletion will detect this.
     }
     finally {
         activeUploads.value--; // Decrement active count regardless of outcome
-         if (activeUploads.value < 0) activeUploads.value = 0; // Safety check
-         // addDebugOutput(`块 ${i} 处理结束. 当前并发: ${activeUploads.value}`, debugOutput); // Verbose logging
+        if (activeUploads.value < 0) activeUploads.value = 0; // Safety check
+        // addDebugOutput(`块 ${i} 处理结束. 当前并发: ${activeUploads.value}`, debugOutput); // Verbose logging
     }
 }
 
@@ -498,46 +497,46 @@ function getActiveUploadCount() {
 }
 
 async function waitForPendingChunks() {
-     const checkInterval = 200; // ms
-     let waitTime = 0;
-     const maxWaitTime = 120000; // 2 minutes max wait safeguard
+    const checkInterval = 200; // ms
+    let waitTime = 0;
+    const maxWaitTime = 120000; // 2 minutes max wait safeguard
 
     while (activeUploads.value > 0 && waitTime < maxWaitTime) {
         await new Promise(resolve => setTimeout(resolve, checkInterval));
         waitTime += checkInterval;
     }
-     if (waitTime >= maxWaitTime && activeUploads.value > 0) {
-          addDebugOutput(`警告: 等待块完成超时 (${maxWaitTime / 1000}s). 可能有 ${activeUploads.value} 个块未正确结束。`, debugOutput);
-     } else {
-          addDebugOutput("所有活动的块上传均已结束。", debugOutput);
-     }
+    if (waitTime >= maxWaitTime && activeUploads.value > 0) {
+        addDebugOutput(`警告: 等待块完成超时 (${maxWaitTime / 1000}s). 可能有 ${activeUploads.value} 个块未正确结束。`, debugOutput);
+    } else {
+        addDebugOutput("所有活动的块上传均已结束。", debugOutput);
+    }
 }
 
 async function fetchWithRetry(url, options, retries = 3) {
-     let attempt = 0;
-     while (attempt < retries) {
-       attempt++;
-       try {
-         const response = await fetch(url, options);
-         // Check if response is ok (status in the range 200-299)
-         if (!response.ok && attempt >= retries) {
-              // If it's the last attempt and still not ok, throw based on status
-               throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-         }
-          // If response is ok, or if it's not ok but we have retries left, return/continue
-         return response; // Return the response object directly on success or for non-ok status if retries remain (caller should check response.ok)
-       } catch (error) {
-         addDebugOutput(`Fetch error (尝试 ${attempt}/${retries}): ${error.message}`, debugOutput);
-         if (attempt >= retries) {
-           // If this was the last attempt, re-throw the caught error
-           throw error; // Or throw a new summarizing error: new Error(`最大重试次数 (${retries}) 已达到. 最后错误: ${error.message}`);
-         }
-         // Optional: Add delay before retrying
-         await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Simple linear backoff
-       }
-     }
-     // This part should ideally not be reached if logic is correct, but acts as a safeguard
-     throw new Error('最大重试次数已达到');
+    let attempt = 0;
+    while (attempt < retries) {
+        attempt++;
+        try {
+            const response = await fetch(url, options);
+            // Check if response is ok (status in the range 200-299)
+            if (!response.ok && attempt >= retries) {
+                // If it's the last attempt and still not ok, throw based on status
+                throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+            }
+            // If response is ok, or if it's not ok but we have retries left, return/continue
+            return response; // Return the response object directly on success or for non-ok status if retries remain (caller should check response.ok)
+        } catch (error) {
+            addDebugOutput(`Fetch error (尝试 ${attempt}/${retries}): ${error.message}`, debugOutput);
+            if (attempt >= retries) {
+                // If this was the last attempt, re-throw the caught error
+                throw error; // Or throw a new summarizing error: new Error(`最大重试次数 (${retries}) 已达到. 最后错误: ${error.message}`);
+            }
+            // Optional: Add delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Simple linear backoff
+        }
+    }
+    // This part should ideally not be reached if logic is correct, but acts as a safeguard
+    throw new Error('最大重试次数已达到');
 }
 
 // Simplified handler for single file upload response
@@ -560,8 +559,8 @@ function handleUploadResponse(data) {
 
 // Handler specifically for when all chunk uploads have attempted
 function handleChunkUploadCompletion(urlsArray) {
-     const successfulUploads = urlsArray.filter(url => url !== null);
-     const failedCount = totalChunks.value - successfulUploads.length;
+    const successfulUploads = urlsArray.filter(url => url !== null);
+    const failedCount = totalChunks.value - successfulUploads.length;
 
     addDebugOutput(`分块上传 (编程猫 OSS) 完成检查: 成功 ${successfulUploads.length}/${totalChunks.value} 块.`, debugOutput);
 
@@ -593,10 +592,10 @@ function handleChunkUploadCompletion(urlsArray) {
         resetEstimatedCompletionTime(); // Reset timer on success
 
     } catch (error) {
-         showToast('合并分块链接时出错');
-         status.value = "处理结果失败";
-         addDebugOutput(`合并分块链接时出错: ${error.message}`, debugOutput);
-         resetEstimatedCompletionTime();
+        showToast('合并分块链接时出错');
+        status.value = "处理结果失败";
+        addDebugOutput(`合并分块链接时出错: ${error.message}`, debugOutput);
+        resetEstimatedCompletionTime();
     }
 }
 
@@ -630,16 +629,16 @@ async function downloadFiles() {
     const isNormalUrl = /^(https?:\/\/)/i.test(urlToDownload);
     if (isNormalUrl) {
         try {
-             addDebugOutput(`尝试直接打开标准链接: ${urlToDownload}`, debugOutput);
-             // Try opening in a new tab, good for direct downloads or viewing
-             window.open(urlToDownload, '_blank');
-             status.value = "已尝试打开链接...";
-             showToast("正在尝试打开或下载标准链接...");
-             // Note: We can't easily track download progress/completion for direct links.
+            addDebugOutput(`尝试直接打开标准链接: ${urlToDownload}`, debugOutput);
+            // Try opening in a new tab, good for direct downloads or viewing
+            window.open(urlToDownload, '_blank');
+            status.value = "已尝试打开链接...";
+            showToast("正在尝试打开或下载标准链接...");
+            // Note: We can't easily track download progress/completion for direct links.
         } catch (e) {
-             showToast("无法打开链接，请检查链接或浏览器设置");
-             status.value = "打开链接失败";
-             addDebugOutput(`直接打开链接失败: ${e.message}`, debugOutput);
+            showToast("无法打开链接，请检查链接或浏览器设置");
+            status.value = "打开链接失败";
+            addDebugOutput(`直接打开链接失败: ${e.message}`, debugOutput);
         } finally {
             isUploading.value = false; // Re-enable buttons
         }
@@ -661,22 +660,22 @@ async function downloadFiles() {
         // IMPORTANT: Decode the filename AFTER extracting it
         filename = decodeURIComponent(matches[1]);
     } catch (e) {
-         showToast('文件名解码失败，可能包含无效字符');
-         status.value = "文件名错误";
-         addDebugOutput(`文件名解码失败: ${matches[1]} - Error: ${e.message}`, debugOutput);
-         filename = 'downloaded-file'; // Fallback filename
-         isUploading.value = false; // Re-enable buttons
-         return; // Stop if filename is bad
+        showToast('文件名解码失败，可能包含无效字符');
+        status.value = "文件名错误";
+        addDebugOutput(`文件名解码失败: ${matches[1]} - Error: ${e.message}`, debugOutput);
+        filename = 'downloaded-file'; // Fallback filename
+        isUploading.value = false; // Re-enable buttons
+        return; // Stop if filename is bad
     }
 
     const chunkIdentifiers = matches[2].split(',');
 
     if (!chunkIdentifiers || chunkIdentifiers.length === 0 || chunkIdentifiers[0] === '') {
-         showToast('链接中未找到有效的分块标识');
-         status.value = "链接格式错误";
-         addDebugOutput(`下载链接分块部分解析失败: ${matches[2]}`, debugOutput);
-         isUploading.value = false; // Re-enable buttons
-         return;
+        showToast('链接中未找到有效的分块标识');
+        status.value = "链接格式错误";
+        addDebugOutput(`下载链接分块部分解析失败: ${matches[2]}`, debugOutput);
+        isUploading.value = false; // Re-enable buttons
+        return;
     }
 
 
@@ -694,9 +693,9 @@ async function downloadFiles() {
 
     let downloadedBlobs;
     try {
-         // Fetch all blobs in parallel
+        // Fetch all blobs in parallel
         downloadedBlobs = await Promise.all(urls.map((url, index) =>
-             fetchBlob(url, index, urls.length) // Pass index/total for progress
+            fetchBlob(url, index, urls.length) // Pass index/total for progress
         ));
         addDebugOutput(`所有 ${urls.length} 个分块已获取完毕。`, debugOutput);
         status.value = "分块获取完成，正在合并...";
@@ -711,11 +710,11 @@ async function downloadFiles() {
         status.value = "下载失败!";
         addDebugOutput(`下载任务失败: ${error.message}`, debugOutput);
         // Clean up any blobs that might have been created before the error
-         if (downloadedBlobs) {
-             downloadedBlobs.forEach(blob => {
-                 if (blob) URL.revokeObjectURL(URL.createObjectURL(blob)); // Clean up Blob URLs
-             });
-         }
+        if (downloadedBlobs) {
+            downloadedBlobs.forEach(blob => {
+                if (blob) URL.revokeObjectURL(URL.createObjectURL(blob)); // Clean up Blob URLs
+            });
+        }
     } finally {
         isUploading.value = false; // Re-enable buttons after download attempt
     }
@@ -734,7 +733,7 @@ async function fetchBlob(url, index, total) {
         addDebugOutput(`成功获取块 ${index + 1}/${total} (编程猫 OSS)`, debugOutput);
         return blob;
     } catch (error) {
-         addDebugOutput(`获取块 ${index + 1} (编程猫 OSS) 失败: ${error.message}`, debugOutput);
+        addDebugOutput(`获取块 ${index + 1} (编程猫 OSS) 失败: ${error.message}`, debugOutput);
         throw error; // Re-throw to be caught by Promise.all
     }
 }
@@ -742,19 +741,19 @@ async function fetchBlob(url, index, total) {
 
 async function mergeAndDownload(blobs, filename) {
     if (!blobs || blobs.length === 0) {
-         addDebugOutput("没有要合并的 Blob (编程猫 OSS)。", debugOutput);
-         status.value = "合并失败 (编程猫 OSS - 无数据)";
-         showToast("没有数据可供合并下载 (编程猫 OSS)");
-         return;
+        addDebugOutput("没有要合并的 Blob (编程猫 OSS)。", debugOutput);
+        status.value = "合并失败 (编程猫 OSS - 无数据)";
+        showToast("没有数据可供合并下载 (编程猫 OSS)");
+        return;
     }
-     addDebugOutput(`开始合并 ${blobs.length} 个 Blob (编程猫 OSS)...`, debugOutput);
-     status.value = "正在合并文件 (编程猫 OSS)..."; // Update status
+    addDebugOutput(`开始合并 ${blobs.length} 个 Blob (编程猫 OSS)...`, debugOutput);
+    status.value = "正在合并文件 (编程猫 OSS)..."; // Update status
 
-     let downloadUrl; // Define downloadUrl outside try block for cleanup
+    let downloadUrl; // Define downloadUrl outside try block for cleanup
     try {
         // Create the merged Blob
         const mergedBlob = new Blob(blobs, { type: blobs[0]?.type || 'application/octet-stream' }); // Use type of first blob or default
-        addDebugOutput(`合并完成 (编程猫 OSS). 总大小: ${(mergedBlob.size / (1024*1024)).toFixed(2)} MB.`, debugOutput);
+        addDebugOutput(`合并完成 (编程猫 OSS). 总大小: ${(mergedBlob.size / (1024 * 1024)).toFixed(2)} MB.`, debugOutput);
 
 
         // Create a download link
@@ -769,8 +768,8 @@ async function mergeAndDownload(blobs, filename) {
         // Clean up the Object URL *after* the download has likely started
         // Use a small delay to be safer, as `a.click()` is synchronous but the download initiation might not be instantaneous.
         setTimeout(() => {
-             URL.revokeObjectURL(downloadUrl);
-             addDebugOutput(`已释放合并 Blob 的 Object URL (编程猫 OSS): ${downloadUrl}`, debugOutput);
+            URL.revokeObjectURL(downloadUrl);
+            addDebugOutput(`已释放合并 Blob 的 Object URL (编程猫 OSS): ${downloadUrl}`, debugOutput);
         }, 100);
 
 
@@ -782,16 +781,16 @@ async function mergeAndDownload(blobs, filename) {
         // blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob))); // Not needed here as we didn't create URLs for individual blobs
 
     } catch (error) {
-         showToast('合并或下载文件时出错');
-         status.value = "合并/下载失败 (编程猫 OSS)";
-         addDebugOutput(`合并或下载错误 (编程猫 OSS): ${error.message}`, debugOutput);
-         console.error("Merge and download error (编程猫 OSS):", error);
-         // Attempt cleanup even on error
-         // Note: downloadUrl might not be defined if error happened before creation
-         if (typeof downloadUrl !== 'undefined' && downloadUrl) {
+        showToast('合并或下载文件时出错');
+        status.value = "合并/下载失败 (编程猫 OSS)";
+        addDebugOutput(`合并或下载错误 (编程猫 OSS): ${error.message}`, debugOutput);
+        console.error("Merge and download error (编程猫 OSS):", error);
+        // Attempt cleanup even on error
+        // Note: downloadUrl might not be defined if error happened before creation
+        if (typeof downloadUrl !== 'undefined' && downloadUrl) {
             URL.revokeObjectURL(downloadUrl);
             addDebugOutput(`错误发生后释放合并 Blob 的 Object URL (编程猫 OSS): ${downloadUrl}`, debugOutput);
-         }
+        }
     }
 }
 
@@ -812,11 +811,11 @@ function exportHistory() {
 function exportLog() {
     const logContent = debugOutput.value; // Export current content of the textarea
     if (!logContent.trim()) {
-         showToast("没有日志内容可导出");
-         return;
+        showToast("没有日志内容可导出");
+        return;
     }
     helpers.downloadFile('upload_log.txt', logContent);
-     addDebugOutput("调试日志已导出。", debugOutput); // Log the export action itself
+    addDebugOutput("调试日志已导出。", debugOutput); // Log the export action itself
 }
 
 function loadLog() {
@@ -833,7 +832,7 @@ function loadLog() {
             localStorage.removeItem(STORAGE_KEYS.UPLOAD_LOG); // Clear corrupted log
         }
     } else {
-         debugOutput.value = "调试日志为空。"; // Initial message
+        debugOutput.value = "调试日志为空。"; // Initial message
     }
     // History is loaded separately in onMounted
 }
@@ -850,13 +849,13 @@ function handleClear() {
 
 // Handler for the 'select-item' event from UploadHistory
 function handleHistoryItemSelect(selectedLink) {
-  if (selectedLink) {
-    sjurl.value = selectedLink; // Update the input field's bound ref
-    showToast('历史记录链接已填入输入框');
-    addDebugOutput(`从历史记录选择链接: ${selectedLink}`, debugOutput);
-    // Optional: scroll to the input field if needed
-    // document.getElementById('sjurl')?.focus();
-  }
+    if (selectedLink) {
+        sjurl.value = selectedLink; // Update the input field's bound ref
+        showToast('历史记录链接已填入输入框');
+        addDebugOutput(`从历史记录选择链接: ${selectedLink}`, debugOutput);
+        // Optional: scroll to the input field if needed
+        // document.getElementById('sjurl')?.focus();
+    }
 }
 
 
@@ -864,7 +863,7 @@ function handleHistoryItemSelect(selectedLink) {
 function checkUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const sharedUrl = urlParams.get('url');
-    
+
     if (sharedUrl) {
         try {
             // 解码URL参数
@@ -888,7 +887,7 @@ function checkUrlParams() {
             }
             // 2. 如果不是分块链接，检查是否为标准 URL https://.../filename.ext?query
             else if (/^(https?:\/\/)/i.test(decodedUrl)) {
-                 try {
+                try {
                     const urlObject = new URL(decodedUrl);
                     const pathname = urlObject.pathname; // e.g., /flowchunkflex/rJwiGIV6Jg.jpg
                     const parts = pathname.split('/');
@@ -896,20 +895,20 @@ function checkUrlParams() {
                     if (extractedFilename) {
                         // Decode the extracted filename part
                         filename = decodeURIComponent(extractedFilename);
-                         addDebugOutput(`从标准 URL 链接中解析文件名: ${filename}`, debugOutput);
+                        addDebugOutput(`从标准 URL 链接中解析文件名: ${filename}`, debugOutput);
                     } else {
-                         addDebugOutput(`无法从标准 URL 路径中提取文件名: ${pathname}`, debugOutput);
-                         filename = '未知文件名 (URL路径)';
+                        addDebugOutput(`无法从标准 URL 路径中提取文件名: ${pathname}`, debugOutput);
+                        filename = '未知文件名 (URL路径)';
                     }
-                 } catch (urlParseError) {
-                     addDebugOutput(`解析标准 URL 失败: ${urlParseError.message}`, debugOutput);
-                     filename = '无效URL格式';
-                 }
+                } catch (urlParseError) {
+                    addDebugOutput(`解析标准 URL 失败: ${urlParseError.message}`, debugOutput);
+                    filename = '无效URL格式';
+                }
             }
             // 3. 既不是分块也不是标准 URL
             else {
-                 addDebugOutput(`分享链接格式未知，无法提取文件名: ${decodedUrl}`, debugOutput);
-                 filename = '未知格式文件';
+                addDebugOutput(`分享链接格式未知，无法提取文件名: ${decodedUrl}`, debugOutput);
+                filename = '未知格式文件';
             }
 
             // 弹窗询问用户是否立即下载 (使用解析出的 filename)
@@ -940,7 +939,7 @@ function handleShare() {
         showToast("没有链接可分享");
         return;
     }
-    
+
     try {
         // 构建包含当前链接的分享URL
         const currentUrl = new URL(window.location.href);
@@ -948,9 +947,9 @@ function handleShare() {
         currentUrl.search = '';
         // 添加新的url参数
         currentUrl.searchParams.set('url', encodeURIComponent(sjurl.value));
-        
+
         const shareUrl = currentUrl.toString();
-        
+
         // 复制分享链接到剪贴板
         helpers.copyToClipboard(
             shareUrl,
@@ -984,7 +983,7 @@ async function uploadWithDangBeiOSS() {
 
         // 调用DangBeiOSS服务上传文件
         const result = await uploadToOSS(file.value, updateProgress);
-        
+
         if (result.success) {
             sjurl.value = result.url;
             status.value = "当贝 OSS 上传完成!";

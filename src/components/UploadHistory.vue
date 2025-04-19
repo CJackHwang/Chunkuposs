@@ -12,9 +12,7 @@
                 </thead>
                 <tbody>
                     <!-- Add @click handler and a class for styling -->
-                    <tr v-for="entry in history"
-                        :key="entry.time"
-                        @click="selectHistoryItem(entry.link)"
+                    <tr v-for="entry in history" :key="entry.time" @click="selectHistoryItem(entry.link)"
                         class="history-row">
                         <td>{{ entry.time }}</td>
                         <td class="link-cell">{{ entry.link }}</td>
