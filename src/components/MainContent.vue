@@ -24,11 +24,10 @@
             <!-- Upload Mode Selection -->
             <div class="upload-mode-selector">
                 <span class="mode-label"></span>
-                <label class="radio-label">
+                <!-- <label class="radio-label">
                     <input type="radio" v-model="uploadMode" value="dangbei" name="uploadMode">
-                    <!-- Apply the class to the span -->
                     <span class="radio-text">当贝OSS</span>
-                </label>
+                </label> -->
                 <label class="radio-label">
                     <input type="radio" v-model="uploadMode" value="codemao" name="uploadMode">
                     <!-- Apply the class to the span -->
@@ -121,7 +120,7 @@ const sjurl = ref('');
 const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
-const uploadMode = ref('dangbei'); // 'codemao' or 'dangbei'
+const uploadMode = ref('codemao'); // Default to 'codemao' since 'dangbei' is hidden
 const isLargeFileSupport = ref(true); // Default to true for large file support in codemao mode
 const isChunkCheckboxDisabled = ref(false); // To disable checkbox when file > 30MB
 const isUploading = ref(false); // Track if an upload/download is in progress
