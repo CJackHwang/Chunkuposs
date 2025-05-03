@@ -24,11 +24,10 @@
             <!-- Upload Mode Selection -->
             <div class="upload-mode-selector">
                 <span class="mode-label"></span>
-                <label class="radio-label">
+                <!-- <label class="radio-label">
                     <input type="radio" v-model="uploadMode" value="dangbei" name="uploadMode">
-                    <!-- Apply the class to the span -->
                     <span class="radio-text">当贝OSS</span>
-                </label>
+                </label> -->
                 <label class="radio-label">
                     <input type="radio" v-model="uploadMode" value="codemao" name="uploadMode">
                     <!-- Apply the class to the span -->
@@ -121,7 +120,7 @@ const sjurl = ref('');
 const status = ref('');
 const debugOutput = ref('');
 const uploadHistory = ref([]);
-const uploadMode = ref('dangbei'); // 'codemao' or 'dangbei'
+const uploadMode = ref('codemao'); // Default to 'codemao' since 'dangbei' is hidden
 const isLargeFileSupport = ref(true); // Default to true for large file support in codemao mode
 const isChunkCheckboxDisabled = ref(false); // To disable checkbox when file > 30MB
 const isUploading = ref(false); // Track if an upload/download is in progress
@@ -178,8 +177,11 @@ function updateFileInfo(event) {
     if (fileSize <= MIN_CHUNK_SIZE) {
         chunkSizeVisible.value = false; // Hide chunk info for single chunk uploads
         totalChunks.value = 1; // Explicitly set to 1 chunk
-        isChunkCheckboxDisabled.value = false; // Ensure checkbox is enabled for small files
-        addDebugOutput("文件小于或等于 1MB，建议在编程猫模式下关闭“分块提交”。", debugOutput);
+        // 对于小于等于1MB的文件，强制单链接上传，并禁用分块选项
+        isLargeFileSupport.value = false; // 自动取消勾选
+        isChunkCheckboxDisabled.value = true; // 禁用复选框
+        addDebugOutput("文件小于或等于 1MB，将使用单链接上传，分块选项已禁用。", debugOutput);
+        showToast('文件较小(≤1MB)，将使用单链接上传'); // 明确提示用户
     } else {
         chunkSizeVisible.value = true; // Ensure chunk info is visible for larger files
         addDebugOutput(`文件大于 1MB，自动计算分块大小: ${chunkValue.value} MB, 总块数: ${totalChunks.value}。`, debugOutput);
@@ -191,6 +193,7 @@ function updateFileInfo(event) {
             addDebugOutput(`文件大于 30MB，在编程猫模式下强制启用并锁定“分块提交”。`, debugOutput);
             showToast('文件大于30MB，已强制启用分块提交');
         } else {
+            // 文件大于1MB但小于等于30MB（或非Codemao模式），允许用户选择，确保复选框可用
             isChunkCheckboxDisabled.value = false; // Ensure checkbox is enabled otherwise
         }
     }
@@ -205,11 +208,11 @@ watch(uploadMode, (newMode) => {
             isLargeFileSupport.value = true;
             isChunkCheckboxDisabled.value = true;
         } else {
-            isChunkCheckboxDisabled.value = false;
-            // Optional: Reset isLargeFileSupport if switching away from codemao?
-            // if (newMode !== 'codemao') isLargeFileSupport.value = false; // Or keep user preference? Let's keep it for now.
+            // 切换到非Codemao模式，或者Codemao模式下文件不大于30MB
+            isChunkCheckboxDisabled.value = false; // 确保复选框可用
         }
     } else {
+        // 没有文件被选中时，复选框也应该是可用的
         isChunkCheckboxDisabled.value = false; // No file, checkbox should be enabled
     }
 });
@@ -234,16 +237,15 @@ async function uploadFile() {
             addDebugOutput("使用【当贝 OSS】模式上传...", debugOutput);
             await uploadWithDangBeiOSS();
         } else if (uploadMode.value === 'codemao') {
+            // 文件大于1MB且用户勾选了“大文件支持”（或文件大于30MB被强制分块）
             if (isLargeFileSupport.value && file.value.size > MIN_CHUNK_SIZE) {
-                addDebugOutput(`使用【编程猫 OSS】模式 (大文件支持) 上传 (总块数: ${totalChunks.value})...`, debugOutput);
-                await uploadChunks(); // Existing chunked logic
+                addDebugOutput(`使用【编程猫 OSS】模式 (分块上传) 上传 (总块数: ${totalChunks.value})...`, debugOutput);
+                await uploadChunks(); // 分块上传逻辑
             } else {
-                if (!isLargeFileSupport.value) {
-                    addDebugOutput("使用【编程猫 OSS】模式 (无大文件支持) - 执行单链接上传...", debugOutput);
-                } else {
-                    addDebugOutput("使用【编程猫 OSS】模式 (文件较小) - 执行单链接上传...", debugOutput);
-                }
-                await uploadSingleFile(); // Existing single file logic
+                // 文件小于等于1MB（此时isLargeFileSupport被强制为false），或者文件大于1MB但用户未勾选“大文件支持”
+                addDebugOutput("使用【编程猫 OSS】模式 (单链接上传) - 执行上传...", debugOutput);
+                // 之前的调试日志已通过updateFileInfo中的修改变得多余
+                await uploadSingleFile(); // 单文件上传逻辑
             }
         } else {
             throw new Error(`未知的上传模式: ${uploadMode.value}`);
