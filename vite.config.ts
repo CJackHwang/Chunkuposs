@@ -22,7 +22,7 @@ export default defineConfig({
       base: '/',
       manifest: {
         name: 'Chunkuposs',
-        short_name: 'FCF微云盘',
+        short_name: 'Chunkuposs',
         theme_color: '#0F1514',
         description: '流式分块上传工具，使用编程猫七牛云对象存储接口开发的微云盘',
         icons: [
