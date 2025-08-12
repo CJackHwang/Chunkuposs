@@ -3,9 +3,9 @@
     <header>
       <!-- 将标题和版本号分组 -->
       <div class="header-main">
-        <h2>FlowChunkFlex微云盘</h2>
+        <h2>Chunkuposs微云盘</h2>
         <!-- 版本号使用 span，并添加 class -->
-        <span class="version-tag">Ver: 5.4.5</span>
+        <span class="version-tag">Ver: 5.4.7</span>
       </div>
       <!-- 为描述添加 class -->
       <div class="description">
@@ -27,7 +27,7 @@
       </p>
       <!-- 项目链接 -->
       <p class="project-link">
-        <a href="https://github.com/CJackHwang/FlowChunkFlex" target="_blank">项目仓库：FlowChunkFlex</a>
+        <a href="https://github.com/CJackHwang/Chunkuposs" target="_blank">项目仓库：Chunkuposs</a>
       </p>
       <!-- 徽章链接 -->
       <p class="badges">

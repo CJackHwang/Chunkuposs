@@ -21,8 +21,8 @@ export default defineConfig({
       mode: 'development',
       base: '/',
       manifest: {
-        name: 'FlowChunkFlex',
-        short_name: 'FCF微云盘',
+        name: 'Chunkuposs',
+        short_name: 'Chunkuposs',
         theme_color: '#0F1514',
         description: '流式分块上传工具，使用编程猫七牛云对象存储接口开发的微云盘',
         icons: [
