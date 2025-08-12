@@ -267,7 +267,7 @@ async function uploadSingleFile() {
     status.value = "正在上传 (单链接模式)...";
     const formData = new FormData();
     formData.append('file', file.value, file.value.name);
-    formData.append('path', 'flowchunkflex'); // Ensure path is correct
+    formData.append('path', 'Chunkuposs'); // Ensure path is correct
 
     try {
         const response = await fetchWithRetry(UPLOAD_URL, {
@@ -420,7 +420,7 @@ async function uploadChunkWithRetry(i, chunk, urls) {
         // [!code --] // Use a simple, consistent naming scheme without file extension
         // [!code --] formData.append('file', chunk, `chunk-${i}.part`); // Add '.part' temporarily? Or keep it simple. Let's try simple first.
         formData.append('file', chunk, `chunk-${i}`); // [!code focus] Use simple name, removed duplicate append
-        formData.append('path', 'flowchunkflex');
+        formData.append('path', 'Chunkuposs');
 
         // Calculate a dynamic timeout: Base + time proportional to size (e.g., 1 minute per 10MB)
         // Minimum 10 seconds, Maximum 5 minutes
@@ -681,7 +681,7 @@ async function downloadFiles() {
     }
 
 
-    const baseDownloadUrl = 'https://static.codemao.cn/flowchunkflex/';
+    const baseDownloadUrl = 'https://static.codemao.cn/Chunkuposs/';
     const urls = chunkIdentifiers.map(identifier => {
         // Remove potential query parameters just in case (though format suggests they shouldn't be there)
         const cleanIdentifier = identifier.split('?')[0];
@@ -891,7 +891,7 @@ function checkUrlParams() {
             else if (/^(https?:\/\/)/i.test(decodedUrl)) {
                 try {
                     const urlObject = new URL(decodedUrl);
-                    const pathname = urlObject.pathname; // e.g., /flowchunkflex/rJwiGIV6Jg.jpg
+                    const pathname = urlObject.pathname; // e.g., /Chunkuposs/rJwiGIV6Jg.jpg
                     const parts = pathname.split('/');
                     const extractedFilename = parts[parts.length - 1]; // Get the last part
                     if (extractedFilename) {

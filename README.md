@@ -1,4 +1,4 @@
-# FlowChunkFlex - Dual OSS Chunked Upload Tool (v5.4+)
+# ChunkUpOSS - 双OSS分块上传工具 (v5.4+)
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
@@ -60,7 +60,7 @@ npm run build
 ```
 
 ### Vercel One-Click Deploy
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/FlowChunkFlex)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Chunkuposs)
 
 ### Workflow
 1. **Select Mode**: Choose "当贝OSS" (DangBei) or "编程猫OSS" (CodeMao).
