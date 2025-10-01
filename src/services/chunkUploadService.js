@@ -1,4 +1,4 @@
-import { addDebugOutput } from '@/utils/storageHelper';
+import { addDebugOutput, saveUploadHistory } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
 import { UPLOAD_URL, FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
 
@@ -160,13 +160,8 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     showToast('分块上传成功 (编程猫 OSS), 请复制链接保存');
     addDebugOutput(`最终合并链接 (编程猫 OSS): ${sjurlRef.value}`, debugOutputRef);
     // 写入历史列表（与单文件上传保持一致行为）
-    if (uploadHistoryRef && Array.isArray(uploadHistoryRef.value)) {
-      const history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
-      if (!history.find(e => e.link === sjurlRef.value)) {
-        history.unshift({ time: new Date().toLocaleString(), link: sjurlRef.value });
-        localStorage.setItem('uploadHistory', JSON.stringify(history));
-        uploadHistoryRef.value = history;
-      }
+    if (uploadHistoryRef) {
+      saveUploadHistory(sjurlRef.value, uploadHistoryRef);
     }
   } catch (error) {
     showToast('合并分块链接时出错');

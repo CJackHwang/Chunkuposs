@@ -102,8 +102,7 @@ import {
 } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
 import { useTimeEstimation } from '@/services/timeEstimationService';
-import { fetchWithRetry } from '@/services/http';
-import { uploadSingleFile as serviceUploadSingleFile, waitForRateLimitSlot as serviceWaitRate, waitForConcurrencySlot as serviceWaitConc } from '@/services/uploadService';
+import { uploadSingleFile as serviceUploadSingleFile } from '@/services/uploadService';
 import { downloadFiles as serviceDownloadFiles } from '@/services/downloadService';
 import { uploadChunks as serviceUploadChunks } from '@/services/chunkUploadService';
 // DangBei 路径已移除
@@ -137,7 +136,7 @@ const uploadMode = ref('codemao'); // Default to 'codemao' since 'dangbei' is hi
 const isLargeFileSupport = ref(true); // Default to true for large file support in codemao mode
 const isChunkCheckboxDisabled = ref(false); // To disable checkbox when file > 30MB
 const isUploading = ref(false); // Track if an upload/download is in progress
-const activeUploads = ref(0); // Keep for chunk concurrency logic
+// 分块上传并发控制逻辑已移至服务层
 
 // Removed isChunkedMode, isDangBeiOSSMode, isChunkDisabled, isDangBeiDisabled and watchers
 
@@ -301,10 +300,10 @@ async function uploadChunks() {
     const lastRequestTimestamps = ref([]);
 
     // Helper to manage rate limiting
-    async function waitForRateLimitSlot() { await serviceWaitRate(lastRequestTimestamps); }
+    // 速率限制已移至服务层
 
     // Helper to manage concurrency limiting
-    async function waitForConcurrencySlot() { await serviceWaitConc(activeUploads); }
+    // 并发限制已移至服务层
 
     // The main loop function using ReadableStream
     async function processStream() {
@@ -316,8 +315,7 @@ async function uploadChunks() {
                     // Process any remaining data in the buffer
                     if (bufferPos > 0) {
                         const finalChunkBlob = new Blob([buffer.subarray(0, bufferPos)]);
-                        await waitForConcurrencySlot(); // Wait for slot before last chunk
-                        await waitForRateLimitSlot();   // Wait for rate limit
+                        // 并发与速率限制由服务层处理
                         addDebugOutput(`准备上传最后一块 (块 ${chunkIndex})...`, debugOutput);
                         // Don't await here directly to allow processing loop to potentially finish
                         uploadChunkWithRetry(chunkIndex, finalChunkBlob, urls)
@@ -341,8 +339,7 @@ async function uploadChunks() {
                         const chunkBlob = new Blob([buffer]); // Create blob from the *full* buffer
                         const currentIndex = chunkIndex++; // Capture current index and increment
 
-                        await waitForConcurrencySlot();
-                        await waitForRateLimitSlot();
+                        // 并发与速率限制由服务层处理
                         addDebugOutput(`准备上传块 ${currentIndex}...`, debugOutput);
                         // Don't await here; let uploads happen concurrently
                         uploadChunkWithRetry(currentIndex, chunkBlob, urls)
@@ -371,11 +368,10 @@ async function uploadChunks() {
 
         // After the loop, wait for all pending uploads to finish
         addDebugOutput("所有块已提交，等待上传完成...", debugOutput);
-        await waitForPendingChunks();
-        addDebugOutput("所有块上传尝试已结束.", debugOutput);
+        // 等待逻辑由服务层处理
 
         // Final check and completion handling
-        handleChunkUploadCompletion(urls.value); // Pass the final array of URLs
+        // 完成检查与最终处理由服务层处理
     }
 
     // Start processing the stream
@@ -384,91 +380,7 @@ async function uploadChunks() {
 }
 
 
-async function uploadChunkWithRetry(i, chunk, urls) {
-    activeUploads.value++;
-    let lastError = null;
-    const MAX_RETRIES = 3;
-    const BASE_DELAY_MS = 1000; // 1 second base delay
-
-    addDebugOutput(`开始上传块 ${i} (大小: ${(chunk.size / 1024).toFixed(1)} KB)`, debugOutput);
-
-    try {
-        const formData = new FormData();
-        // [!code --] // Use a simple, consistent naming scheme without file extension
-        // [!code --] formData.append('file', chunk, `chunk-${i}.part`); // Add '.part' temporarily? Or keep it simple. Let's try simple first.
-        formData.append('file', chunk, `chunk-${i}`); // [!code focus] Use simple name, removed duplicate append
-        formData.append('path', 'Chunkuposs');
-
-        // Calculate a dynamic timeout: Base + time proportional to size (e.g., 1 minute per 10MB)
-        // Minimum 10 seconds, Maximum 5 minutes
-        const sizeMB = chunk.size / (1024 * 1024);
-        const calculatedTimeout = 10000 + sizeMB * 6000; // 10s + 6s per MB
-        const dynamicTimeout = Math.min(Math.max(calculatedTimeout, 10000), 300000); // Clamp between 10s and 5min
-        addDebugOutput(`块 ${i} - 设置超时: ${dynamicTimeout / 1000}s`, debugOutput);
-
-
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            try {
-                const start = Date.now();
-                const response = await fetch(UPLOAD_URL, {
-                    method: 'POST',
-                    body: formData,
-                    signal: AbortSignal.timeout(dynamicTimeout) // Use AbortSignal for timeout
-                });
-
-                const duration = Date.now() - start;
-
-                if (!response.ok) {
-                    // Try reading response body for more details if available
-                    let errorBody = '';
-                    try {
-                        errorBody = await response.text();
-                    } catch (e) { /* ignore if can't read body */ }
-                    throw new Error(`HTTP ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`); // Limit body length in error
-                }
-
-                const data = await response.json();
-
-                if (!data || !data.url) {
-                    throw new Error(data?.msg || '服务器响应无效或缺少URL');
-                }
-
-                // Success!
-                urls.value[i] = data.url; // Store URL in the reactive array
-                addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${data.url}`, debugOutput);
-                // Update progress immediately after success
-                const completedCount = urls.value.filter(u => u !== null).length;
-                status.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks.value} 块完成)`;
-                return; // Exit retry loop on success
-
-            } catch (error) {
-                lastError = error; // Store the error
-                addDebugOutput(`块 ${i} 第 ${attempt}/${MAX_RETRIES} 次尝试失败: ${error.message}`, debugOutput);
-
-                if (attempt < MAX_RETRIES) {
-                    // Exponential backoff: 1s, 2s, 4s...
-                    const delay = BASE_DELAY_MS * (2 ** (attempt - 1));
-                    addDebugOutput(`块 ${i} - 等待 ${delay / 1000}s 后重试...`, debugOutput);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        } // End retry loop
-
-        // If loop finishes without returning, all retries failed
-        throw new Error(`块 ${i} 上传失败，已达最大重试次数. 最后错误: ${lastError?.message}`);
-
-    } catch (finalError) {
-        addDebugOutput(`块 ${i} 彻底失败: ${finalError.message}`, debugOutput);
-        status.value = `上传失败 (编程猫 OSS - 块 ${i} 错误)`;
-        // We don't re-throw here, failure is recorded by the null in urls.value[i]
-        // The final check in handleChunkUploadCompletion will detect this.
-    }
-    finally {
-        activeUploads.value--; // Decrement active count regardless of outcome
-        if (activeUploads.value < 0) activeUploads.value = 0; // Safety check
-        // addDebugOutput(`块 ${i} 处理结束. 当前并发: ${activeUploads.value}`, debugOutput); // Verbose logging
-    }
-}
+// 分块上传重试逻辑已移至服务层
 
 
 function getActiveUploadCount() {
