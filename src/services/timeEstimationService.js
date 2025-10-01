@@ -1,12 +1,13 @@
 import { ref } from 'vue';
 
+// 依据已完成分块估算剩余时间；对0除做了防御
 export function useTimeEstimation() {
     const estimatedCompletionTime = ref('');
     let intervalId = null;
 
     function updateEstimatedCompletionTimeAfterUpload(startTime, urlsArray, totalChunks) {
         const elapsed = Date.now() - startTime;
-        const completed = urlsArray.filter(url => !!url).length;
+        const completed = Array.isArray(urlsArray) ? urlsArray.filter(url => !!url).length : 0;
         const remaining = totalChunks - completed;
 
         if (remaining === 0) {
@@ -16,8 +17,8 @@ export function useTimeEstimation() {
 
         if (intervalId) clearInterval(intervalId);
 
-        const averageTime = elapsed / (completed || 1);
-        let estimatedSeconds = Math.ceil((averageTime * remaining) / 1000);
+        const averageTime = completed > 0 ? (elapsed / completed) : 0;
+        let estimatedSeconds = averageTime > 0 ? Math.ceil((averageTime * remaining) / 1000) : 0;
 
         updateTimeDisplay(estimatedSeconds);
 

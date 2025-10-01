@@ -1,6 +1,10 @@
 // toast.js
 import Toastify from 'toastify-js';
 
+/**
+ * 统一的轻提示函数
+ * @param {string} message - 提示文案
+ */
 export function showToast(message) {
     Toastify({
         text: message,

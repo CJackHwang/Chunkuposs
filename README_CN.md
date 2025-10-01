@@ -1,45 +1,41 @@
-# ChunkUpOSS - 双 OSS 分块上传工具 (v5.4+)
+# Chunkuposs — 分块上传与分享工具 (v5.4+)
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
 **英文版本 (English Version)**: [README.md](./README.md)
 
-> 一款支持编程猫和当贝双 OSS 的多功能分块上传工具，旨在绕过大文件限制并提升传输可靠性 (v5.4+)
+> Chunkuposs 是一个基于浏览器的分块上传与分享工具，当前仅对接编程猫 OSS 接口。原当贝 OSS 路径已失效并在界面中隐藏，文档现仅覆盖编程猫实现。
 
 ---
 
-## 🚀 核心功能升级（v5.4+）
+## 🚀 核心功能（v5.4+）
 
-### 技术增强与新特性
-- **双 OSS 支持**: 可在 **编程猫 OSS** 和 **当贝 OSS** 之间自由选择上传目标。
-- **当贝 OSS 集成**:
-    - 通过 `DangBeiOSS.js` 服务，利用 `@aws-sdk/client-s3` 实现文件直接上传。
-    - 支持上传过程中的进度追踪。
-- **编程猫 OSS 增强**:
-    - **智能分块策略**: 动态计算块大小 (最小1MB/最大15MB)，小文件 (≤1MB) 自动禁用分块，流式缓冲区切割。
-    - **强制分块**: 对大于 30MB 的文件自动强制启用并锁定分块上传选项。
-    - **高级并发与速率控制**: 并行限制 (2)，速率限制 (≤5次/秒)。
-    - **可靠性优化**: 分块重传机制（动态超时10s-300s），指数退避策略 (1s/2s/4s)。
-- **增强分享**: 可生成包含目标链接的分享 URL (`?url=...`)，方便接收者直接加载。
-- **M3 主题系统**: 全面集成 Material Design 3，通过 CSS 变量实现动态亮/暗模式切换。
-- **本地持久化**: 操作日志和上传历史记录存储于 `localStorage`。
+### 技术特性
+- **当前目标：编程猫 OSS**：使用 `https://api.pgaot.com/user/up_cat_file` 上传。
+- **智能分块策略**：动态计算（最小 1MB / 最大 15MB），≤1MB 自动禁用分块，流式缓冲区切割。
+- **强制分块**：文件 >30MB 自动强制启用并锁定分块上传。
+- **并发与限流**：并行限制 2，速率限制 ≤5 次/秒。
+- **可靠性优化**：分块重试（动态超时）与指数退避。
+- **分享增强**：生成带 `?url=...` 的分享链接，便于接收方直接填充。
+- **M3 主题系统**：Material Design 3，CSS 变量支持亮/暗模式。
+- **本地持久化**：操作日志与上传历史保存在 `localStorage`。
 
-### 交互改进
-- **统一界面**: 在编程猫和当贝模式间无缝切换。
-- **清晰状态监控**: 为两种 OSS 提供实时进度显示（编程猫显示块进度，当贝显示百分比），支持 ETA 计算。
-- **历史记录整合**: 可从历史记录中选择过去的链接（编程猫或当贝）来填充下载输入框。
-- **Toast 通知**: 对操作、错误及强制设定（如 >30MB 强制分块）提供清晰反馈。
-- **组件化结构**: 重构了 `DebugLogger`, `UploadHistory`, `ThemeToggle` 等组件，提升代码清晰度。
+### 交互体验
+- **聚焦 UI**：界面仅保留编程猫模式（当贝已移除/隐藏）。
+- **清晰状态监控**：实时显示分块进度与剩余时间预估。
+- **历史记录整合**：可点击历史条目填充下载输入框。
+- **Toast 提醒**：操作、错误与强制设定（如 >30MB 强制分块）有明确提示。
+- **组件化结构**：`DebugLogger`、`UploadHistory`、`ThemeToggle` 等组件更清晰。
 
 ---
 
-## 🛠️ 技术栈升级
+## 🛠️ 技术栈
 
 | 模块                | 实现细节                                                                 |
 |---------------------|--------------------------------------------------------------------------|
 | **UI & 样式**       | Material Design 3 (M3) 规范, CSS 自定义属性 (变量), Toastify.js         |
-| **网络层**          | `AbortController` 信号中断 + 动态超时策略（基于分块大小）               |
+| **网络层**          | `fetch` + `AbortController`（基于分块大小的动态超时）                    |
 | **文件处理**        | Streams API + Blob分段合并（浏览器内存优化）                            |
 | **状态管理**        | Vue响应式系统 (`ref`, `computed`) + localStorage持久化（自动JSON序列化） |
 | **错误处理**        | 三级错误捕获（网络层/业务层/用户层）                                    |
@@ -59,18 +55,29 @@ npm run dev
 npm run build
 ```
 
+### 环境变量（可选）
+在 `.env`/`.env.local` 中覆盖默认配置：
+```
+VITE_UPLOAD_URL=https://api.pgaot.com/user/up_cat_file
+VITE_REQUEST_RATE_LIMIT=5
+VITE_CONCURRENT_LIMIT=2
+VITE_MAX_CHUNK_MB=15
+VITE_MIN_CHUNK_MB=1
+VITE_FORCE_CHUNK_MB=30
+VITE_BASE_DOWNLOAD_URL=https://static.codemao.cn/Chunkuposs/
+VITE_FORM_UPLOAD_PATH=Chunkuposs
+```
+
 ### Vercel 一键部署
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Chunkuposs)
 
 ### 工作流程
-1. **选择模式**: 选择 "当贝OSS" 或 "编程猫OSS"。
-2. **选择文件**: 拖放或点击选择文件。
-    - *编程猫模式*: 分块开关自动管理 (>1MB 启用, >30MB 强制启用并锁定)。
-3. **上传**: 点击 "上传文件"。
-4. **监控**: 观察实时状态更新和进度。
-5. **获取链接**: 成功后，生成可分享的链接（编程猫分块格式或当贝直链）。
-6. **下载 (可选)**: 粘贴链接 (编程猫或标准 URL) 并点击 "下载文件"。
-7. **分享 (可选)**: 点击 "分享文件" 复制包含当前链接的 URL，便于分享。
+1. **选择文件**：拖放或点击选择。
+2. **上传**：点击“上传文件”。
+3. **监控**：观察实时状态与进度。
+4. **获取链接**：成功后生成可分享链接。分块上传的链接格式为 `[文件名]块1,块2,...`。
+5. **下载（可选）**：粘贴分块链接或标准 URL 后点击“下载文件”。
+6. **分享（可选）**：点击“分享文件”复制包含当前链接的 URL。
 
 ---
 
@@ -86,9 +93,8 @@ const MIN_CHUNK_SIZE = 1 * 1024 * 1024;  // 最小分块 1MB (小于此值则单
 const THIRTY_MB_THRESHOLD = 30 * 1024 * 1024; // 文件大于此阈值强制分块
 ```
 
-### 当贝网络配置 (services/DangBeiOSS.js)
-- 使用 `@aws-sdk/client-s3` 进行通信。
-- 凭证信息 (区域, Bucket, Key ID/Secret) 应在服务内部或环境变量中配置。*(注意: 实际凭证处理方式可能因部署环境而异)*
+### 当贝路径（已废弃）
+- 旧版当贝 OSS 集成已不可用，且在界面中移除/隐藏。服务文件可能仍在仓库中，但不应再使用。
 
 ### 关键逻辑片段 (MainContent.vue)
 ```javascript
@@ -115,7 +121,7 @@ flowchart TD
     %% 输入与模式选择
     subgraph "输入与模式选择"
         A[文件输入]
-        M[模式选择：编程猫 / 当贝]
+    M[模式选择：编程猫]
     end
 
     A --> P{文件大小检查}
@@ -137,12 +143,7 @@ flowchart TD
         I --> J_CodeMao
     end
 
-    %% 当贝 OSS 路径
-    subgraph "当贝 OSS 路径"
-        P -->|当贝| K[调用 DangBeiOSS 服务]
-        K --> L[S3 客户端上传（带进度）]
-        L --> J_DangBei[显示/存储直链] --> J_Final[统一显示/存储链接]
-    end
+    %% 当贝 OSS 路径（已废弃） — 已从 UI 移除
 
     %% 合并编程猫路径结果
     J_CodeMao --> J_Final
@@ -169,9 +170,8 @@ flowchart TD
 1. **数据隐私**：
    - 所有操作记录仅存储于浏览器 `localStorage`
    - 无第三方跟踪或分析 SDK 嵌入（纯前端实现）
-2. **内容审查**：
-   - 文件上传结果遵循编程猫 CDN 的内容审查策略
-   - 潜在的违法内容屏蔽由服务器端处理
+2. **服务方策略**：
+   - 上传结果受上游存储服务的策略与审核影响。
 3. **许可协议**：
    - 项目代码基于 GPL-3.0 开源协议
    - 禁止将此工具及其使用的编程猫非公开 API 用于商业闭源项目
@@ -183,7 +183,7 @@ flowchart TD
 | 组件/服务             | 功能特性                                                                    |
 |-----------------------|-----------------------------------------------------------------------------|
 | `MainContent.vue`     | 核心逻辑: 模式切换, 文件处理, 上传/下载流程编排。                           |
-| `DangBeiOSS.js` (服务) | 处理当贝 S3 上传, 进度报告。                                                |
+| 已移除 DangBei 相关代码 | 历史遗留服务与分支已清理，避免误用。                                       |
 | `DebugLogger.vue`     | 实时日志显示 (带时间戳), 导出/清除功能。                                    |
 | `UploadHistory.vue`   | 显示历史记录表格 (M3 主题), 支持点击链接填充输入框。                        |
 | `ThemeToggle.vue`     | M3 主题切换按钮 (检测系统偏好, 手动覆盖)。                                  |

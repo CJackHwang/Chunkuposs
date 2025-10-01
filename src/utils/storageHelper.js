@@ -5,6 +5,11 @@ export const STORAGE_KEYS = {
 };
 
 // 调试日志管理
+/**
+ * 写入调试日志，附带时间戳，并同步到 localStorage
+ * @param {string} message
+ * @param {{ value: string }} debugOutputRef
+ */
 export const addDebugOutput = (message, debugOutputRef) => {
     const timestamp = new Date().toLocaleString();
     const newEntry = `[${timestamp}] ${message}`;
@@ -19,6 +24,11 @@ export const addDebugOutput = (message, debugOutputRef) => {
 };
 
 // 上传历史管理
+/**
+ * 保存上传历史（去重，头插），并同步到组件状态
+ * @param {string} sjurl
+ * @param {{ value: Array }} uploadHistoryRef
+ */
 export const saveUploadHistory = (sjurl, uploadHistoryRef) => {
     const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY)) || [];
     const existing = history.find(entry => entry.link === sjurl);
@@ -38,6 +48,10 @@ export const saveUploadHistory = (sjurl, uploadHistoryRef) => {
     }
 };
 
+/**
+ * 加载上传历史
+ * @param {{ value: Array }} uploadHistoryRef
+ */
 export const loadUploadHistory = (uploadHistoryRef) => {
     // 加载时已经是倒序的了
     const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY)) || [];
@@ -45,11 +59,13 @@ export const loadUploadHistory = (uploadHistoryRef) => {
 };
 
 // 清理操作
+/** 清空调试日志（内存与 localStorage） */
 export const clearLog = (debugOutputRef) => {
     debugOutputRef.value = '';
     localStorage.removeItem(STORAGE_KEYS.UPLOAD_LOG);
 };
 
+/** 清空上传历史（内存与 localStorage） */
 export const clearHistory = (uploadHistoryRef) => {
     uploadHistoryRef.value = [];
     localStorage.removeItem(STORAGE_KEYS.UPLOAD_HISTORY);
