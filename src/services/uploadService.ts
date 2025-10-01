@@ -36,7 +36,8 @@ export async function uploadSingleFile(
   } catch (error) {
     showToast('单链接模式上传失败，请检查网络或文件大小（≤ 30 MB）');
     statusRef.value = '单链接模式上传失败';
-    addDebugOutput(`单链接模式上传错误: ${error.message}`, debugOutputRef);
+    const msg = error instanceof Error ? error.message : String(error);
+    addDebugOutput(`单链接模式上传错误: ${msg}`, debugOutputRef);
     throw error;
   }
 }
