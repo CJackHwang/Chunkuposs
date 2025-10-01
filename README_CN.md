@@ -1,214 +1,184 @@
-# ChunkUpOSS - 双 OSS 分块上传工具 (v5.4+)
+
+# Chunkuposs — 分块上传与分享 (v6.0+)
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
-**英文版本 (English Version)**: [README.md](./README.md)
+中文 | English: [README.md](README.md)
 
-> 一款支持编程猫和当贝双 OSS 的多功能分块上传工具，旨在绕过大文件限制并提升传输可靠性 (v5.4+)
+Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使用 TypeScript 实现。DangBei 集成已移除。
 
----
+## 6.0+ 更新要点
+- Provider 注入式服务层完善（`StorageProvider` + `CodemaoProvider`）。
+- 核心服务 TS 化（上传/分块/下载/toast/存储）。
+- 编程猫模式下 >30 MB 强制分块；分块动态范围 1–15 MB。
+- 流式切割 + 并发（上传并发 2 + ≤5 次/秒）。
+- 下载并发（默认 4）与进度展示。
+- ETA 更智能、动态超时、重试与详尽日志。
+- 支持 `?url=...` 分享链接与页面自动解析；历史统一。
+- Vite 6 + PWA 插件；支持 Vue DevTools 开发插件。
 
-## 🚀 核心功能升级（v5.4+）
+## 核心功能
+- Provider 架构：`StorageProvider` 接口 + 默认 `CodemaoProvider`。
+- TS 服务层：`uploadService.ts`、`chunkUploadService.ts`、`downloadService.ts`、`toast.ts`、`storageHelper.ts`。
+- 智能分块：1–15 MB 动态；>30 MB 强制分块；流式切割。
+- 并发与限流：上传并发 2 + ≤5 次/秒；下载并发 4（带进度条）。
+- 可靠性：动态超时、重试、ETA 优化。
+- 分享与历史：`?url=...` 分享链接，本地历史与日志统一。
 
-### 技术增强与新特性
-- **双 OSS 支持**: 可在 **编程猫 OSS** 和 **当贝 OSS** 之间自由选择上传目标。
-- **当贝 OSS 集成**:
-    - 通过 `DangBeiOSS.js` 服务，利用 `@aws-sdk/client-s3` 实现文件直接上传。
-    - 支持上传过程中的进度追踪。
-- **编程猫 OSS 增强**:
-    - **智能分块策略**: 动态计算块大小 (最小1MB/最大15MB)，小文件 (≤1MB) 自动禁用分块，流式缓冲区切割。
-    - **强制分块**: 对大于 30MB 的文件自动强制启用并锁定分块上传选项。
-    - **高级并发与速率控制**: 并行限制 (2)，速率限制 (≤5次/秒)。
-    - **可靠性优化**: 分块重传机制（动态超时10s-300s），指数退避策略 (1s/2s/4s)。
-- **增强分享**: 可生成包含目标链接的分享 URL (`?url=...`)，方便接收者直接加载。
-- **M3 主题系统**: 全面集成 Material Design 3，通过 CSS 变量实现动态亮/暗模式切换。
-- **本地持久化**: 操作日志和上传历史记录存储于 `localStorage`。
+## 技术栈
+- UI 与样式：Vue 3、CSS 变量、Toastify.js、Material Design 3。
+- 网络：`fetch` + `AbortController`；Provider 驱动端点。
+- 文件处理：Streams API + Blob 合并（浏览器内存优化）。
+- 状态：Vue 响应式（`ref`、`computed`）+ `localStorage` 持久化。
+- 构建：Vite 6 + PWA 插件，vendor 拆分。
 
-### 交互改进
-- **统一界面**: 在编程猫和当贝模式间无缝切换。
-- **清晰状态监控**: 为两种 OSS 提供实时进度显示（编程猫显示块进度，当贝显示百分比），支持 ETA 计算。
-- **历史记录整合**: 可从历史记录中选择过去的链接（编程猫或当贝）来填充下载输入框。
-- **Toast 通知**: 对操作、错误及强制设定（如 >30MB 强制分块）提供清晰反馈。
-- **组件化结构**: 重构了 `DebugLogger`, `UploadHistory`, `ThemeToggle` 等组件，提升代码清晰度。
+## 快速开始
+- 开发：`npm install`，`npm run dev`
+- 构建：`npm run build`
+- 预览：`npm run preview`
 
----
+### 运行要求
+- Node.js 18+（推荐 20/22）
+- npm 9+（或使用 pnpm/yarn；示例为 npm）
+- 支持 Streams API 的现代浏览器
 
-## 🛠️ 技术栈升级
+### 脚本说明
+- `npm run dev`：启动 Vite 开发服务器
+- `npm run build`：类型检查 + 构建（含 PWA）
+- `npm run preview`：预览生产构建
+- `npm run type-check`：`vue-tsc` 类型检查
+- `npm run lint`：同时运行 ESLint 与 Oxlint
+- `npm run lint:eslint`：仅 ESLint 修复
+- `npm run lint:oxlint`：仅 Oxlint 修复
 
-| 模块                | 实现细节                                                                 |
-|---------------------|--------------------------------------------------------------------------|
-| **UI & 样式**       | Material Design 3 (M3) 规范, CSS 自定义属性 (变量), Toastify.js         |
-| **网络层**          | `AbortController` 信号中断 + 动态超时策略（基于分块大小）               |
-| **文件处理**        | Streams API + Blob分段合并（浏览器内存优化）                            |
-| **状态管理**        | Vue响应式系统 (`ref`, `computed`) + localStorage持久化（自动JSON序列化） |
-| **错误处理**        | 三级错误捕获（网络层/业务层/用户层）                                    |
-| **构建优化**        | Vite (假设) + 智能分包策略（vendor包自动分离）                           |
-
----
-
-## 🖥️ 快速使用指南
-
-### 部署方式
-```bash
-# 本地开发（热重载支持）
-npm install
-npm run dev
-
-# 生产构建（PWA支持）
-npm run build
+环境变量（`.env`/`.env.local`）：
+```
+VITE_UPLOAD_URL=https://api.pgaot.com/user/up_cat_file
+VITE_REQUEST_RATE_LIMIT=5
+VITE_CONCURRENT_LIMIT=2
+VITE_MAX_CHUNK_MB=15
+VITE_MIN_CHUNK_MB=1
+VITE_FORCE_CHUNK_MB=30
+VITE_BASE_DOWNLOAD_URL=https://static.codemao.cn/Chunkuposs/
+VITE_FORM_UPLOAD_PATH=Chunkuposs
+VITE_DOWNLOAD_CONCURRENT_LIMIT=4
 ```
 
-### Vercel 一键部署
+说明：
+- `VITE_FORCE_CHUNK_MB`：在编程猫模式下，大于该值强制启用分块上传。
+- `VITE_BASE_DOWNLOAD_URL`：用于拼接分块下载 URL 的基础前缀。
+- 所有变量均有默认值，见 `src/config/constants.js`。
+
+Vercel 一键部署：
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Chunkuposs)
 
-### 工作流程
-1. **选择模式**: 选择 "当贝OSS" 或 "编程猫OSS"。
-2. **选择文件**: 拖放或点击选择文件。
-    - *编程猫模式*: 分块开关自动管理 (>1MB 启用, >30MB 强制启用并锁定)。
-3. **上传**: 点击 "上传文件"。
-4. **监控**: 观察实时状态更新和进度。
-5. **获取链接**: 成功后，生成可分享的链接（编程猫分块格式或当贝直链）。
-6. **下载 (可选)**: 粘贴链接 (编程猫或标准 URL) 并点击 "下载文件"。
-7. **分享 (可选)**: 点击 "分享文件" 复制包含当前链接的 URL，便于分享。
+## 使用流程
+- 选择文件 → 上传
+- 监控进度（分块或单链接）
+- 获取链接：分块格式 `[文件名]块1,块2,...` 或单链接 URL
+- 下载：粘贴分块链接或标准 URL
+- 分享：复制 `?url=...` 链接
 
----
+### 链接格式
+- 单链接（≤1 MB 或手动选择单次上传）：`https://.../path/file.ext`
+- 分块清单：`[文件名]id1,id2,id3`
+  - 文件名使用 URL 编码；id 从上传响应中抽取。
 
-## ⚙️ 核心配置与逻辑
+## 配置与 Provider
+- 核心常量：上传 URL、限速/并发、分块阈值、下载基础 URL、表单上传路径。
+- Provider 层：
+  - `src/providers/StorageProvider.ts`：`uploadSingle`、`uploadChunk`、`buildChunkManifest`、`getDownloadBase`
+  - `src/providers/CodemaoProvider.ts`：默认编程猫实现
 
-### 编程猫网络配置 (MainContent.vue)
-```javascript
-const UPLOAD_URL = 'https://api.pgaot.com/user/up_cat_file'; // 编程猫上传端点
-const REQUEST_RATE_LIMIT = 5;  // 每秒最大请求数
-const CONCURRENT_LIMIT = 2;    // 并行分块数
-const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 最大分块 15MB
-const MIN_CHUNK_SIZE = 1 * 1024 * 1024;  // 最小分块 1MB (小于此值则单文件上传)
-const THIRTY_MB_THRESHOLD = 30 * 1024 * 1024; // 文件大于此阈值强制分块
+### 关键逻辑片段（MainContent.vue）
 ```
-
-### 当贝网络配置 (services/DangBeiOSS.js)
-- 使用 `@aws-sdk/client-s3` 进行通信。
-- 凭证信息 (区域, Bucket, Key ID/Secret) 应在服务内部或环境变量中配置。*(注意: 实际凭证处理方式可能因部署环境而异)*
-
-### 关键逻辑片段 (MainContent.vue)
-```javascript
-// 大于 30MB 强制分块 (位于 updateFileInfo 及 watch uploadMode 中)
+// >30MB 强制分块
 if (uploadMode.value === 'codemao' && fileSize > THIRTY_MB_THRESHOLD) {
-    isLargeFileSupport.value = true; // 强制启用
-    isChunkCheckboxDisabled.value = true; // 禁用复选框
+  isLargeFileSupport.value = true;
+  isChunkCheckboxDisabled.value = true;
 }
 
-// 生成分享链接 (位于 handleShare 中)
+// 分享链接生成
 const currentUrl = new URL(window.location.href);
-currentUrl.search = ''; // 清除现有参数
+currentUrl.search = '';
 currentUrl.searchParams.set('url', encodeURIComponent(sjurl.value));
 const shareUrl = currentUrl.toString();
-helpers.copyToClipboard(shareUrl, ...);
 ```
 
----
-
-## 📊 系统架构（v5.4+）
-
+## 架构
 ```mermaid
 flowchart TD
-    %% 输入与模式选择
-    subgraph "输入与模式选择"
-        A[文件输入]
-        M[模式选择：编程猫 / 当贝]
-    end
-
-    A --> P{文件大小检查}
-    M --> P
-
-    %% 编程猫 OSS 路径
-    subgraph "编程猫 OSS 路径"
-        P -->|编程猫 且 大于 1MB| B{分块检测}
-        B -->|大于 30MB| B_Force[强制分块开启] --> D
-        B -->|1MB < 大小 <= 30MB 且 分块开启| D[使用 Streams API 切割]
-        B -->|小于等于 1MB 或 分块关闭| C[单文件 FormData 提交]
-
-        D --> E[Uint8Array 缓冲区分块]
-        E --> F[并发 2，限速 5 次每秒]
-        F --> G[上传分块（重试 + 动态超时）]
-        G --> H[聚合分块链接]
-        H --> I[格式化链接：文件名_chunk1,...]
-        C --> I_Single[获取单文件 URL] --> J_CodeMao[显示/存储链接]
-        I --> J_CodeMao
-    end
-
-    %% 当贝 OSS 路径
-    subgraph "当贝 OSS 路径"
-        P -->|当贝| K[调用 DangBeiOSS 服务]
-        K --> L[S3 客户端上传（带进度）]
-        L --> J_DangBei[显示/存储直链] --> J_Final[统一显示/存储链接]
-    end
-
-    %% 合并编程猫路径结果
-    J_CodeMao --> J_Final
-
-    %% 下载与分享
-    subgraph "下载与分享"
-        J_Final --> DL_Input[输入框粘贴链接]
-        DL_Input --> DL_Check{链接类型？}
-        DL_Check -->|编程猫链接| Merge[获取全部分块并合并] --> Save[触发浏览器下载]
-        DL_Check -->|标准链接| Open[打开浏览器窗口]
-        Open --> J_Final
-        J_Final --> Share[点击分享按钮] --> ShareLink[生成 ?url=... 分享链接] --> Clipboard[复制到剪贴板]
-    end
-
-    J_Final --> Store[存储到 localStorage]
-
-
+  subgraph 输入与模式
+    A[文件输入]
+    M[Provider：编程猫]
+  end
+  A --> P{文件大小}
+  M --> P
+  subgraph 编程猫 OSS
+    P -->|>1MB| B{分块?}
+    B -->|>30MB| BF[强制分块] --> D
+    B -->|1MB < 大小 <= 30MB 且分块| D[流式切割]
+    B -->|<=1MB 或关闭| C[单次 FormData]
+    D --> E[Uint8Array 缓冲]
+    E --> F[并发 2 + 5/s]
+    F --> G[Provider 上传 + 重试]
+    G --> H[URL 聚合]
+    H --> I[清单: 文件名 + 分块ID]
+    C --> S[单链接] --> J[展示/存储]
+    I --> J
+  end
+  J --> DL[下载]
+  DL --> T{类型?}
+  T -->|分块| MZ[并发获取+合并] --> SV[保存]
+  T -->|标准| OP[新标签打开]
+  J --> SH[分享] --> L[?url=...] --> CB[剪贴板]
+  J --> LS[localStorage]
 ```
 
----
+## 分块原理
+- 通过 `ReadableStream` 读取文件并缓冲到 `Uint8Array` 分块。
+- 上传并发限制为 2，另有全局 ≤5 次/秒的限速。
+- 每个分块上传采用动态超时与指数退避重试。
+- 成功后聚合分块 id 生成 `[filename]id1,id2,...` 清单。
+- 下载按并发（默认 4）拉取所有分块，合并 Blob 后触发保存。
 
-## 🔒 合规与安全
+## 项目结构
+- `src/components/MainContent.vue`：UI 状态与服务调用
+- `src/services/*`：单/分块上传、下载、ETA、toast
+- `src/providers/*`：Provider 接口与编程猫默认实现
+- `src/config/constants.*`：运行时配置与环境覆盖
+- `src/utils/*`：工具与 localStorage 管理
+- `vite.config.ts`：Vite + PWA 配置
 
-1. **数据隐私**：
-   - 所有操作记录仅存储于浏览器 `localStorage`
-   - 无第三方跟踪或分析 SDK 嵌入（纯前端实现）
-2. **内容审查**：
-   - 文件上传结果遵循编程猫 CDN 的内容审查策略
-   - 潜在的违法内容屏蔽由服务器端处理
-3. **许可协议**：
-   - 项目代码基于 GPL-3.0 开源协议
-   - 禁止将此工具及其使用的编程猫非公开 API 用于商业闭源项目
+## PWA
+- 已配置 manifest（名称/图标/主题）；独立应用显示。
+- 运行时缓存常见静态资源；开发环境开启 PWA 测试。
 
----
+## 限制与说明
+- 受上游服务策略影响；链接可能受限或过期。
+- 超大文件取决于浏览器内存与网络稳定性。
+- 禁止将非公开 API 用于商业用途。
 
-## 🧩 组件说明（v5.4+）
+## 安全与许可
+- 数据隐私：日志与历史仅存储在浏览器 `localStorage`。
+- 服务策略：上传遵循上游存储服务规则。
+- 许可协议：GPL‑3.0；禁止将非公开 API 用于商业用途。
 
-| 组件/服务             | 功能特性                                                                    |
-|-----------------------|-----------------------------------------------------------------------------|
-| `MainContent.vue`     | 核心逻辑: 模式切换, 文件处理, 上传/下载流程编排。                           |
-| `DangBeiOSS.js` (服务) | 处理当贝 S3 上传, 进度报告。                                                |
-| `DebugLogger.vue`     | 实时日志显示 (带时间戳), 导出/清除功能。                                    |
-| `UploadHistory.vue`   | 显示历史记录表格 (M3 主题), 支持点击链接填充输入框。                        |
-| `ThemeToggle.vue`     | M3 主题切换按钮 (检测系统偏好, 手动覆盖)。                                  |
-| `toast.js` (服务)     | 通过 Toastify.js 提供用户反馈通知。                                         |
-| `helpers.js` (工具)   | 实用函数 (剪贴板复制, 文件下载触发, 重置页面)。                             |
-| `storageHelper.js` (工具)| 管理 `localStorage` 中的日志和历史记录。                                  |
+## 组件与服务
+- 组件：`MainContent.vue`、`DebugLogger.vue`、`UploadHistory.vue`、`ThemeToggle.vue`。
+- 服务（TS）：`uploadService.ts`、`chunkUploadService.ts`、`downloadService.ts`、`toast.ts`。
+- 工具：`helpers.js`、`storageHelper.ts`。
+- Provider：`StorageProvider.ts`、`CodemaoProvider.ts`、`providers/index.ts`。
 
----
+## 贡献
+- 遵循 Vue 3 `<script setup>` 约定；使用 `ref`/`computed`。
+- 以不同文件大小测试（含 >100MB）；模拟慢网与错误。
+- 配置或功能变更时同步更新文档。
 
-## 🤝 贡献指南
-
-1. **代码规范**：
-   - 遵循 Vue3 `<script setup>` 语法约定
-   - 响应式状态优先使用 `ref`/`computed`
-   - 清晰的函数命名和适当的注释
-2. **测试要求**：
-   - 分块逻辑需通过不同大小文件（包括 >100MB）测试
-   - 使用浏览器开发者工具模拟慢速网络和网络错误
-3. **文档更新**：
-   - 修改核心配置或添加新功能需同步更新 README
-   - 新增组件需在“组件说明”部分添加条目
-
----
-
-**开发者信息**
-CJackHwang · [GitHub](https://github.com/CJackHwang) · [技术博客](http://www.cjack.cfd)
-
-> 重要提示：本工具旨在技术研究和便利文件分享。上传任何文件前，请确保您拥有必要的权利或授权，并遵守相关法律法规及平台规定。
+## 路线图
+- 见 `ROADMAP.md`（中英文同步）。
+## 常见问题（FAQ）
+- 为何 >30 MB 强制分块？提高可靠性，避免上游的单次上传限制。
+- 如何新增 Provider？实现 `StorageProvider` 并在 `getDefaultProvider()` 中替换。
+- 为什么使用清单格式？简洁且与 Provider 解耦；应用端负责还原下载 URL。
