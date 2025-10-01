@@ -117,13 +117,13 @@ flowchart TD
   subgraph "CodeMao OSS"
     P -->|>1MB| B{Chunk?}
     B -->|>30MB| BF[Force Chunk] --> D
-    B -->|1MB<<=30MB & Chunk ON| D[Streams Segmentation]
-    B -->|<=1MB or OFF| C[Single FormData]
+    B -->|1MB < size <= 30MB & chunk on| D[Streams Segmentation]
+    B -->|<=1MB or off| C[Single FormData]
     D --> E[Uint8Array Buffer]
     E --> F[Concurrency x2 + 5/s]
     F --> G[Provider Upload + Retry]
     G --> H[URL Aggregate]
-    H --> I[Manifest: [filename]chunk1,...]
+    H --> I[Manifest: filename + ids]
     C --> S[Single URL] --> J[Display/Store]
     I --> J
   end

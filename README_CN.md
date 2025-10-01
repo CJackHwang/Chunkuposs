@@ -118,13 +118,13 @@ flowchart TD
   subgraph 编程猫 OSS
     P -->|>1MB| B{分块?}
     B -->|>30MB| BF[强制分块] --> D
-    B -->|1MB<<=30MB 且分块| D[流式切割]
+    B -->|1MB < 大小 <= 30MB 且分块| D[流式切割]
     B -->|<=1MB 或关闭| C[单次 FormData]
     D --> E[Uint8Array 缓冲]
-    E --> F[并发2 + 5/s]
+    E --> F[并发 2 + 5/s]
     F --> G[Provider 上传 + 重试]
     G --> H[URL 聚合]
-    H --> I[清单: [filename]chunk1,...]
+    H --> I[清单: 文件名 + 分块ID]
     C --> S[单链接] --> J[展示/存储]
     I --> J
   end
