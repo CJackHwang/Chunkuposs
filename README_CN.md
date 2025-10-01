@@ -4,6 +4,10 @@
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
+[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520%2F22-brightgreen?logo=node.js)](https://nodejs.org/)
+[![npm](https://img.shields.io/badge/npm-%E2%89%A510-red?logo=npm)](https://www.npmjs.com/)
+[![Vite](https://img.shields.io/badge/Vite-7.x-646cff?logo=vite)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 中文 | English: [README.md](README.md)
 
 Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使用 TypeScript 实现。DangBei 集成已移除。
@@ -16,7 +20,7 @@ Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使
 - 下载并发（默认 4）与进度展示。
 - ETA 更智能、动态超时、重试与详尽日志。
 - 支持 `?url=...` 分享链接与页面自动解析；历史统一。
-- Vite 6 + PWA 插件；支持 Vue DevTools 开发插件。
+- Vite 7 + PWA 插件；支持 Vue DevTools 开发插件。
 
 ## 核心功能
 - Provider 架构：`StorageProvider` 接口 + 默认 `CodemaoProvider`。
@@ -31,7 +35,12 @@ Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使
 - 网络：`fetch` + `AbortController`；Provider 驱动端点。
 - 文件处理：Streams API + Blob 合并（浏览器内存优化）。
 - 状态：Vue 响应式（`ref`、`computed`）+ `localStorage` 持久化。
-- 构建：Vite 6 + PWA 插件，vendor 拆分。
+- 构建：Vite 7 + PWA 插件，vendor 拆分。
+
+版本信息（当前）
+- Vite 7.1.x、@vitejs/plugin-vue 6.0.x、vite-plugin-pwa 1.0.x
+- Vue 3.5.x、TypeScript 5.9.x、vue-tsc 3.x
+- ESLint 9.x、Oxlint 1.x
 
 ## 快速开始
 - 开发：`npm install`，`npm run dev`
@@ -39,9 +48,10 @@ Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使
 - 预览：`npm run preview`
 
 ### 运行要求
-- Node.js 18+（推荐 20/22）
-- npm 9+（或使用 pnpm/yarn；示例为 npm）
+- Node.js ≥20（推荐 22）
+- npm ≥10（或使用 pnpm/yarn；示例为 npm）
 - 支持 Streams API 的现代浏览器
+- 已在 `package.json` 的 `engines` 与 `packageManager` 字段声明运行环境
 
 ### 脚本说明
 - `npm run dev`：启动 Vite 开发服务器

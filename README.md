@@ -3,6 +3,10 @@
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
+[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520%2F22-brightgreen?logo=node.js)](https://nodejs.org/)
+[![npm](https://img.shields.io/badge/npm-%E2%89%A510-red?logo=npm)](https://www.npmjs.com/)
+[![Vite](https://img.shields.io/badge/Vite-7.x-646cff?logo=vite)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 English | 中文: [README_CN.md](README_CN.md)
 
 Chunkuposs is a browser-based chunked uploader and sharer built on a Provider architecture (default: CodeMao). Core services are implemented in TypeScript. DangBei integration has been removed.
@@ -15,7 +19,7 @@ Chunkuposs is a browser-based chunked uploader and sharer built on a Provider ar
 - Download concurrency (default 4) with progress indicator.
 - Smarter ETA, dynamic timeouts, retries and robust logs.
 - Share links via `?url=...` and auto-parse on load; history unified.
-- Vite 6 + PWA plugin; Vue DevTools plugin ready.
+- Vite 7 + PWA plugin; Vue DevTools plugin ready.
 
 ## Core Features
 - Provider architecture: `StorageProvider` + `CodemaoProvider` default.
@@ -30,12 +34,18 @@ Chunkuposs is a browser-based chunked uploader and sharer built on a Provider ar
 - Network: `fetch` + `AbortController`; provider-driven endpoints.
 - File handling: Streams API + Blob merging (optimized for browser memory).
 - State: Vue reactivity (`ref`, `computed`) + `localStorage` persistence.
-- Build: Vite 6 + PWA plugin, vendor chunk splitting.
+- Build: Vite 7 + PWA plugin, vendor chunk splitting.
+
+Versions (current)
+- Vite 7.1.x, @vitejs/plugin-vue 6.0.x, vite-plugin-pwa 1.0.x
+- Vue 3.5.x, TypeScript 5.9.x, vue-tsc 3.x
+- ESLint 9.x, Oxlint 1.x
 
 ## Prerequisites
-- Node.js 18+ (recommended: 20/22)
-- npm 9+ (or pnpm/yarn; scripts shown use npm)
+- Node.js >=20 (recommended: 22)
+- npm >=10 (or pnpm/yarn; scripts shown use npm)
 - Modern browser with Streams API support
+- Environment is declared in `package.json` via `engines` and `packageManager`.
 
 ## Quick Start
 - Dev: `npm install`, `npm run dev`
