@@ -66,6 +66,7 @@ VITE_MIN_CHUNK_MB=1
 VITE_FORCE_CHUNK_MB=30
 VITE_BASE_DOWNLOAD_URL=https://static.codemao.cn/Chunkuposs/
 VITE_FORM_UPLOAD_PATH=Chunkuposs
+VITE_DOWNLOAD_CONCURRENT_LIMIT=4
 ```
 
 ### Vercel 一键部署

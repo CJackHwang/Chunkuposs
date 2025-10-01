@@ -12,4 +12,4 @@ export const THIRTY_MB_THRESHOLD = (Number(import.meta.env.VITE_FORCE_CHUNK_MB) 
 
 export const BASE_DOWNLOAD_URL = (import.meta.env.VITE_BASE_DOWNLOAD_URL || 'https://static.codemao.cn/Chunkuposs/');
 export const FORM_UPLOAD_PATH = import.meta.env.VITE_FORM_UPLOAD_PATH || 'Chunkuposs';
-
+export const DOWNLOAD_CONCURRENT_LIMIT = Number(import.meta.env.VITE_DOWNLOAD_CONCURRENT_LIMIT) || 4; // 下载并发

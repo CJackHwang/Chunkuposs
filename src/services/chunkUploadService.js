@@ -4,6 +4,7 @@ import { UPLOAD_URL, FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } fr
 
 export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputRef, statusRef, sjurlRef, uploadHistoryRef, updateEstimatedCompletionTimeAfterUpload, resetEstimatedCompletionTime }) {
   const urls = new Array(totalChunks).fill(null);
+  const startTime = Date.now();
   const reader = file.stream().getReader();
   let buffer = new Uint8Array(CHUNK_SIZE);
   let bufferPos = 0;
@@ -71,7 +72,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
           addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${data.url}`, debugOutputRef);
           const completedCount = urls.filter(u => u !== null).length;
           statusRef.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks} 块完成)`;
-          updateEstimatedCompletionTimeAfterUpload(Date.now(), urls, totalChunks);
+          updateEstimatedCompletionTimeAfterUpload(startTime, urls, totalChunks);
           return;
         } catch (error) {
           lastError = error;
@@ -158,7 +159,15 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     statusRef.value = '所有分块上传完成 (编程猫 OSS)!';
     showToast('分块上传成功 (编程猫 OSS), 请复制链接保存');
     addDebugOutput(`最终合并链接 (编程猫 OSS): ${sjurlRef.value}`, debugOutputRef);
-    uploadHistoryRef.value && addDebugOutput('历史已更新', debugOutputRef);
+    // 写入历史列表（与单文件上传保持一致行为）
+    if (uploadHistoryRef && Array.isArray(uploadHistoryRef.value)) {
+      const history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
+      if (!history.find(e => e.link === sjurlRef.value)) {
+        history.unshift({ time: new Date().toLocaleString(), link: sjurlRef.value });
+        localStorage.setItem('uploadHistory', JSON.stringify(history));
+        uploadHistoryRef.value = history;
+      }
+    }
   } catch (error) {
     showToast('合并分块链接时出错');
     statusRef.value = '处理结果失败';
@@ -166,4 +175,3 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     resetEstimatedCompletionTime();
   }
 }
-

@@ -88,6 +88,8 @@ async function mergeAndDownload(blobs, filename, statusRef, debugOutputRef) {
 /**
  * 按现有行为实现的下载流程服务
  */
+import { DOWNLOAD_CONCURRENT_LIMIT } from '@/config/constants';
+
 export async function downloadFiles({ sjurlRef, statusRef, isUploadingRef, debugOutputRef, downloadProgressRef, baseDownloadUrl }) {
   const urlToDownload = sjurlRef.value;
   if (!urlToDownload) {
@@ -131,9 +133,29 @@ export async function downloadFiles({ sjurlRef, statusRef, isUploadingRef, debug
 
   let downloadedBlobs;
   try {
-    downloadedBlobs = await Promise.all(urls.map((url, index) =>
-      fetchBlob(url, index, urls.length, statusRef, debugOutputRef, downloadProgressRef)
-    ));
+    // 并发受限的下载队列
+    const results = new Array(urls.length).fill(null);
+    let inFlight = 0;
+    let nextIndex = 0;
+
+    await new Promise((resolve, reject) => {
+      function schedule() {
+        while (inFlight < DOWNLOAD_CONCURRENT_LIMIT && nextIndex < urls.length) {
+          const i = nextIndex++;
+          inFlight++;
+          fetchBlob(urls[i], i, urls.length, statusRef, debugOutputRef, downloadProgressRef)
+            .then(blob => { results[i] = blob; })
+            .catch(err => { reject(err); })
+            .finally(() => {
+              inFlight--;
+              if (nextIndex >= urls.length && inFlight === 0) resolve();
+              else schedule();
+            });
+        }
+      }
+      schedule();
+    });
+    downloadedBlobs = results;
     addDebugOutput(`所有 ${urls.length} 个分块已获取完毕。`, debugOutputRef);
     statusRef.value = '分块获取完成，正在合并...';
     if (downloadProgressRef) downloadProgressRef.value = 100;
@@ -146,4 +168,3 @@ export async function downloadFiles({ sjurlRef, statusRef, isUploadingRef, debug
     isUploadingRef.value = false;
   }
 }
-
