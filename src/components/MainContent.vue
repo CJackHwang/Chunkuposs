@@ -115,11 +115,7 @@ import {
     MAX_CHUNK_SIZE,
     MIN_CHUNK_SIZE,
     THIRTY_MB_THRESHOLD,
-    UPLOAD_URL,
-    REQUEST_RATE_LIMIT,
-    CONCURRENT_LIMIT,
-    BASE_DOWNLOAD_URL,
-    FORM_UPLOAD_PATH
+    BASE_DOWNLOAD_URL
 } from '@/config/constants';
 const file = ref(null);
 const chunkSize = ref(0);
@@ -286,184 +282,24 @@ async function uploadSingleFile() {
 }
 
 
-async function uploadChunks() {
-    const startTime = Date.now();
-    const urls = ref(new Array(totalChunks.value).fill(null));
-    const reader = file.value.stream().getReader();
-    const CHUNK_SIZE = chunkSize.value; // Use calculated chunk size
-    let buffer = new Uint8Array(CHUNK_SIZE);
-    let bufferPos = 0;
-    let chunkIndex = 0; // Renamed from 'index' to avoid conflict
-    activeUploads.value = 0; // Reset active uploads count
-
-    // 并发限制使用配置常量
-    const lastRequestTimestamps = ref([]);
-
-    // Helper to manage rate limiting
-    // 速率限制已移至服务层
-
-    // Helper to manage concurrency limiting
-    // 并发限制已移至服务层
-
-    // The main loop function using ReadableStream
-    async function processStream() {
-        while (true) {
-            try {
-                const { done, value } = await reader.read();
-
-                if (done) {
-                    // Process any remaining data in the buffer
-                    if (bufferPos > 0) {
-                        const finalChunkBlob = new Blob([buffer.subarray(0, bufferPos)]);
-                        // 并发与速率限制由服务层处理
-                        addDebugOutput(`准备上传最后一块 (块 ${chunkIndex})...`, debugOutput);
-                        // Don't await here directly to allow processing loop to potentially finish
-                        uploadChunkWithRetry(chunkIndex, finalChunkBlob, urls)
-                            .catch(e => { /* error already logged in retry func */ });
-                        chunkIndex++;
-                    }
-                    break; // Exit loop when stream is done
-                }
-
-                let currentOffset = 0;
-                while (currentOffset < value.length) {
-                    const spaceInBuffer = CHUNK_SIZE - bufferPos;
-                    const bytesToCopy = Math.min(spaceInBuffer, value.length - currentOffset);
-
-                    buffer.set(value.subarray(currentOffset, currentOffset + bytesToCopy), bufferPos);
-                    bufferPos += bytesToCopy;
-                    currentOffset += bytesToCopy;
-
-                    // If buffer is full, upload the chunk
-                    if (bufferPos === CHUNK_SIZE) {
-                        const chunkBlob = new Blob([buffer]); // Create blob from the *full* buffer
-                        const currentIndex = chunkIndex++; // Capture current index and increment
-
-                        // 并发与速率限制由服务层处理
-                        addDebugOutput(`准备上传块 ${currentIndex}...`, debugOutput);
-                        // Don't await here; let uploads happen concurrently
-                        uploadChunkWithRetry(currentIndex, chunkBlob, urls)
-                            .then(() => {
-                                // Update estimated time *after* a chunk successfully uploads
-                                updateEstimatedCompletionTimeAfterUpload(startTime, urls.value, totalChunks.value);
-                                // Update status based on completed uploads
-                                const completedCount = urls.value.filter(u => u !== null).length;
-                                status.value = `上传中... (${completedCount}/${totalChunks.value} 块完成)`;
-                            })
-                            .catch(e => { /* error already logged in retry func */ });
-
-                        // Reset buffer for the next chunk
-                        buffer = new Uint8Array(CHUNK_SIZE);
-                        bufferPos = 0;
-                    }
-                }
-
-            } catch (streamError) {
-                showToast('读取文件流时出错');
-                addDebugOutput(`文件流读取错误: ${streamError.message}`, debugOutput);
-                status.value = "文件读取失败";
-                throw streamError; // Propagate error
-            }
-        } // end while(true)
-
-        // After the loop, wait for all pending uploads to finish
-        addDebugOutput("所有块已提交，等待上传完成...", debugOutput);
-        // 等待逻辑由服务层处理
-
-        // Final check and completion handling
-        // 完成检查与最终处理由服务层处理
-    }
-
-    // Start processing the stream
-    status.value = `开始分块上传 (编程猫 OSS - 大文件支持) (0/${totalChunks.value} 块完成)`;
-    await processStream(); // Await the entire stream processing
-}
+// 分块上传逻辑已移至服务层
 
 
 // 分块上传重试逻辑已移至服务层
 
 
-function getActiveUploadCount() {
-    return activeUploads.value;
-}
+// 并发计数逻辑已移至服务层
 
-async function waitForPendingChunks() {
-    const checkInterval = 200; // ms
-    let waitTime = 0;
-    const maxWaitTime = 120000; // 2 minutes max wait safeguard
-
-    while (activeUploads.value > 0 && waitTime < maxWaitTime) {
-        await new Promise(resolve => setTimeout(resolve, checkInterval));
-        waitTime += checkInterval;
-    }
-    if (waitTime >= maxWaitTime && activeUploads.value > 0) {
-        addDebugOutput(`警告: 等待块完成超时 (${maxWaitTime / 1000}s). 可能有 ${activeUploads.value} 个块未正确结束。`, debugOutput);
-    } else {
-        addDebugOutput("所有活动的块上传均已结束。", debugOutput);
-    }
-}
+// 分块上传等待逻辑已移至服务层
 
 // 重试逻辑改用服务层实现（功能保持不变）
 
 // Simplified handler for single file upload response
-function handleUploadResponse(data) {
-    if (data && data.url) {
-        sjurl.value = data.url;
-        status.value = "上传完成 (单链接模式)!";
-        addDebugOutput(`单链接模式上传成功: ${data.url}`, debugOutput);
-        saveUploadHistory(sjurl.value, uploadHistory); // Save to history
-        showToast('上传完成, 链接已生成');
-    } else {
-        const errorMessage = data?.msg || '服务器返回未知错误';
-        showToast(`上传失败 (单链接模式): ${errorMessage}`);
-        status.value = "上传失败 (单链接模式)";
-        addDebugOutput(`处理单链接上传响应失败: ${errorMessage}`, debugOutput);
-        // Don't throw error here, just log and update status/toast
-    }
-}
+// 单文件上传响应逻辑已移至服务层
 
 
 // Handler specifically for when all chunk uploads have attempted
-function handleChunkUploadCompletion(urlsArray) {
-    const successfulUploads = urlsArray.filter(url => url !== null);
-    const failedCount = totalChunks.value - successfulUploads.length;
-
-    addDebugOutput(`分块上传 (编程猫 OSS) 完成检查: 成功 ${successfulUploads.length}/${totalChunks.value} 块.`, debugOutput);
-
-    if (failedCount > 0) {
-        showToast(`有 ${failedCount} 个分块上传失败 (编程猫 OSS)，请检查日志`);
-        status.value = `上传失败 (编程猫 OSS - ${failedCount} 块错误)`;
-        addDebugOutput(`最终合并失败 (编程猫 OSS): ${failedCount} 个块未能成功上传。`, debugOutput);
-        resetEstimatedCompletionTime(); // Reset timer on partial failure
-        return; // Stop here if not all chunks succeeded
-    }
-
-    // All chunks succeeded, proceed to merge URLs
-    try {
-        const formattedUrls = urlsArray
-            .map(url => {
-                // Extract filename part robustly
-                const urlParts = url.split('?')[0].split('/');
-                return urlParts[urlParts.length - 1]; // Get the last part (filename)
-            })
-            .join(',');
-
-        // Use encodeURIComponent on the filename part ONLY
-        const finalUrl = `[${encodeURIComponent(file.value.name)}]${formattedUrls}`;
-        sjurl.value = finalUrl;
-        status.value = "所有分块上传完成 (编程猫 OSS)!";
-        showToast('分块上传成功 (编程猫 OSS), 请复制链接保存');
-        addDebugOutput(`最终合并链接 (编程猫 OSS): ${sjurl.value}`, debugOutput);
-        saveUploadHistory(sjurl.value, uploadHistory);
-        resetEstimatedCompletionTime(); // Reset timer on success
-
-    } catch (error) {
-        showToast('合并分块链接时出错');
-        status.value = "处理结果失败";
-        addDebugOutput(`合并分块链接时出错: ${error.message}`, debugOutput);
-        resetEstimatedCompletionTime();
-    }
-}
+// 分块上传完成检查与合并逻辑已移至服务层
 
 
 function handleCopy() {
@@ -494,79 +330,10 @@ async function downloadFiles() {
 }
 
 // Modified fetchBlob to include progress update
-async function fetchBlob(url, index, total) {
-    try {
-        addDebugOutput(`开始获取块 ${index + 1}/${total} (编程猫 OSS): ${url}`, debugOutput);
-        const res = await fetch(url);
-        if (!res.ok) {
-            throw new Error(`无法获取块 ${index + 1} (编程猫 OSS - ${url}): ${res.status} ${res.statusText}`);
-        }
-        const blob = await res.blob();
-        status.value = `下载中 (编程猫 OSS)... (${index + 1}/${total} 块)`; // Update status on successful fetch
-        downloadProgress.value = Math.floor(((index + 1) / total) * 100);
-        addDebugOutput(`成功获取块 ${index + 1}/${total} (编程猫 OSS)`, debugOutput);
-        return blob;
-    } catch (error) {
-        addDebugOutput(`获取块 ${index + 1} (编程猫 OSS) 失败: ${error.message}`, debugOutput);
-        throw error; // Re-throw to be caught by Promise.all
-    }
-}
+// 下载分块获取逻辑已移至服务层
 
 
-async function mergeAndDownload(blobs, filename) {
-    if (!blobs || blobs.length === 0) {
-        addDebugOutput("没有要合并的 Blob (编程猫 OSS)。", debugOutput);
-        status.value = "合并失败 (编程猫 OSS - 无数据)";
-        showToast("没有数据可供合并下载 (编程猫 OSS)");
-        return;
-    }
-    addDebugOutput(`开始合并 ${blobs.length} 个 Blob (编程猫 OSS)...`, debugOutput);
-    status.value = "正在合并文件 (编程猫 OSS)..."; // Update status
-
-    let downloadUrl; // Define downloadUrl outside try block for cleanup
-    try {
-        // Create the merged Blob
-        const mergedBlob = new Blob(blobs, { type: blobs[0]?.type || 'application/octet-stream' }); // Use type of first blob or default
-        addDebugOutput(`合并完成 (编程猫 OSS). 总大小: ${(mergedBlob.size / (1024 * 1024)).toFixed(2)} MB.`, debugOutput);
-
-
-        // Create a download link
-        downloadUrl = URL.createObjectURL(mergedBlob); // Assign here
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = filename || 'downloaded-file'; // Use provided filename or a default
-        document.body.appendChild(a); // Append link to body
-        a.click(); // Simulate click to trigger download
-        document.body.removeChild(a); // Remove link from body
-
-        // Clean up the Object URL *after* the download has likely started
-        // Use a small delay to be safer, as `a.click()` is synchronous but the download initiation might not be instantaneous.
-        setTimeout(() => {
-            URL.revokeObjectURL(downloadUrl);
-            addDebugOutput(`已释放合并 Blob 的 Object URL (编程猫 OSS): ${downloadUrl}`, debugOutput);
-        }, 100);
-
-
-        status.value = "下载完成 (编程猫 OSS)!";
-        addDebugOutput(`文件 "${filename}" (编程猫 OSS) 下载已触发。`, debugOutput);
-        showToast(`文件 "${filename}" (编程猫 OSS) 下载已开始`);
-
-        // Optional: Clean up individual blob URLs if they were created (though they weren't in this flow)
-        // blobs.forEach(blob => URL.revokeObjectURL(URL.createObjectURL(blob))); // Not needed here as we didn't create URLs for individual blobs
-
-    } catch (error) {
-        showToast('合并或下载文件时出错');
-        status.value = "合并/下载失败 (编程猫 OSS)";
-        addDebugOutput(`合并或下载错误 (编程猫 OSS): ${error.message}`, debugOutput);
-        console.error("Merge and download error (编程猫 OSS):", error);
-        // Attempt cleanup even on error
-        // Note: downloadUrl might not be defined if error happened before creation
-        if (typeof downloadUrl !== 'undefined' && downloadUrl) {
-            URL.revokeObjectURL(downloadUrl);
-            addDebugOutput(`错误发生后释放合并 Blob 的 Object URL (编程猫 OSS): ${downloadUrl}`, debugOutput);
-        }
-    }
-}
+// 下载合并触发逻辑已移至服务层
 
 
 function exportHistory() {
