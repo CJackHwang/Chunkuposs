@@ -51,3 +51,4 @@ node_modules/
 # 忽略操作系统生成的文件
 .DS_Store
 Thumbs.db
+ROADMAP.md

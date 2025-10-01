@@ -88,7 +88,7 @@ async function mergeAndDownload(blobs, filename, statusRef, debugOutputRef) {
 /**
  * 按现有行为实现的下载流程服务
  */
-import { DOWNLOAD_CONCURRENT_LIMIT } from '@/config/constants';
+import { DOWNLOAD_CONCURRENT_LIMIT } from '../config/constants.js';
 
 export async function downloadFiles({ sjurlRef, statusRef, isUploadingRef, debugOutputRef, downloadProgressRef, baseDownloadUrl }) {
   const urlToDownload = sjurlRef.value;

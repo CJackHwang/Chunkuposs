@@ -1,6 +1,6 @@
 import { addDebugOutput, saveUploadHistory } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
-import { UPLOAD_URL, FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
+import { UPLOAD_URL, FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '../config/constants.js';
 
 export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputRef, statusRef, sjurlRef, uploadHistoryRef, updateEstimatedCompletionTimeAfterUpload, resetEstimatedCompletionTime }) {
   const urls = new Array(totalChunks).fill(null);

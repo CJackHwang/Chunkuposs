@@ -1,7 +1,8 @@
 import { addDebugOutput } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
 import { fetchWithRetry } from '@/services/http';
-import { UPLOAD_URL, FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
+// 使用相对路径避免 TS 路径解析在 JS 文件中的类型报错
+import { UPLOAD_URL, FORM_UPLOAD_PATH } from '../config/constants.js';
 
 // 单文件上传（保留原行为）
 export async function uploadSingleFile(file, sjurlRef, statusRef, uploadHistoryRef, debugOutputRef) {
@@ -39,27 +40,4 @@ export async function uploadSingleFile(file, sjurlRef, statusRef, uploadHistoryR
 }
 
 // 获取并发上传的活动数（从组件传入以保持状态）
-export function getActiveUploadCount(activeUploadsRef) {
-  return activeUploadsRef.value;
-}
-
-// 速率限制槽等待
-export async function waitForRateLimitSlot(lastRequestTimestampsRef) {
-  while (true) {
-    const now = Date.now();
-    lastRequestTimestampsRef.value = lastRequestTimestampsRef.value.filter(ts => now - ts < 1000);
-    if (lastRequestTimestampsRef.value.length < REQUEST_RATE_LIMIT) {
-      lastRequestTimestampsRef.value.push(now);
-      return;
-    }
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-}
-
-// 并发限制等待
-export async function waitForConcurrencySlot(activeUploadsRef) {
-  while (getActiveUploadCount(activeUploadsRef) >= CONCURRENT_LIMIT) {
-    await new Promise(resolve => setTimeout(resolve, 150));
-  }
-}
-
+// 组件已不依赖并发/限流工具，这部分逻辑由分块上传服务层内部处理
