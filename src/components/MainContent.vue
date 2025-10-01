@@ -92,14 +92,7 @@ import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
 import UploadHistory from '@/components/UploadHistory.vue'; // Make sure path is correct
-import { STORAGE_KEYS } from '@/utils/storageHelper';
-import {
-    addDebugOutput,
-    saveUploadHistory,
-    loadUploadHistory,
-    clearLog,
-    clearHistory
-} from '@/utils/storageHelper';
+import { STORAGE_KEYS, addDebugOutput, saveUploadHistory, loadUploadHistory, clearLog, clearHistory } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
 import { useTimeEstimation } from '@/services/timeEstimationService';
 import { uploadSingleFile as serviceUploadSingleFile } from '@/services/uploadService';
@@ -114,8 +107,7 @@ const {
 import {
     MAX_CHUNK_SIZE,
     MIN_CHUNK_SIZE,
-    THIRTY_MB_THRESHOLD,
-    BASE_DOWNLOAD_URL
+    THIRTY_MB_THRESHOLD
 } from '@/config/constants';
 const file = ref(null);
 const chunkSize = ref(0);
@@ -324,8 +316,7 @@ async function downloadFiles() {
         statusRef: status,
         isUploadingRef: isUploading,
         debugOutputRef: debugOutput,
-        downloadProgressRef: downloadProgress,
-        baseDownloadUrl: BASE_DOWNLOAD_URL
+        downloadProgressRef: downloadProgress
     });
 }
 

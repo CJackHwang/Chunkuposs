@@ -29,5 +29,7 @@ export interface StorageProvider {
 
   /** 生成分块清单链接（例如：[filename]chunk1,chunk2,...） */
   buildChunkManifest(filename: string, chunkUrls: string[]): string;
-}
 
+  /** 返回下载基础 URL（用于拼接分块标识符） */
+  getDownloadBase(): string;
+}

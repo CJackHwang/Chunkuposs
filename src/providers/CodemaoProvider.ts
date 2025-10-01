@@ -1,5 +1,6 @@
 import type { StorageProvider, UploadResult, ChunkUploadOptions, ProviderCapabilities } from '@/providers/StorageProvider';
 import { UPLOAD_URL, FORM_UPLOAD_PATH } from '@/config/constants';
+import { BASE_DOWNLOAD_URL } from '@/config/constants';
 
 export class CodemaoProvider implements StorageProvider {
   name = 'codemao';
@@ -31,5 +32,8 @@ export class CodemaoProvider implements StorageProvider {
     const ids = chunkUrls.map(u => u.split('?')[0].split('/').pop() || '').join(',');
     return `[${encodeURIComponent(filename)}]${ids}`;
   }
-}
 
+  getDownloadBase(): string {
+    return BASE_DOWNLOAD_URL;
+  }
+}

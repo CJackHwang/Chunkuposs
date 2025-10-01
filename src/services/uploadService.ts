@@ -1,11 +1,17 @@
 import { addDebugOutput } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
-import { fetchWithRetry } from '@/services/http';
-// 使用相对路径避免 TS 路径解析在 JS 文件中的类型报错
-import { UPLOAD_URL, FORM_UPLOAD_PATH } from '../config/constants.js';
+import { getDefaultProvider } from '@/providers';
+import type { Ref } from 'vue';
+import { FORM_UPLOAD_PATH } from '@/config/constants';
 
 // 单文件上传（保留原行为）
-export async function uploadSingleFile(file, sjurlRef, statusRef, uploadHistoryRef, debugOutputRef) {
+export async function uploadSingleFile(
+  file: File,
+  sjurlRef: Ref<string>,
+  statusRef: Ref<string>,
+  uploadHistoryRef: Ref<any[]>,
+  debugOutputRef: Ref<string>
+) {
   const startTime = Date.now();
   statusRef.value = '正在上传 (单链接模式)...';
   const formData = new FormData();
@@ -13,20 +19,16 @@ export async function uploadSingleFile(file, sjurlRef, statusRef, uploadHistoryR
   formData.append('path', FORM_UPLOAD_PATH);
 
   try {
-    const response = await fetchWithRetry(UPLOAD_URL, { method: 'POST', body: formData }, 3);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status} ${response.statusText}. Server response: ${errorText}`);
-    }
-    const data = await response.json();
-    if (data && data.url) {
-      sjurlRef.value = data.url;
+    const provider = getDefaultProvider();
+    const { url } = await provider.uploadSingle(file, { path: FORM_UPLOAD_PATH });
+    if (url) {
+      sjurlRef.value = url;
       statusRef.value = '上传完成 (单链接模式)!';
-      addDebugOutput(`单链接模式上传成功: ${data.url}`, debugOutputRef);
+      addDebugOutput(`单链接模式上传成功: ${url}`, debugOutputRef);
       // 历史更新在组件中完成，保持职责简单
       showToast('上传完成, 链接已生成');
     } else {
-      const errorMessage = data?.msg || '服务器返回未知错误';
+      const errorMessage = '服务器返回未知错误';
       showToast(`上传失败 (单链接模式): ${errorMessage}`);
       statusRef.value = '上传失败 (单链接模式)';
       addDebugOutput(`处理单链接上传响应失败: ${errorMessage}`, debugOutputRef);

@@ -1,8 +1,22 @@
 import { addDebugOutput, saveUploadHistory } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
-import { UPLOAD_URL, FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '../config/constants.js';
+import { FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
+import { getDefaultProvider } from '@/providers';
+import type { Ref } from 'vue';
 
-export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputRef, statusRef, sjurlRef, uploadHistoryRef, updateEstimatedCompletionTimeAfterUpload, resetEstimatedCompletionTime }) {
+export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputRef, statusRef, sjurlRef, uploadHistoryRef, updateEstimatedCompletionTimeAfterUpload, resetEstimatedCompletionTime }:
+  {
+    file: File,
+    CHUNK_SIZE: number,
+    totalChunks: number,
+    debugOutputRef: Ref<string>,
+    statusRef: Ref<string>,
+    sjurlRef: Ref<string>,
+    uploadHistoryRef: Ref<any[]>,
+    updateEstimatedCompletionTimeAfterUpload: (start: number, urls: (string|null)[], total: number) => void,
+    resetEstimatedCompletionTime: () => void
+  }
+) {
   const urls = new Array(totalChunks).fill(null);
   const startTime = Date.now();
   const reader = file.stream().getReader();
@@ -10,7 +24,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
   let bufferPos = 0;
   let chunkIndex = 0;
   let activeUploads = 0;
-  const lastRequestTimestamps = [];
+  const lastRequestTimestamps: number[] = [];
 
   function getActiveUploadCount() { return activeUploads; }
 
@@ -34,7 +48,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     }
   }
 
-  async function uploadChunkWithRetry(i, chunk) {
+  async function uploadChunkWithRetry(i: number, chunk: Blob) {
     activeUploads++;
     let lastError = null;
     const MAX_RETRIES = 3;
@@ -42,9 +56,6 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
 
     addDebugOutput(`开始上传块 ${i} (大小: ${(chunk.size / 1024).toFixed(1)} KB)`, debugOutputRef);
     try {
-      const formData = new FormData();
-      formData.append('file', chunk, `chunk-${i}`);
-      formData.append('path', FORM_UPLOAD_PATH);
       const sizeMB = chunk.size / (1024 * 1024);
       const calculatedTimeout = 10000 + sizeMB * 6000;
       const dynamicTimeout = Math.min(Math.max(calculatedTimeout, 10000), 300000);
@@ -53,30 +64,19 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
           const start = Date.now();
-          const response = await fetch(UPLOAD_URL, {
-            method: 'POST',
-            body: formData,
-            signal: AbortSignal.timeout(dynamicTimeout)
-          });
+          const provider = getDefaultProvider();
+          const { url } = await provider.uploadChunk(chunk, i, { path: FORM_UPLOAD_PATH, timeoutMs: dynamicTimeout });
           const duration = Date.now() - start;
-          if (!response.ok) {
-            let errorBody = '';
-            try { errorBody = await response.text(); } catch {}
-            throw new Error(`HTTP ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`);
-          }
-          const data = await response.json();
-          if (!data || !data.url) {
-            throw new Error(data?.msg || '服务器响应无效或缺少URL');
-          }
-          urls[i] = data.url;
-          addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${data.url}`, debugOutputRef);
+          if (!url) throw new Error('服务器响应无效或缺少URL');
+          urls[i] = url;
+          addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${url}`, debugOutputRef);
           const completedCount = urls.filter(u => u !== null).length;
           statusRef.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks} 块完成)`;
           updateEstimatedCompletionTimeAfterUpload(startTime, urls, totalChunks);
           return;
-        } catch (error) {
-          lastError = error;
-          addDebugOutput(`块 ${i} 第 ${attempt}/${MAX_RETRIES} 次尝试失败: ${error.message}`, debugOutputRef);
+        } catch (error: unknown) {
+          lastError = error as Error;
+          addDebugOutput(`块 ${i} 第 ${attempt}/${MAX_RETRIES} 次尝试失败: ${(lastError as Error).message}`, debugOutputRef);
           if (attempt < MAX_RETRIES) {
             const delay = BASE_DELAY_MS * (2 ** (attempt - 1));
             addDebugOutput(`块 ${i} - 等待 ${delay / 1000}s 后重试...`, debugOutputRef);
@@ -84,9 +84,10 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
           }
         }
       }
-      throw new Error(`块 ${i} 上传失败，已达最大重试次数. 最后错误: ${lastError?.message}`);
-    } catch (finalError) {
-      addDebugOutput(`块 ${i} 彻底失败: ${finalError.message}`, debugOutputRef);
+      throw new Error(`块 ${i} 上传失败，已达最大重试次数. 最后错误: ${(lastError as Error | undefined)?.message}`);
+    } catch (finalError: unknown) {
+      const err = finalError as Error;
+      addDebugOutput(`块 ${i} 彻底失败: ${err.message}`, debugOutputRef);
       statusRef.value = `上传失败 (编程猫 OSS - 块 ${i} 错误)`;
     } finally {
       activeUploads--; if (activeUploads < 0) activeUploads = 0;
@@ -163,10 +164,11 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     if (uploadHistoryRef) {
       saveUploadHistory(sjurlRef.value, uploadHistoryRef);
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    const err = error as Error;
     showToast('合并分块链接时出错');
     statusRef.value = '处理结果失败';
-    addDebugOutput(`合并分块链接时出错: ${error.message}`, debugOutputRef);
+    addDebugOutput(`合并分块链接时出错: ${err.message}`, debugOutputRef);
     resetEstimatedCompletionTime();
   }
 }
