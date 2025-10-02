@@ -5,7 +5,7 @@
       <div class="header-main">
         <h2>Chunkuposs微云盘</h2>
         <!-- 版本号使用 span，并添加 class -->
-        <span class="version-tag">Ver: 6.0.0</span>
+        <span class="version-tag">Ver: 6.1.0</span>
       </div>
       <!-- 为描述添加 class -->
       <div class="description">
@@ -18,7 +18,8 @@
       </div>
     </header>
 
-    <MainContent /> <!-- 主内容组件 -->
+    <MainContent v-if="view==='home'"/>
+    <ManagerPage v-else :history="uploadHistory" @back="goHome" @update="updateItem" @remove="removeItem" />
 
     <footer>
       <!-- 版权信息 -->
@@ -87,5 +88,46 @@ a[target="_blank"] {
 </style>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import MainContent from './components/MainContent.vue'
+import ManagerPage from './components/ManagerPage.vue'
+import { loadUploadHistory, removeHistoryItem } from '@/utils/storageHelper'
+import { updateHistoryEntry } from '@/utils/storageHelper'
+
+const view = ref('home')
+const uploadHistory = ref([])
+// Hold history-updated handler without TS assertions
+let historyUpdatedHandler = null
+
+function goHome(){ view.value = 'home' }
+function goManager(){ view.value = 'manager' }
+function fillLink(link){ goHome(); setTimeout(() => window.dispatchEvent(new CustomEvent('fcf:fill-link', { detail: { link } })), 0) }
+function removeItem(link){ removeHistoryItem(link, uploadHistory) }
+function updateItem(payload){
+  // 简单格式校验：时间非空，链接为 http(s) 或符合分块格式；备注可选
+  const timeValid = typeof payload.time === 'string' && payload.time.trim().length > 0
+  const linkValid = /^(https?:\/\/)/i.test(payload.link) || /^\[(.*?)\]((.+)?)$/.test(payload.link)
+  const noteValid = payload.note === undefined || typeof payload.note === 'string'
+  if (!timeValid) { alert('时间不能为空'); return }
+  if (!linkValid) { alert('链接格式不合法，应为 https://... 或 [文件名]块1,块2,...'); return }
+  if (!noteValid) { alert('备注应为文本'); return }
+  updateHistoryEntry(payload.originalTime, payload.time, payload.link, uploadHistory, payload.note)
+}
+
+function onOpenManager(){ view.value = 'manager' }
+window.addEventListener('fcf:open-manager', onOpenManager)
+
+onMounted(() => {
+  loadUploadHistory(uploadHistory)
+  // Listen for global history updates so ManagerPage stays in sync
+  historyUpdatedHandler = () => loadUploadHistory(uploadHistory)
+  window.addEventListener('fcf:history-updated', historyUpdatedHandler)
+})
+onUnmounted(() => {
+  window.removeEventListener('fcf:open-manager', onOpenManager)
+  if (historyUpdatedHandler) {
+    window.removeEventListener('fcf:history-updated', historyUpdatedHandler)
+    historyUpdatedHandler = null
+  }
+})
 </script>

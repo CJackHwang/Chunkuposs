@@ -49,9 +49,14 @@
             <button @click="helpers.resetAll('确定要刷新页面吗？')" :disabled="isUploading">重置页面</button>
         </div>
 
+        <!-- 备注输入框（选择文件后显示） -->
+        <div v-if="noteInputVisible" class="note-container">
+            <input type="text" class="text-field" v-model="noteInput" placeholder="上传完成后的备注（默认：文件大小 MB）" />
+        </div>
+
         <!-- Section 2: Download via URL -->
         <div class="url-container">
-            <input type="text" id="sjurl" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
+            <input type="text" id="sjurl" class="text-field" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>
 
         <!-- Actions related to URL Input -->
@@ -63,7 +68,7 @@
 
         <!-- Upload History Table -->
         <UploadHistory :history="uploadHistory" @clear-history="handleClear" @export-history="exportHistory"
-            @select-item="handleHistoryItemSelect" /> <!-- Listen for the 'select-item' event -->
+            @select-item="handleHistoryItemSelect" @open-manager="openManager" />
 
         <!-- Section 3: Status & Information -->
         <div id="status" class="status-message">
@@ -92,7 +97,7 @@ import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
 import UploadHistory from '@/components/UploadHistory.vue'; // Make sure path is correct
-import { STORAGE_KEYS, addDebugOutput, saveUploadHistory, loadUploadHistory, clearLog, clearHistory } from '@/utils/storageHelper';
+import { STORAGE_KEYS, addDebugOutput, saveUploadHistory, loadUploadHistory, clearLog, clearHistory, updateLatestHistoryNote } from '@/utils/storageHelper';
 import * as helpers from '@/utils/helpers';
 import { useTimeEstimation } from '@/services/timeEstimationService';
 import { uploadSingleFile as serviceUploadSingleFile } from '@/services/uploadService';
@@ -110,6 +115,8 @@ import {
     THIRTY_MB_THRESHOLD
 } from '@/config/constants';
 const file = ref(null);
+const noteInputVisible = ref(false);
+const noteInput = ref('');
 const chunkSize = ref(0);
 const chunkSizeVisible = ref(false);
 const fileInfo = ref('');
@@ -132,11 +139,24 @@ onMounted(() => {
     loadLog();
     loadUploadHistory(uploadHistory); // Ensure history is loaded on mount
 
+    // 从管理器接收填入链接事件
+    window.addEventListener('fcf:fill-link', (e) => {
+        try {
+            const detail = e && e.detail ? e.detail : (e instanceof CustomEvent ? e.detail : null);
+            const link = detail && detail.link ? detail.link : undefined;
+            if (link) {
+                sjurl.value = link;
+                showToast('已从管理器填入链接');
+            }
+        } catch { /* ignore */ }
+    });
+
     // 检查URL参数是否包含分享链接
     checkUrlParams();
 });
 onUnmounted(() => {
     resetEstimatedCompletionTime();
+    noteInputVisible.value = false; noteInput.value = '';
 });
 
 function updateFileInfo(event) {
@@ -158,6 +178,9 @@ function updateFileInfo(event) {
     }
 
     file.value = selectedFile;
+    // 显示备注输入框；默认备注为空（保存时默认使用“文件大小 MB”）
+    noteInputVisible.value = true;
+    noteInput.value = '';
     chunkSizeVisible.value = true; // Show chunk info when a file is selected
 
     const fileSize = file.value.size;
@@ -246,11 +269,22 @@ async function uploadFile() {
                     updateEstimatedCompletionTimeAfterUpload,
                     resetEstimatedCompletionTime
                 });
+                // 将备注保存到历史首条（刚刚写入的一条）
+                {
+                    const sizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+                    const noteToSave = (noteInput.value || '').trim() || `${sizeMB} MB`;
+                    updateLatestHistoryNote(noteToSave, uploadHistory);
+                }
             } else {
                 // 文件小于等于1MB（此时isLargeFileSupport被强制为false），或者文件大于1MB但用户未勾选“大文件支持”
                 addDebugOutput("使用【编程猫 OSS】模式 (单链接上传) - 执行上传...", debugOutput);
                 // 之前的调试日志已通过updateFileInfo中的修改变得多余
                 await uploadSingleFile(); // 单文件上传逻辑
+                {
+                    const sizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+                    const noteToSave = (noteInput.value || '').trim() || `${sizeMB} MB`;
+                    updateLatestHistoryNote(noteToSave, uploadHistory);
+                }
             }
         }
     } catch (error) {
@@ -388,6 +422,10 @@ function handleHistoryItemSelect(selectedLink) {
         // Optional: scroll to the input field if needed
         // document.getElementById('sjurl')?.focus();
     }
+}
+
+function openManager(){
+    window.dispatchEvent(new CustomEvent('fcf:open-manager'))
 }
 
 

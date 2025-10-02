@@ -7,22 +7,23 @@
                 <thead>
                     <tr>
                         <th>上传时间（由新到旧）</th>
-                        <th>文件链接 (点击填入)</th> <!-- Indicate clickability -->
+                        <th>文件链接</th>
+                        <th>备注</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Add @click handler and a class for styling -->
-                    <tr v-for="entry in history" :key="entry.time" @click="selectHistoryItem(entry.link)"
-                        class="history-row">
-                        <td>{{ entry.time }}</td>
+                    <tr v-for="entry in history" :key="entry.time" class="history-row" @click="selectHistoryItem(entry.link)">
+                        <td class="time-cell">{{ entry.time }}</td>
                         <td class="link-cell">{{ entry.link }}</td>
+                        <td class="note-cell">{{ entry.note || '' }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
         <div class="history-actions">
-            <button @click="handleClear">清空记录</button>
-            <button @click="handleExport">导出历史</button>
+            <button @click="handleClear">清空</button>
+            <button @click="handleExport" class="spaced-btn">导出</button>
+            <button @click="openManager" class="spaced-btn">管理</button>
         </div>
     </div>
 </template>
@@ -36,7 +37,7 @@ const props = defineProps({
 });
 
 // Add 'select-item' to the list of emitted events
-const emit = defineEmits(['clear-history', 'export-history', 'select-item']);
+const emit = defineEmits(['clear-history', 'export-history', 'select-item', 'open-manager']);
 
 const handleClear = () => {
     emit('clear-history');
@@ -47,7 +48,7 @@ const handleExport = () => {
 };
 
 // Function to handle row click and emit the selected link
-function selectHistoryItem(link) {
-    emit('select-item', link);
-}
+function selectHistoryItem(link) { emit('select-item', link); }
+
+function openManager(){ emit('open-manager') }
 </script>

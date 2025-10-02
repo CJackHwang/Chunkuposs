@@ -141,6 +141,24 @@
     border-color: var(--primary-color);
 }
 
+/* Reusable text field in dark theme */
+.dark-theme .text-field {
+    border-color: var(--divider-color);
+    background: var(--md-sys-color-surface-container-highest-dark);
+    color: var(--text-primary);
+}
+.dark-theme .text-field:focus {
+    outline-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Ensure #sjurl matches .text-field in dark theme */
+.dark-theme #sjurl {
+    border-color: var(--divider-color);
+    background: var(--md-sys-color-surface-container-highest-dark);
+    color: var(--text-primary);
+}
+
 /* ===== Upload Mode Selector (Radio Buttons) Dark Theme ===== */
 .dark-theme .radio-label {
     --active-color: var(--primary-color);

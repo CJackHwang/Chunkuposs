@@ -20,6 +20,7 @@ Chunkuposs is a browser-based chunked uploader and sharer built on a Provider ar
 - Smarter ETA, dynamic timeouts, retries and robust logs.
 - Share links via `?url=...` and auto-parse on load; history unified.
 - Vite 7 + PWA plugin; Vue DevTools plugin ready.
+ - New Manager view (hash-based) to inspect and manage local upload history.
 
 ## Core Features
 - Provider architecture: `StorageProvider` + `CodemaoProvider` default.
@@ -72,12 +73,14 @@ VITE_FORCE_CHUNK_MB=30
 VITE_BASE_DOWNLOAD_URL=https://static.codemao.cn/Chunkuposs/
 VITE_FORM_UPLOAD_PATH=Chunkuposs
 VITE_DOWNLOAD_CONCURRENT_LIMIT=4
+VITE_DEFAULT_PROVIDER=codemao
 ```
 
 Notes:
 - `VITE_FORCE_CHUNK_MB` enforces chunk mode above this size in CodeMao mode.
 - `VITE_BASE_DOWNLOAD_URL` is used to reconstruct chunk download URLs.
 - All values have sane defaults defined in `src/config/constants.js`.
+- `VITE_DEFAULT_PROVIDER` chooses default provider (currently only `codemao`).
 
 Vercel one‑click deploy:
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/CJackHwang/Chunkuposs)
@@ -88,6 +91,7 @@ Vercel one‑click deploy:
 - Get link: chunked format `[filename]chunk1,chunk2,...` or single URL
 - Download: paste chunked link or standard URL
 - Share: copy `?url=...` link
+- Manager: click “管理器” or navigate to `#/manager` to view, open, fill into input, or remove entries from local history.
 
 ## Config & Provider
 - Core constants: upload URL, rate/conc limits, chunk thresholds, base download URL, form upload path.
