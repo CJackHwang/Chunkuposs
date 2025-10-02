@@ -66,6 +66,18 @@
     --success-container-color: #89FAAE;
     --on-success-container-color: #00210F;
 
+    /* --- Theme-Agnostic Aliases (Light mappings) --- */
+    --on-surface: var(--md-sys-color-on-surface-light);
+    --on-surface-variant: var(--md-sys-color-on-surface-variant-light);
+    --outline: var(--md-sys-color-outline-light);
+    --outline-variant: var(--md-sys-color-outline-variant-light);
+    --surface-variant: var(--md-sys-color-surface-variant-light);
+    --surface-container-lowest: var(--md-sys-color-surface-container-lowest-light);
+    --surface-container-low: var(--md-sys-color-surface-container-low-light);
+    --surface-container: var(--md-sys-color-surface-container-light);
+    --surface-container-high: var(--md-sys-color-surface-container-high-light);
+    --surface-container-highest: var(--md-sys-color-surface-container-highest-light);
+
     /* --- Spacing --- */
     --spacing-1: 4px;
     --spacing-2: 8px;
@@ -137,7 +149,7 @@ body {
     line-height: 1.5;
     max-width: 800px;
     min-height: 100vh;
-    scrollbar-color: var(--md-sys-color-surface-container-high-light) var(--md-sys-color-surface-container-low-light);
+    scrollbar-color: var(--surface-container-high) var(--surface-container-low);
 }
 
 /* ===== General Container Styles ===== */
@@ -147,15 +159,15 @@ footer {
     border-radius: var(--border-radius-lg);
     /* Large radius for main containers */
     /* box-shadow: var(--shadow-1); <<< REMOVED default shadow */
-    border: 1px solid var(--md-sys-color-outline-variant-light);
+    border: 1px solid var(--outline-variant);
     /* Rely on border and bg color */
 }
 
 /* ===== Header ===== */
 header {
-    background: var(--md-sys-color-surface-container-light);
+    background: var(--surface-container);
     /* Use Surface Container */
-    color: var(--md-sys-color-on-surface-light);
+    color: var(--on-surface);
     padding: var(--spacing-4) var(--spacing-5);
     /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
     margin-bottom: var(--spacing-5);
@@ -184,7 +196,7 @@ main {
 /* ===== File Upload Component ===== */
 .file-upload {
     --highlight-color: var(--primary-color);
-    --info-bg: var(--md-sys-color-surface-container-low-light);
+    --info-bg: var(--surface-container-low);
     /* Subtle bg for info */
     background: transparent;
     /* Make it blend more, rely on border */
@@ -197,7 +209,7 @@ main {
     text-align: center;
     position: relative;
     margin: var(--spacing-4) auto;
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     /* Less prominent text */
 }
 
@@ -235,13 +247,13 @@ main {
 
 .chunk-info {
     margin-top: var(--spacing-3);
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     font-size: 0.875em;
     padding: var(--spacing-2) var(--spacing-3);
     background: var(--info-bg);
     border-radius: var(--border-radius-sm);
     /* Small radius */
-    border: 1px solid var(--md-sys-color-outline-variant-light);
+    border: 1px solid var(--outline-variant);
 }
 
 .settings-group {
@@ -266,7 +278,7 @@ main {
 .mode-label {
     font-size: 0.875rem;
     /* M3 Label Large */
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     margin-right: var(--spacing-2);
 }
 
@@ -292,7 +304,7 @@ main {
     position: relative;
     min-height: 40px;
     /* Match button height */
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     background-color: transparent;
     /* No background initially */
     border: 1px solid transparent;
@@ -375,7 +387,7 @@ main {
     height: 56px;
     border: 1px solid var(--divider-color);
     border-radius: var(--border-radius-sm);
-    background: var(--md-sys-color-surface-container-highest-light);
+    background: var(--surface-container-highest);
     padding: var(--spacing-2) var(--spacing-3);
     color: var(--text-primary);
     font-size: 1rem;
@@ -396,7 +408,7 @@ main {
     --active-color: var(--primary-color);
     --border-color: var(--divider-color);
     --hover-bg: var(--hover-bg);
-    --text-color: var(--md-sys-color-on-surface-variant-light);
+    --text-color: var(--on-surface-variant);
 
     display: inline-flex;
     align-items: center;
@@ -482,12 +494,12 @@ main {
 /* Disabled State */
 .toggle-input:disabled+.custom-checkbox {
     opacity: 0.5;
-    border-color: var(--md-sys-color-outline-light);
-    background-color: var(--md-sys-color-surface-variant-light);
+    border-color: var(--outline);
+    background-color: var(--surface-variant);
 }
 
 .chunk-toggle:has(input:disabled) {
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     opacity: 0.7;
     cursor: not-allowed;
     background-color: transparent;
@@ -559,9 +571,9 @@ button:active {
 }
 
 button:disabled {
-    background-color: var(--md-sys-color-surface-variant-light);
+    background-color: var(--surface-variant);
     /* Disabled background */
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     /* Disabled text */
     opacity: 0.7;
     box-shadow: none;
@@ -605,9 +617,9 @@ button:disabled {
     overflow-x: auto;
     border-radius: var(--border-radius-xl);
     /* Small radius for table container */
-    border: 1px solid var(--md-sys-color-outline-light);
+    border: 1px solid var(--outline);
     /* <<< 使用更深的 outline 颜色 */
-    scrollbar-color: var(--md-sys-color-surface-container-high-light) var(--md-sys-color-surface-container-low-light);
+    scrollbar-color: var(--surface-container-high) var(--surface-container-low);
 }
 
 .upload-history-table {
@@ -626,7 +638,7 @@ button:disabled {
 }
 
 .upload-history-table th {
-    background: var(--md-sys-color-surface-container-low-light);
+    background: var(--surface-container-low);
     /* Subtle header bg */
     padding: var(--spacing-3) var(--spacing-4);
     /* 12px 16px */
@@ -638,7 +650,7 @@ button:disabled {
     /* M3 Label Large */
     text-align: left;
     color: var(--text-primary);
-    border-bottom: 1px solid var(--md-sys-color-outline-variant-light);
+    border-bottom: 1px solid var(--outline-variant);
     /* Use variant for internal lines */
 }
 
@@ -648,7 +660,7 @@ button:disabled {
     /* 12px 16px */
     height: 52px;
     /* M3 Body Row Height */
-    border-bottom: 1px solid var(--md-sys-color-outline-variant-light);
+    border-bottom: 1px solid var(--outline-variant);
     /* Use variant for internal lines */
     font-size: 0.875rem;
     /* M3 Body Medium or Label Large */
@@ -704,9 +716,9 @@ button:disabled {
 
 /* ===== Debug Output ===== */
 .debug-output {
-    background: var(--md-sys-color-surface-container-low-light);
+    background: var(--surface-container-low);
     /* Subtle background */
-    border: 1px solid var(--md-sys-color-outline-variant-light);
+    border: 1px solid var(--outline-variant);
     border-radius: var(--border-radius-sm);
     /* Small radius */
     padding: var(--spacing-3);
@@ -716,7 +728,7 @@ button:disabled {
     overflow: auto;
     /* Scrollbars */
     max-height: 200px;
-    scrollbar-color: var(--md-sys-color-surface-container-high-light) var(--md-sys-color-surface-container-low-light);
+    scrollbar-color: var(--surface-container-high) var(--surface-container-low);
 }
 
 .debug-output pre {
@@ -724,7 +736,7 @@ button:disabled {
     font-size: 0.8125rem;
     /* Slightly smaller */
     line-height: 1.6;
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     /* Use variant color */
     white-space: pre-wrap;
     /* Allow wrapping */
@@ -734,7 +746,7 @@ button:disabled {
 
 /* ===== Footer ===== */
 footer {
-    background: var(--md-sys-color-surface-container-light);
+    background: var(--surface-container);
     /* Consistent with Header */
     margin-top: var(--spacing-5);
     padding: var(--spacing-4);
@@ -750,7 +762,7 @@ footer p {
     /* Reduced vertical margin */
     padding: 0;
     /* Remove inner padding */
-    color: var(--md-sys-color-on-surface-variant-light);
+    color: var(--on-surface-variant);
     /* Less prominent text */
     font-size: 0.875rem;
     /* M3 Body Small or Label Medium */
@@ -763,7 +775,7 @@ footer p {
 
 footer p:last-child {
     padding-top: var(--spacing-3);
-    border-top: 1px solid var(--md-sys-color-outline-variant-light);
+    border-top: 1px solid var(--outline-variant);
     margin-top: var(--spacing-3);
 }
 
@@ -915,11 +927,11 @@ main,
 
 /* ===== Toast Notification Styling ===== */
 .m3-toast {
-    background: var(--md-sys-color-surface-container-highest-light) !important;
+    background: var(--surface-container-highest) !important;
     /* Use highest container */
-    color: var(--md-sys-color-on-surface-light) !important;
+    color: var(--on-surface) !important;
     /* Standard text on surface */
-    border: 1px solid var(--md-sys-color-outline-variant-light) !important;
+    border: 1px solid var(--outline-variant) !important;
     box-shadow: none !important;
     /* Use Level 3 shadow */
     border-radius: var(--border-radius-sm) !important;
