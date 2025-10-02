@@ -6,7 +6,7 @@
             <div class="upload-area">
                 <p>拖放文件到这里或<span class="highlight">点击选择</span> 上传</p>
             </div>
-            <div id="fileInfo" class="file-info">
+            <div id="fileInfo" class="file-info" :title="fileInfo">
                 {{ fileInfo }}
             </div>
             <!-- Conditional Chunk Info Display -->
@@ -37,33 +37,39 @@
                 <input type="checkbox" v-model="isLargeFileSupport" :disabled="isChunkCheckboxDisabled"
                     class="toggle-input">
                 <span class="custom-checkbox"></span>
-                <span class="label-text">分块提交-解除大小限制</span>
+                <span class="label-text">分块提交</span>
             </label>
 
-            <ThemeToggle /> <!-- Theme toggle kept with other settings -->
+            <!-- Moved ThemeToggle next to Reset button -->
+
         </div>
 
         <!-- Primary Actions for File Upload -->
         <div class="button-group">
-            <button @click="uploadFile" :disabled="isUploading">上传文件</button>
-            <button @click="helpers.resetAll('确定要刷新页面吗？')" :disabled="isUploading">重置页面</button>
+            <button @click="uploadFile" :disabled="isUploading">上传</button>
+            <button @click="helpers.resetAll('确定要刷新页面吗？')" :disabled="isUploading">重置</button>
+            <ThemeToggle />
         </div>
 
         <!-- 备注输入框（选择文件后显示） -->
-        <div v-if="noteInputVisible" class="note-container">
+        <div v-if="noteInputVisible">
+            <h3>文件备注</h3>
+            <div class="note-container">
             <input type="text" class="text-field" v-model="noteInput" placeholder="上传完成后的备注（默认：文件大小 MB）" />
+            </div>
         </div>
 
         <!-- Section 2: Download via URL -->
+        <h3>链接下载</h3>
         <div class="url-container">
             <input type="text" id="sjurl" class="text-field" v-model="sjurl" placeholder="输入分块链接/标准URL下载文件">
         </div>
 
         <!-- Actions related to URL Input -->
         <div class="action-buttons">
-            <button v-if="sjurl" @click="handleCopy" :disabled="isUploading">复制链接</button>
-            <button v-if="sjurl" @click="handleShare" :disabled="isUploading">分享文件</button>
-            <button v-if="sjurl" @click="downloadFiles" :disabled="isUploading">下载文件</button>
+            <button v-if="sjurl" @click="handleCopy" :disabled="isUploading">复制</button>
+            <button v-if="sjurl" @click="handleShare" :disabled="isUploading">分享</button>
+            <button v-if="sjurl" @click="downloadFiles" :disabled="isUploading">下载</button>
         </div>
 
         <!-- Upload History Table -->
