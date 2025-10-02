@@ -80,13 +80,13 @@
     --spacing-5: 24px;
 
     /* --- Border Radii --- */
-    --border-radius-sm: 4px;
+    --border-radius-sm: 6px;
     /* Extra Small (Inputs, Checkbox, Debug, Chunk Info, Toast, Footer Link) */
     --border-radius-md: 12px;
     /* Medium (Toggle Container) */
     --border-radius-lg: 16px;
     /* Large (Header, Main, Footer, File Upload) */
-    --border-radius-xl: 8px;
+    --border-radius-xl: 10px;
     /* Small (Table Container) */
     --border-radius-pill: 20px;
     /* Full/Pill (Buttons, based on 40px height) */
@@ -369,7 +369,7 @@ main {
     width: 100%;
     height: 56px;
     border: 1px solid var(--outline-variant);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-lg);
     /* Unified with header/footer background */
     background: var(--surface-container);
     padding: var(--spacing-2) var(--spacing-3);
@@ -594,13 +594,14 @@ button:disabled {
     /* Needed if table-container is direct child */
     box-shadow: none;
     /* No shadow; flat table container */
+    border-radius: var(--border-radius-lg);
 }
 
 .table-container {
     max-height: 400px;
     overflow: auto;
     overflow-x: auto;
-    border-radius: var(--border-radius-xl);
+    border-radius: var(--border-radius-lg);
     /* Small radius for table container */
     border: 1px solid var(--outline-variant);
     /* Unified border color via outline-variant */
@@ -704,7 +705,7 @@ button:disabled {
     background: var(--surface-color);
     /* Subtle background */
     border: 1px solid var(--outline-variant);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-lg);
     /* Small radius */
     padding: var(--spacing-3);
     margin: var(--spacing-4) 0;
@@ -869,8 +870,8 @@ footer a:hover {
 
     /* Make table horizontally scrollable */
     #uploadHistory {
-        border-radius: var(--border-radius-xl);
-        /* Keep 8px */
+        border-radius: var(--border-radius-md);
+        /* Match container radius on small screens */
     }
 
     .table-container {
