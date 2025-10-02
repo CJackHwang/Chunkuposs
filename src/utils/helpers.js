@@ -13,7 +13,7 @@ export const copyToClipboard = async (text, successCallback, errorCallback) => {
 
 // 带确认的重置页面
 export const resetAll = (confirmationMessage = '确定要刷新网页吗？') => {
-    if (confirm(confirmationMessage)) {
+    if (confirmDanger(confirmationMessage)) {
         location.reload();
     }
 };
@@ -34,4 +34,14 @@ export const downloadFile = (
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     return true; // 返回下载状态
+};
+
+// 危险操作统一确认（可用于清空、删除等）
+export const confirmDanger = (message = '此操作不可撤销，确认继续吗？') => {
+    try {
+        return window.confirm(message);
+    } catch {
+        // SSR 或非浏览环境兜底为 false
+        return false;
+    }
 };
