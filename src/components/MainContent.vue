@@ -98,6 +98,7 @@ import ThemeToggle from './ThemeToggle.vue'
 import DebugLogger from '@/components/DebugLogger.vue';
 import UploadHistory from '@/components/UploadHistory.vue'; // Make sure path is correct
 import { STORAGE_KEYS, addDebugOutput, saveUploadHistory, loadUploadHistory, clearLog, clearHistory, updateLatestHistoryNote } from '@/utils/storageHelper';
+import { confirmDanger } from '@/utils/helpers';
 import * as helpers from '@/utils/helpers';
 import { useTimeEstimation } from '@/services/timeEstimationService';
 import { uploadSingleFile as serviceUploadSingleFile } from '@/services/uploadService';
@@ -404,11 +405,13 @@ function loadLog() {
 }
 
 function handleClearLog() {
+    if (!confirmDanger('确定要清空操作日志吗？此操作不可撤销')) return;
     clearLog(debugOutput); // Pass the ref to the helper
     showToast("调试日志已清空");
 }
 
 function handleClear() {
+    if (!confirmDanger('确定要清空上传历史吗？此操作不可撤销')) return;
     clearHistory(uploadHistory); // Pass the ref to the helper
     showToast("上传历史已清空");
 }

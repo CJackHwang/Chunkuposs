@@ -19,7 +19,7 @@
     </header>
 
     <MainContent v-if="view==='home'"/>
-    <ManagerPage v-else :history="uploadHistory" @back="goHome" @update="updateItem" @remove="removeItem" />
+    <ManagerPage v-else :history="uploadHistory" @back="goHome" @update="updateItem" @remove="removeItem" @add="addItem" />
 
     <footer>
       <!-- 版权信息 -->
@@ -91,8 +91,7 @@ a[target="_blank"] {
 import { ref, onMounted, onUnmounted } from 'vue'
 import MainContent from './components/MainContent.vue'
 import ManagerPage from './components/ManagerPage.vue'
-import { loadUploadHistory, removeHistoryItem } from '@/utils/storageHelper'
-import { updateHistoryEntry } from '@/utils/storageHelper'
+import { loadUploadHistory, removeHistoryItem, addHistoryEntry, updateHistoryEntry } from '@/utils/storageHelper'
 
 const view = ref('home')
 const uploadHistory = ref([])
@@ -112,6 +111,18 @@ function updateItem(payload){
   if (!linkValid) { alert('链接格式不合法，应为 https://... 或 [文件名]块1,块2,...'); return }
   if (!noteValid) { alert('备注应为文本'); return }
   updateHistoryEntry(payload.originalTime, payload.time, payload.link, uploadHistory, payload.note)
+}
+
+function addItem(payload){
+  const timeValid = typeof payload.time === 'string' && payload.time.trim().length > 0
+  const linkValid = /^(https?:\/\/)/i.test(payload.link) || /^\[(.*?)\]((.+)?)$/.test(payload.link)
+  const noteValid = payload.note === undefined || typeof payload.note === 'string'
+  if (!timeValid) { alert('时间不能为空'); return }
+  if (!linkValid) { alert('链接格式不合法，应为 https://... 或 [文件名]块1,块2,...'); return }
+  if (!noteValid) { alert('备注应为文本'); return }
+  addHistoryEntry(payload.time, payload.link, uploadHistory, payload.note || '')
+  // 新增后立即刷新（事件也会触发），保证管理页与列表同步
+  loadUploadHistory(uploadHistory)
 }
 
 function onOpenManager(){ view.value = 'manager' }

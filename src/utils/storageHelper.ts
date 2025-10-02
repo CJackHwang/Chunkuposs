@@ -101,6 +101,22 @@ export const updateHistoryEntry = (
   dispatchHistoryUpdated();
 };
 
+// Add a new history entry (avoid duplicate by link)
+export const addHistoryEntry = (
+  time: string,
+  link: string,
+  uploadHistoryRef: VueRef<any[]>,
+  note: string = ''
+) => {
+  const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY) || '[]');
+  const exists = history.find((entry: any) => entry.link === link);
+  if (exists) return; // skip duplicates by link
+  history.unshift({ time, link, note });
+  localStorage.setItem(STORAGE_KEYS.UPLOAD_HISTORY, JSON.stringify(history));
+  uploadHistoryRef.value = history;
+  dispatchHistoryUpdated();
+};
+
 // Update the latest (most recent) history entry's note in a single place
 export const updateLatestHistoryNote = (note: string, uploadHistoryRef: VueRef<any[]>) => {
   const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY) || '[]');

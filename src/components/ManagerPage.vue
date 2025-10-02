@@ -3,6 +3,7 @@
     <header class="manager-header">
       <h3>文件管理</h3>
       <div class="actions">
+        <button @click="startAdd()" :disabled="editId !== null || adding">新增</button>
         <button @click="$emit('back')">返回</button>
       </div>
     </header>
@@ -18,6 +19,15 @@
           </tr>
         </thead>
         <tbody>
+          <tr v-if="adding">
+            <td><input v-model="editTime" class="row-input text-field" /></td>
+            <td class="link-cell"><input v-model="editLink" class="row-input text-field" /></td>
+            <td class="note-cell"><input v-model="editNote" class="row-input text-field" /></td>
+            <td class="ops-cell">
+              <button @click="saveAdd" class="row-btn">保存</button>
+              <button @click="cancel" class="row-btn">取消</button>
+            </td>
+          </tr>
           <tr v-for="entry in history" :key="entry.time">
             <td>
               <template v-if="editId===entry.time">
@@ -49,8 +59,8 @@
                 <button @click="cancel()" class="row-btn">取消</button>
               </template>
               <template v-else>
-                <button @click="startEdit(entry)" class="row-btn">编辑</button>
-                <button @click="$emit('remove', entry.link)" class="row-btn">删除</button>
+                <button @click="startEdit(entry)" class="row-btn" :disabled="adding || editId !== null">编辑</button>
+                <button @click="handleRemove(entry.link)" class="row-btn" :disabled="adding || editId !== null">删除</button>
               </template>
             </td>
           </tr>
@@ -62,15 +72,18 @@
 
 <script setup>
 import { ref } from 'vue'
+import { confirmDanger } from '@/utils/helpers'
 defineProps({ history: { type: Array, required: true } });
-const emit = defineEmits(['back', 'update', 'remove']);
+const emit = defineEmits(['back', 'update', 'remove', 'add']);
 
 const editId = ref(null)
 const editTime = ref('')
 const editLink = ref('')
 const editNote = ref('')
+const adding = ref(false)
 
 function startEdit(entry){
+  if (adding.value || editId.value !== null) return
   editId.value = entry.time
   editTime.value = entry.time
   editLink.value = entry.link
@@ -82,6 +95,7 @@ function cancel(){
   editTime.value = ''
   editLink.value = ''
   editNote.value = ''
+  adding.value = false
 }
 
 function save(entry){
@@ -91,6 +105,33 @@ function save(entry){
     emit('update', { originalTime: entry.time, time: editTime.value, link: editLink.value, note: editNote.value })
   }
   cancel()
+}
+
+function startAdd(){
+  if (editId.value !== null || adding.value) return
+  adding.value = true
+  editId.value = null
+  const now = new Date().toLocaleString()
+  editTime.value = now
+  editLink.value = ''
+  editNote.value = ''
+}
+
+function saveAdd(){
+  const time = (editTime.value || '').trim()
+  const link = (editLink.value || '').trim()
+  const note = (editNote.value || '').trim()
+  if (!time) { alert('时间不能为空'); return }
+  const linkValid = /^(https?:\/\/)/i.test(link) || /^\[(.*?)\]((.+)?)$/.test(link)
+  if (!linkValid) { alert('链接格式不合法，应为 https://... 或 [文件名]块1,块2,...'); return }
+  emit('add', { time, link, note })
+  // 触发上层新增并同步后，退出新增模式
+  cancel()
+}
+
+function handleRemove(link){
+  if (!confirmDanger('确定要删除该记录吗？此操作不可撤销')) return
+  emit('remove', link)
 }
 </script>
 
@@ -112,4 +153,7 @@ function save(entry){
   overflow: visible;
   text-overflow: initial;
 }
+
+/* Dim non-editing rows while adding/editing to indicate disabled state */
+tbody tr:not(:has(.row-btn:disabled)) button:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
