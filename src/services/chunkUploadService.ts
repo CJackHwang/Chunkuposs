@@ -19,6 +19,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
   }
 ) {
   const urls: (string | null)[] = Array.from({ length: totalChunks }, () => null);
+  const chunkSizes: number[] = Array.from({ length: totalChunks }, () => 0);
   const startTime = Date.now();
   const reader = file.stream().getReader();
   let buffer = new Uint8Array(CHUNK_SIZE);
@@ -70,6 +71,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
           const duration = Date.now() - start;
           if (!url) throw new Error('服务器响应无效或缺少URL');
           urls[i] = (url as string) || null;
+          chunkSizes[i] = chunk.size;
           addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${url}`, debugOutputRef);
           const completedCount = urls.filter(u => u !== null).length;
           statusRef.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks} 块完成)`;
@@ -144,7 +146,8 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
   await waitForPendingChunks();
   addDebugOutput('所有块上传尝试已结束.', debugOutputRef);
 
-  const successfulUploads = urls.filter(url => url !== null);
+  const successfulUploads = urls.filter(url => url !== null) as string[];
+  // chunkSizes 已在上传过程中收集，直接用于同步到 WebDAV
   const failedCount = totalChunks - successfulUploads.length;
   addDebugOutput(`分块上传 (编程猫 OSS) 完成检查: 成功 ${successfulUploads.length}/${totalChunks} 块.`, debugOutputRef);
   if (failedCount > 0) {
@@ -167,13 +170,18 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
       // 更新最新备注来源
       updateLatestHistoryNote('来源：在线上传', uploadHistoryRef);
     }
-    // 同步到 WebDAV myupload：PUT 清单到 /dav/myupload/<文件名>
+    // 同步到 WebDAV myupload：携带 chunkUrls + chunkLengths，加速服务端解析与 Range 支持
     try {
       const base = getDavBasePath().replace(/\/$/, '')
+      const chunkUrls: string[] = [];
+      const chunkLengths: number[] = [];
+      for (let i = 0; i < urls.length; i++) {
+        if (urls[i]) { chunkUrls.push((urls[i] as string)); chunkLengths.push(chunkSizes[i]); }
+      }
       const resp = await fetch(`${base}/myupload/${encodeURIComponent(file.name)}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'text/plain' },
-        body: finalUrl,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manifest: finalUrl, chunkUrls, chunkLengths, size: file.size })
       })
       addDebugOutput(`WebDAV 映射响应: ${resp.status}`, debugOutputRef)
     } catch (e) {

@@ -106,6 +106,7 @@ Vercel one‑click deploy:
 - Single URL (<=1 MB or manual single): `https://.../path/file.ext`
 - Chunked manifest: `[filename]id1,id2,id3`
   - `filename` is URL-encoded; ids are extracted from provider upload responses.
+  - Unified chunk naming: all chunk object keys use `chunk-<index>` and do not include original filename or extension. This ensures consistent reconstruction across uploader and WebDAV manager.
 
 ### Key logic snippets (MainContent.vue)
 ```

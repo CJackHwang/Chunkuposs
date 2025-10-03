@@ -66,6 +66,17 @@ function makeETag(entry) {
   return `W/"${h}"`;
 }
 
+// Normalize manifest ids to unified form: id.chunk-<index>
+function normalizeManifest(manifest) {
+  try {
+    const m = (manifest || '').trim();
+    const prefix = (m.match(/^\[[^\]]+\]/) || [''])[0];
+    const idsStr = m.replace(/^\[[^\]]+\]/, '');
+    const ids = idsStr.split(',').filter(Boolean).map(id => id.replace(/\.[^.]+-chunk-(\d+)$/i, '.chunk-$1'));
+    return prefix + ids.join(',');
+  } catch { return manifest; }
+}
+
 function propfind(store, vpath, depth = 0) {
   const now = new Date().toUTCString();
   function entry(href, name, isDir, size, mtime, etag, ctype, extraProps = '') {
@@ -92,7 +103,7 @@ function propfind(store, vpath, depth = 0) {
   const etagSelf = me.type === 'dir' ? '' : makeETag(me);
   const ctypeSelf = me.type === 'dir' ? '' : contentTypeByName(me.name || '');
   const extraSelf = me.type === 'dir' ? '' : `
-        <C:manifest xmlns:C="urn:flowchunkflex">${xmlEscape(me.manifest || '')}</C:manifest>
+        <C:manifest xmlns:C="urn:flowchunkflex">${xmlEscape(me.manifest ? normalizeManifest(me.manifest) : '')}</C:manifest>
         <C:singleurl xmlns:C="urn:flowchunkflex">${xmlEscape(me.singleUrl || '')}</C:singleurl>`;
   xml += entry(hrefSelf, me.name || '/', me.type === 'dir', me.type === 'dir' ? 0 : (me.size || 0), new Date(me.mtime).toUTCString(), etagSelf, ctypeSelf, extraSelf);
   if (me.type === 'dir' && depth !== 0) {
@@ -103,7 +114,7 @@ function propfind(store, vpath, depth = 0) {
       const etag = isDir ? '' : makeETag(c.entry);
       const ctype = isDir ? '' : contentTypeByName(c.entry.name || '');
       const extra = isDir ? '' : `
-        <C:manifest xmlns:C="urn:flowchunkflex">${xmlEscape(c.entry.manifest || '')}</C:manifest>
+        <C:manifest xmlns:C="urn:flowchunkflex">${xmlEscape(c.entry.manifest ? normalizeManifest(c.entry.manifest) : '')}</C:manifest>
         <C:singleurl xmlns:C="urn:flowchunkflex">${xmlEscape(c.entry.singleUrl || '')}</C:singleurl>`;
       xml += entry(childHref, c.entry.name, isDir, isDir ? 0 : (c.entry.size || 0), new Date(c.entry.mtime).toUTCString(), etag, ctype, extra);
     }
@@ -163,6 +174,31 @@ async function handlePut(store, vpath, req, res) {
   let fileInfo = { name: filename, size: 0 };
   try {
     const ctype = (req.headers['content-type'] || '').toLowerCase();
+    // Support JSON manifest with optional chunkUrls/chunkLengths provided by client (fast-path, no upstream HEAD)
+    if (ctype.includes('application/json')) {
+      const collected = await readBody(req);
+      let payload = {};
+      try { payload = JSON.parse(new TextDecoder().decode(collected)); } catch {}
+      const manifest = typeof payload.manifest === 'string' ? payload.manifest.trim() : '';
+      const singleUrl = typeof payload.singleUrl === 'string' ? payload.singleUrl.trim() : '';
+      const chunkUrls = Array.isArray(payload.chunkUrls) ? payload.chunkUrls.filter(Boolean) : undefined;
+      const chunkLengths = Array.isArray(payload.chunkLengths) ? payload.chunkLengths.map(n => Number(n)).filter(n => Number.isFinite(n) && n >= 0) : undefined;
+      const sizeIn = Number(payload.size || 0);
+      const rec = { name: filename };
+      if (manifest) Object.assign(rec, { manifest });
+      if (singleUrl) Object.assign(rec, { singleUrl });
+      if (chunkUrls && chunkUrls.length) Object.assign(rec, { chunkUrls });
+      if (chunkLengths && chunkLengths.length) Object.assign(rec, { chunkLengths });
+      let totalSize = sizeIn;
+      if (!totalSize) {
+        if (chunkLengths && chunkLengths.length) totalSize = chunkLengths.reduce((a,b)=>a+b,0);
+      }
+      Object.assign(rec, { size: totalSize || 0 });
+      setFile(store, vpath, rec);
+      saveStore(store);
+      send(res, 201, { 'Content-Type': 'application/json' }, JSON.stringify({ ok: true, name: filename, kind: (singleUrl ? 'single' : (manifest ? 'manifest' : 'unknown')) }));
+      return;
+    }
     // Handle plain-text manifest
     if (ctype.includes('text/plain')) {
       const collected = await readBody(req);
@@ -303,10 +339,15 @@ async function handleGet(store, vpath, req, res) {
   const etag = makeETag(entry);
   const range = (req.headers['range'] || '').toString();
   const isRange = range.startsWith('bytes=');
-  // Range support for singleUrl; for chunked, map global range across chunks
-  if (isRange && !entry.singleUrl && !(entry.chunkUrls && entry.chunkLengths)) {
-    send(res, 416, {}, 'Range Not Supported');
-    return;
+  // 仅当既不是单链、也不是可解析的清单、也没有可用的 chunk 长度信息时才拒绝 Range
+  if (isRange) {
+    const hasSingle = !!entry.singleUrl;
+    const hasManifest = !!entry.manifest;
+    const hasChunkLens = !!(entry.chunkUrls && entry.chunkLengths);
+    if (!hasSingle && !hasManifest && !hasChunkLens) {
+      send(res, 416, {}, 'Range Not Supported');
+      return;
+    }
   }
   // 小工具：HEAD 预检上游可用性与长度
   async function headOne(url){
@@ -355,7 +396,8 @@ async function handleGet(store, vpath, req, res) {
       // Non-range：高性能低内存，顺序流式拼接所有分片
       if (!isRange) {
         const urls = entry.chunkUrls.slice();
-        res.writeHead(200, { 'Content-Type': ctype, 'ETag': etag, 'Content-Disposition': `inline; filename="${encodeURIComponent(entry.name || 'file')}"` });
+        const totalLen = entry.size || (entry.chunkLengths ? entry.chunkLengths.reduce((a,b)=>a+b,0) : undefined);
+        res.writeHead(200, { 'Content-Type': ctype, ...(totalLen ? { 'Content-Length': totalLen } : {}), 'Accept-Ranges': 'bytes', 'ETag': etag, 'Content-Disposition': `inline; filename="${encodeURIComponent(entry.name || 'file')}"` });
         for (const url of urls) {
           const r = await fetch(url);
           if (!r.ok || !r.body) { try { res.end(); } catch { /* noop */ } return; }
@@ -425,13 +467,56 @@ async function handleGet(store, vpath, req, res) {
       res.end();
     } else if (entry.manifest) {
       // Non-range：高性能低内存，按清单顺序流式拼接
-      const ids = entry.manifest.replace(/^\[[^\]]+\]/, '').split(',').filter(Boolean);
+      const ids = normalizeManifest(entry.manifest).replace(/^\[[^\]]+\]/, '').split(',').filter(Boolean);
       const base = getDownloadBase();
       const urls = ids.map(id => base + id);
       if (!isRange) {
-        res.writeHead(200, { 'Content-Type': ctype, 'ETag': etag, 'Content-Disposition': `inline; filename="${encodeURIComponent(entry.name || 'file')}"` });
+        const totalLen = entry.size || undefined; // size may have been computed at upload time or via HEAD
+        res.writeHead(200, { 'Content-Type': ctype, ...(totalLen ? { 'Content-Length': totalLen } : {}), 'Accept-Ranges': 'bytes', 'ETag': etag, 'Content-Disposition': `inline; filename="${encodeURIComponent(entry.name || 'file')}"` });
         for (const url of urls) {
           const r = await fetch(url);
+          if (!r.ok || !r.body) { try { res.end(); } catch { /* noop */ } return; }
+          await streamWebToRes(r.body, res);
+        }
+        res.end();
+        return;
+      } else {
+        // Range support for manifest-only entries: map global range across ids
+        // Preflight HEAD to get lengths
+        const pre = await preflightUrls(urls);
+        if (!pre.okAll) {
+          const notOk = pre.details.find(d => !d.ok);
+          const code = notOk && notOk.status === 404 ? 404 : 502;
+          send(res, code, { 'Content-Type': 'text/plain' }, 'Upstream chunk missing');
+          return;
+        }
+        const lengths = pre.details.map(d => d.length || 0);
+        const totalLen = pre.totalLen || lengths.reduce((a,b)=>a+b,0);
+        // Parse range: bytes=start-end
+        const m = range.match(/^bytes=(\d+)-(\d+)?$/);
+        if (!m || !totalLen) { send(res, 416, {}, 'Bad Range'); return; }
+        const start = Number(m[1]);
+        const end = m[2] ? Number(m[2]) : (totalLen - 1);
+        const to = end;
+        if (isNaN(start) || isNaN(to) || start > to) { send(res, 416, {}, 'Bad Range'); return; }
+        // Compute spans over ids
+        let acc = 0; const spans = [];
+        for (let i=0;i<lengths.length;i++){
+          const len = lengths[i];
+          const chunkStartGlobal = acc;
+          const chunkEndGlobal = acc + len - 1;
+          if (to >= chunkStartGlobal && start <= chunkEndGlobal){
+            const localStart = Math.max(0, start - chunkStartGlobal);
+            const localEnd = Math.min(len - 1, to - chunkStartGlobal);
+            spans.push({ i, localStart, localEnd });
+          }
+          acc += len;
+        }
+        const contentLength = (to - start + 1);
+        res.writeHead(206, { 'Content-Type': ctype, 'Content-Length': contentLength, 'Content-Range': `bytes ${start}-${to}/${totalLen}`, 'ETag': etag, 'Content-Disposition': `inline; filename="${encodeURIComponent(entry.name || 'file')}"` });
+        for (const s of spans){
+          const url = urls[s.i];
+          const r = await fetch(url, { headers: { Range: `bytes=${s.localStart}-${s.localEnd}` } });
           if (!r.ok || !r.body) { try { res.end(); } catch { /* noop */ } return; }
           await streamWebToRes(r.body, res);
         }
@@ -461,17 +546,39 @@ async function handleHead(store, vpath, res) {
   if (!total) {
     try {
       if (entry.singleUrl) {
-        const r = await fetch(entry.singleUrl, { method: 'HEAD' });
-        const cl = r.headers.get('content-length');
-        if (cl) total = Number(cl);
+        try {
+          const r = await fetch(entry.singleUrl, { method: 'HEAD' });
+          const cl = r.headers.get('content-length');
+          if (cl) total = Number(cl);
+        } catch { /* ignore */ }
+        if (!total) {
+          try {
+            const r2 = await fetch(entry.singleUrl, { headers: { Range: 'bytes=0-0' } });
+            const cr = r2.headers.get('content-range');
+            const m = cr && cr.match(/\/(\d+)$/);
+            if (m && m[1]) total = Number(m[1]);
+          } catch { /* ignore */ }
+        }
       } else if (entry.manifest) {
-        const ids = entry.manifest.replace(/^\[[^\]]+\]/, '').split(',').filter(Boolean);
+        const ids = normalizeManifest(entry.manifest).replace(/^\[[^\]]+\]/, '').split(',').filter(Boolean);
         const base = getDownloadBase();
         let sum = 0;
         for (const id of ids) {
-          const r = await fetch(base + id, { method: 'HEAD' });
-          const cl = r.headers.get('content-length');
-          if (cl) sum += Number(cl);
+          let cl = 0;
+          try {
+            const rh = await fetch(base + id, { method: 'HEAD' });
+            const h = rh.headers.get('content-length');
+            if (h) cl = Number(h);
+          } catch { /* ignore */ }
+          if (!cl) {
+            try {
+              const r2 = await fetch(base + id, { headers: { Range: 'bytes=0-0' } });
+              const cr = r2.headers.get('content-range');
+              const m = cr && cr.match(/\/(\d+)$/);
+              if (m && m[1]) cl = Number(m[1]);
+            } catch { /* ignore */ }
+          }
+          if (cl) sum += cl;
         }
         if (sum > 0) total = sum;
       }

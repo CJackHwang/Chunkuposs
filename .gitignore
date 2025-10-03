@@ -58,3 +58,4 @@ server/meta.db
 # Ignore SQLite WAL/SHM alongside meta.db
 server/meta.db*
 server/*.db*
+server/meta.db-shm

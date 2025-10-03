@@ -116,6 +116,14 @@ export async function downloadFiles(args: {
   }
 
   const { filename, chunkIdentifiers } = parsed;
+  // Normalize ids for display: convert "id.ext-chunk-N" to unified "id.chunk-N"
+  const normalizedIds = chunkIdentifiers.map(id => id.replace(/\.[^.]+-chunk-(\d+)$/i, '.chunk-$1'));
+  const normalizedManifest = `[${encodeURIComponent(filename)}]${normalizedIds.join(',')}`;
+  if (normalizedIds.join(',') !== chunkIdentifiers.join(',')) {
+    // Update input field so users copy a unified, provider-agnostic manifest
+    sjurlRef.value = normalizedManifest;
+    addDebugOutput(`已规范化清单格式: ${normalizedManifest}`, debugOutputRef);
+  }
 
   if (chunkIdentifiers.length === 1 && /\.chunk--1$/i.test(chunkIdentifiers[0])) {
     const idChunk1 = chunkIdentifiers[0].split('?')[0]
@@ -139,7 +147,7 @@ export async function downloadFiles(args: {
     }
     return;
   }
-  const urls = chunkIdentifiers.map(identifier => `${baseDownloadUrl}${identifier.split('?')[0]}`);
+  const urls = normalizedIds.map(identifier => `${baseDownloadUrl}${identifier.split('?')[0]}`);
   statusRef.value = `准备下载 ${urls.length} 个分块 (编程猫 OSS)...`;
   addDebugOutput(`开始下载 "${filename}" (编程猫 OSS - 共 ${urls.length} 块)...`, debugOutputRef);
   showToast('下载已开始，请稍候');

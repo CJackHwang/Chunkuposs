@@ -19,6 +19,7 @@ export class CodemaoProvider implements StorageProvider {
 
   async uploadChunk(chunk: Blob, index: number, options: ChunkUploadOptions): Promise<UploadResult> {
     const formData = new FormData();
+    // 统一标准：分块对象名使用 `chunk-<index>`
     formData.append('file', chunk, `chunk-${index}`);
     formData.append('path', options.path || FORM_UPLOAD_PATH);
     const res = await fetch(UPLOAD_URL, { method: 'POST', body: formData, signal: options.timeoutMs ? AbortSignal.timeout(options.timeoutMs) : undefined });

@@ -318,27 +318,6 @@ async function uploadSingleFile() {
     }
 }
 
-
-// 分块上传逻辑已移至服务层
-
-
-// 分块上传重试逻辑已移至服务层
-
-
-// 并发计数逻辑已移至服务层
-
-// 分块上传等待逻辑已移至服务层
-
-// 重试逻辑改用服务层实现（功能保持不变）
-
-// Simplified handler for single file upload response
-// 单文件上传响应逻辑已移至服务层
-
-
-// Handler specifically for when all chunk uploads have attempted
-// 分块上传完成检查与合并逻辑已移至服务层
-
-
 function handleCopy() {
     if (!sjurl.value) {
         showToast("没有链接可复制");
@@ -364,13 +343,6 @@ async function downloadFiles() {
         downloadProgressRef: downloadProgress
     });
 }
-
-// Modified fetchBlob to include progress update
-// 下载分块获取逻辑已移至服务层
-
-
-// 下载合并触发逻辑已移至服务层
-
 
 function exportHistory() {
     if (uploadHistory.value.length === 0) {
@@ -556,6 +528,5 @@ function handleShare() {
     }
 }
 
-// DangBei 路径已移除
 
 </script>

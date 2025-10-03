@@ -38,7 +38,8 @@ export function createProvider(cfg) {
     },
     async uploadChunk(buffer, index, filenamePrefix, timeoutMs) {
       const form = new FormData();
-      form.append('file', new Blob([buffer]), `${filenamePrefix}-chunk-${index}`);
+      // 统一标准：分块对象名使用 `chunk-<index>`，不携带原始文件名或扩展名
+      form.append('file', new Blob([buffer]), `chunk-${index}`);
       form.append('path', cfg.formPath);
       return await postForm(cfg.uploadUrl, form, timeoutMs);
     },
@@ -74,4 +75,3 @@ export function createProvider(cfg) {
     }
   };
 }
-
