@@ -1,4 +1,4 @@
-# Chunkuposs — Chunked Upload & Sharing (v6.0+)
+# Chunkuposs — Chunked Upload & Sharing (v6.1.2)
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
@@ -21,6 +21,7 @@ Chunkuposs is a browser-based chunked uploader and sharer built on a Provider ar
 - Share links via `?url=...` and auto-parse on load; history unified.
 - Vite 7 + PWA plugin; Vue DevTools plugin ready.
  - New Manager view (hash-based) to inspect and manage local upload history.
+ - External WebDAV preview container (`DavPreview`) positioned below the manager; link info and media preview are no longer inside the scrollable list.
 
 ## Core Features
 - Provider architecture: `StorageProvider` + `CodemaoProvider` default.
@@ -55,6 +56,7 @@ Versions (current)
 
 ### Scripts
 - `npm run dev`: Start Vite dev server
+- `npm run dev:dav`: Start minimal WebDAV PoC server (Node >=20)
 - `npm run build`: Type-check + build (PWA support)
 - `npm run preview`: Preview production build
 - `npm run type-check`: Run `vue-tsc`
@@ -91,6 +93,7 @@ Vercel one‑click deploy:
 - Get link: chunked format `[filename]chunk1,chunk2,...` or single URL
 - Download: paste chunked link or standard URL
 - Share: copy `?url=...` link
+ - Manager: click “WebDAV 文件管理器” or navigate to `#/dav`; the standalone preview container below the manager shows the selected file’s link and image/audio/video preview.
 - Manager: click “管理器” or navigate to `#/manager` to view, open, fill into input, or remove entries from local history.
 
 ## Config & Provider
@@ -163,6 +166,8 @@ flowchart TD
 - `src/config/constants.*`: runtime config with env overrides
 - `src/utils/*`: helpers and localStorage management
 - `vite.config.ts`: Vite + PWA configuration
+ - `src/components/WebDavManager.vue`: WebDAV manager (file list and actions)
+ - `src/components/DavPreview.vue`: external WebDAV preview container (rendered below manager)
 
 ## PWA
 - Manifest configured (name/icons/theme); standalone display.
@@ -201,3 +206,11 @@ flowchart TD
 CJackHwang · [GitHub](https://github.com/CJackHwang) · [Tech Blog](http://www.cjack.cfd)
 
 > Important Note: This tool is intended for technical research and convenient file sharing. Before uploading any file, ensure you have the necessary rights or authorization and comply with relevant laws, regulations, and platform policies.
+
+### WebDAV PoC Environment
+- `DAV_PORT`: server port (default `8080`)
+- `DAV_BASE_PATH`: mount path prefix (default `/dav`)
+- `DAV_TOKEN`: optional bearer token for auth
+- `DAV_RATE_RPS`: per-IP requests per second (default `20`)
+
+Server mounts local `server/data` directory for prototype. Database files under `server/` (e.g. `meta.db` and its `-wal`/`-shm`) are ignored via `.gitignore`. Future versions will map DAV ops to provider-backed chunk manifests.

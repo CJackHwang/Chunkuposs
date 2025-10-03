@@ -1,0 +1,10 @@
+/* WebDAV 管理器布局补充：不覆盖全局视觉（styles.css/ui.css） */
+.dav-container { padding: var(--spacing-2); color: var(--on-surface); }
+.dav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-2); }
+.dav-actions { display: flex; gap: var(--spacing-2); align-items: center; }
+.dav-toolbar { display: flex; gap: var(--spacing-2); margin-bottom: var(--spacing-2); }
+.dav-content { max-height: 60vh; overflow: auto; }
+.dav-empty { padding: var(--spacing-4); color: var(--on-surface-variant); }
+.dir-list { display: flex; flex-wrap: wrap; gap: var(--spacing-2); margin: var(--spacing-3) 0; max-height: 40vh; overflow: auto; }
+.dir-item { background: var(--surface-container-low); color: var(--on-surface); border: 1px solid var(--outline-variant); border-radius: var(--border-radius-sm); padding: 6px 10px; cursor: pointer; }
+.dir-item.active { background: var(--primary-color); color: var(--text-on-primary); border-color: var(--primary-color); }

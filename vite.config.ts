@@ -49,6 +49,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2,ttf}'],
         runtimeCaching: [
+          // Ensure WebDAV API calls are never cached or intercepted by SW
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/dav'),
+            handler: 'NetworkOnly',
+            options: { }
+          },
           // 配置自定义运行时缓存
           {
             urlPattern: ({ url }) =>
@@ -83,6 +89,15 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    // Proxy WebDAV PoC for same-origin during dev
+    proxy: {
+      '/dav': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      }
+    }
+  },
   optimizeDeps: {
     // 显式包含 Vue 3 依赖链
     include: [

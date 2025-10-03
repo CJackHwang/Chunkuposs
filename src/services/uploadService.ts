@@ -22,11 +22,26 @@ export async function uploadSingleFile(
     const provider = getDefaultProvider();
     const { url } = await provider.uploadSingle(file, { path: FORM_UPLOAD_PATH });
     if (url) {
-      sjurlRef.value = url;
+      const id = url.split('?')[0].split('/').pop() || '';
+      const idBase = id.replace(/\.[^./]+$/, '');
+      const manifestSingle = `[${encodeURIComponent(file.name)}]${idBase}.chunk--1`;
+      sjurlRef.value = manifestSingle;
       statusRef.value = '上传完成 (单链接模式)!';
-      addDebugOutput(`单链接模式上传成功: ${url}`, debugOutputRef);
+      addDebugOutput(`单链接模式上传成功（统一清单）: ${manifestSingle}`, debugOutputRef);
+      // 同步到 WebDAV myupload，统一清单格式：[filename]id.chunk--1
+      try {
+        const base = (import.meta as any).env?.VITE_DAV_BASE_PATH || '/dav';
+        const id = url.split('?')[0].split('/').pop() || '';
+        const idBase = id.replace(/\.[^./]+$/, '');
+        const manifestSingle = `[${encodeURIComponent(file.name)}]${idBase}.chunk--1`;
+        await fetch(`${base.replace(/\/$/, '')}/myupload/${encodeURIComponent(file.name)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'text/plain' },
+          body: manifestSingle,
+        });
+      } catch { /* ignore */ }
       // 历史更新在组件中完成，保持职责简单
-      showToast('上传完成, 链接已生成');
+      showToast('上传完成，已生成统一清单');
     } else {
       const errorMessage = '服务器返回未知错误';
       showToast(`上传失败 (单链接模式): ${errorMessage}`);

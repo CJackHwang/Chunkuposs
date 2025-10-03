@@ -113,6 +113,28 @@ export async function downloadFiles(args: {
   }
 
   const { filename, chunkIdentifiers } = parsed;
+
+  if (chunkIdentifiers.length === 1 && /\.chunk--1$/i.test(chunkIdentifiers[0])) {
+    const idChunk1 = chunkIdentifiers[0].split('?')[0]
+    const filename = parsed.filename || ''
+    const extMatch = filename.match(/\.([^.]+)$/)
+    const ext = extMatch ? extMatch[1] : ''
+    const realId = ext ? idChunk1.replace(/\.chunk--1$/i, `.${ext}`) : idChunk1.replace(/\.chunk--1$/i, '')
+    const singleUrl = `${baseDownloadUrl}${realId}`
+    try {
+      addDebugOutput(`检测到单链清单，直接打开: ${singleUrl}`, debugOutputRef);
+      window.open(singleUrl, '_blank');
+      statusRef.value = '已尝试打开单链接...';
+      showToast('正在尝试打开或下载单链接...');
+    } catch (e: any) {
+      showToast('无法打开单链接，请检查链接或浏览器设置');
+      statusRef.value = '打开单链接失败';
+      addDebugOutput(`打开单链接失败: ${e.message}`, debugOutputRef);
+    } finally {
+      isUploadingRef.value = false;
+    }
+    return;
+  }
   const urls = chunkIdentifiers.map(identifier => `${baseDownloadUrl}${identifier.split('?')[0]}`);
   statusRef.value = `准备下载 ${urls.length} 个分块 (编程猫 OSS)...`;
   addDebugOutput(`开始下载 "${filename}" (编程猫 OSS - 共 ${urls.length} 块)...`, debugOutputRef);

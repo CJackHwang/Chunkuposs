@@ -51,3 +51,10 @@ node_modules/
 # 忽略操作系统生成的文件
 .DS_Store
 Thumbs.db
+# WebDAV PoC data directory
+server/data/
+server/meta.json
+server/meta.db
+# Ignore SQLite WAL/SHM alongside meta.db
+server/meta.db*
+server/*.db*

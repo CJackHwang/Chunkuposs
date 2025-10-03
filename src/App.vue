@@ -5,7 +5,7 @@
       <div class="header-main">
         <h2>Chunkuposs微云盘</h2>
         <!-- 版本号使用 span，并添加 class -->
-        <span class="version-tag">Ver: 6.1.2</span>
+        <span class="version-tag">Ver: 6.2.0</span>
       </div>
       <!-- 为描述添加 class -->
       <div class="description">
@@ -18,8 +18,21 @@
       </div>
     </header>
 
-    <MainContent v-if="view==='home'"/>
-    <ManagerPage v-else :history="uploadHistory" @back="goHome" @update="updateItem" @remove="removeItem" @add="addItem" />
+    <nav class="top-nav button-group">
+      <button class="ui-btn" @click="goHome">上传器</button>
+      <button class="ui-btn" @click="goDav">WebDAV 文件管理器</button>
+    </nav>
+
+    <template v-if="route==='home'">
+      <MainContent />
+    </template>
+    <template v-else-if="route.startsWith('manager')">
+      <ManagerPage :history="uploadHistory" @back="goHome" @update="updateItem" @remove="removeItem" @add="addItem" />
+    </template>
+    <template v-else-if="route.startsWith('dav')">
+      <WebDavManager />
+      <DavPreview />
+    </template>
 
     <footer>
       <!-- 版权信息 -->
@@ -75,6 +88,13 @@
   /* 调整与标题组的间距 */
 }
 
+.top-nav {
+  display: flex;
+  gap: var(--spacing-2);
+  margin: var(--spacing-2) 0;
+}
+/* 使用全局 .ui-btn 视觉与 .button-group 间距，无需局部覆盖 */
+
 /* 确保外部链接的安全性 */
 a[target="_blank"] {
   position: relative;
@@ -91,15 +111,18 @@ a[target="_blank"] {
 import { ref, onMounted, onUnmounted } from 'vue'
 import MainContent from './components/MainContent.vue'
 import ManagerPage from './components/ManagerPage.vue'
+import WebDavManager from './components/WebDavManager.vue'
+import DavPreview from './components/DavPreview.vue'
 import { loadUploadHistory, removeHistoryItem, addHistoryEntry, updateHistoryEntry } from '@/utils/storageHelper'
 
-const view = ref('home')
+const route = ref('home')
 const uploadHistory = ref([])
 // Hold history-updated handler without TS assertions
 let historyUpdatedHandler = null
 
-function goHome(){ view.value = 'home' }
-function goManager(){ view.value = 'manager' }
+function goHome(){ window.location.hash = '' }
+function goManager(){ window.location.hash = 'manager' }
+function goDav(){ window.location.hash = 'dav' }
 function fillLink(link){ goHome(); setTimeout(() => window.dispatchEvent(new CustomEvent('fcf:fill-link', { detail: { link } })), 0) }
 function removeItem(link){ removeHistoryItem(link, uploadHistory) }
 function updateItem(payload){
@@ -125,14 +148,21 @@ function addItem(payload){
   loadUploadHistory(uploadHistory)
 }
 
-function onOpenManager(){ view.value = 'manager' }
+function onOpenManager(){ window.location.hash = 'manager' }
 window.addEventListener('fcf:open-manager', onOpenManager)
 
+function syncRoute(){
+  const h = (window.location.hash || '').slice(1)
+  route.value = h || 'home'
+}
+
 onMounted(() => {
+  syncRoute()
   loadUploadHistory(uploadHistory)
   // Listen for global history updates so ManagerPage stays in sync
   historyUpdatedHandler = () => loadUploadHistory(uploadHistory)
   window.addEventListener('fcf:history-updated', historyUpdatedHandler)
+  window.addEventListener('hashchange', syncRoute)
 })
 onUnmounted(() => {
   window.removeEventListener('fcf:open-manager', onOpenManager)
@@ -140,5 +170,6 @@ onUnmounted(() => {
     window.removeEventListener('fcf:history-updated', historyUpdatedHandler)
     historyUpdatedHandler = null
   }
+  window.removeEventListener('hashchange', syncRoute)
 })
 </script>

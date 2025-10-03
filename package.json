@@ -1,6 +1,6 @@
 {
   "name": "cfd.cjack.file",
-  "version": "6.0+",
+  "version": "6.1.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,6 +10,8 @@
   "packageManager": "npm@10.9.2",
   "scripts": {
     "dev": "vite",
+    "dev:all": "run-p dev dev:dav",
+    "dev:dav": "node server/index.js",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",

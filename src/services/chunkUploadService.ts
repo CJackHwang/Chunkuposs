@@ -1,4 +1,4 @@
-import { addDebugOutput, saveUploadHistory } from '@/utils/storageHelper';
+import { addDebugOutput, saveUploadHistory, updateLatestHistoryNote } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
 import { FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
 import { getDefaultProvider } from '@/providers';
@@ -163,6 +163,20 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     // 写入历史列表（与单文件上传保持一致行为）
     if (uploadHistoryRef) {
       saveUploadHistory(sjurlRef.value, uploadHistoryRef);
+      // 更新最新备注来源
+      updateLatestHistoryNote('来源：在线上传', uploadHistoryRef);
+    }
+    // 同步到 WebDAV myupload：PUT 清单到 /dav/myupload/<文件名>
+    try {
+      const base = (import.meta.env.VITE_DAV_BASE_PATH || '/dav').replace(/\/$/, '')
+      const resp = await fetch(`${base}/myupload/${encodeURIComponent(file.name)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: finalUrl,
+      })
+      addDebugOutput(`WebDAV 映射响应: ${resp.status}`, debugOutputRef)
+    } catch (e) {
+      addDebugOutput(`WebDAV 映射失败: ${(e as Error).message}`, debugOutputRef)
     }
   } catch (error: unknown) {
     const err = error as Error;
