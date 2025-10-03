@@ -18,21 +18,23 @@ Goal: Build a pluggable, provider‑driven chunk upload and sharing app, evolvin
 
 ## 版本里程碑 (CN)
 - v5.x：Vue3+Vite6；分块上传/分享/下载合并；历史与日志；下载并发限制；ETA 修复；移除 DangBei。
-- v6.0（当前）：Provider 注入式服务层（默认 Codemao）；核心服务 TS 化；组件瘦身；文档同步。
+- v6.1.2（当前）：Provider 注入式服务层（默认 Codemao）；核心服务 TS 化；组件瘦身；文档同步；WebDAV PoC（PROPFIND/PUT/GET/HEAD）；Range/HEAD 修复；统一清单格式；外置预览容器。
 - v7.0（PoC）：WebDAV 原型（Node+Koa/Express+SQLite）；映射 DAV 操作；鉴权与限流；前端 `/manager` 管理页。
 - v7.x+：Provider Registry；断点续传；性能/兼容优化；模块测试。
 
 ## 当前进度 (CN)
 - 常量集中与 `.env` 覆盖；下载并发限制（默认 4）。
-- 服务层：上传/分块/下载/ETA 修复；Provider 全量接入。
+- 服务层：上传/分块/下载/ETA 修复；Provider 全量接入；单链/分块清单统一格式。
+- WebDAV PoC：实现 PROPFIND/PUT/GET/HEAD；GET 支持 Range；HEAD 预估 `Content-Length`；清单大小计算支持 `.chunk--1` 扩展名恢复。
+- 管理器：外置 `DavPreview` 容器置于管理器下方，不受列表滚动影响；忽略 `server/*.db*` 防止提交本地数据库。
 - 组件瘦身：MainContent 仅做状态与调用；下载进度条；历史/日志统一。
 
 ## 下一阶段 (CN)
-1. WebDAV PoC：DAV 映射、鉴权、限流、最小部署。
-2. 管理页：目录树 + 表格；上传/下载/删除/重命名/批量。
+1. WebDAV PoC：完善 DAV 映射与错误处理；鉴权与限流配置化。
+2. 管理页：批量/重命名/移动交互完善；清单/单链元信息展示优化。
 3. Provider 扩展：鉴权/签名与更多上游；Provider 选择与注册。
-4. 测试与质量：分块/下载/ETA/限流模块测试；错误与日志统一。
-5. 文档：部署与使用完善；与 README 同步。
+4. 测试与质量：分块/下载/ETA/限流模块测试；端到端预览/Range 测试；统一错误码与日志。
+5. 文档：部署与使用完善；与 README/ROADMAP 同步更新。
 
 ## 风险与决策 (CN)
 - Provider 可用性与合规；避免硬编码与不合规使用。
@@ -62,15 +64,21 @@ Goal: Build a pluggable, provider‑driven chunk upload and sharing app, evolvin
 
 ## Current Progress (EN)
 - Centralized constants and `.env` overrides; download concurrency (default 4).
-- Services: upload/chunk/download/ETA fix; full provider integration.
+- Services: upload/chunk/download/ETA fix; full provider integration; unified single/chunk manifest format.
+- WebDAV PoC: PROPFIND/PUT/GET/HEAD implemented; GET supports Range; HEAD preflights `Content-Length`; manifest size calc supports `.chunk--1` extension recovery.
+- Manager: external `DavPreview` container rendered below manager; ignore `server/*.db*` to avoid committing local DB.
 - Components: MainContent handles UI/state and calls; download progress; unified history/logs.
 
 ## Next Phase (EN)
-1. WebDAV PoC: DAV mapping, auth, rate‑limit, minimal deployment.
-2. Manager page: tree + table; upload/download/delete/rename/bulk.
-3. Provider expansion: auth/signature and more upstreams; selection/registry.
-4. Tests & quality: module tests for chunk/download/ETA/rate‑limit; unified errors/logs.
-5. Docs: deployment and usage; keep in sync with README.
+1. WebDAV PoC: improve DAV mapping/error handling; configurable auth/rate‑limit.
+2. Manager page: refine bulk/rename/move interactions; show manifest/single metadata.
+3. Provider expansion: auth/signature/more upstreams; selection/registry.
+4. Tests & quality: module tests for chunk/download/ETA/rate‑limit; end‑to‑end preview/Range tests; unify error codes/logs.
+5. Docs: deployment/usage; keep README/ROADMAP in sync.
+
+### Link Format (Unified)
+- Single: `[filename]ID.chunk--1` → replace `.chunk--1` with the filename extension; prepend `downloadBase`.
+- Chunked: `[filename]ID0,ID1,...` → stream in order for non‑range; map ranges across chunks.
 
 ## Risks & Decisions (EN)
 - Provider availability/compliance; avoid hard‑coded creds and misuse.

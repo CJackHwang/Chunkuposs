@@ -13,7 +13,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
 
 const props = defineProps({
@@ -24,7 +24,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['clear-log', 'export-log']);
-const logContainer = ref(null); // Ref for the scrollable container
+const logContainer = ref<HTMLDivElement | null>(null); // Ref for the scrollable container
 
 // Watch for changes in debugOutput and scroll down
 watch(() => props.debugOutput, async () => {

@@ -25,8 +25,9 @@ async function fetchBlob(url: string, index: number, total: number, statusRef: V
     if (progressRef) progressRef.value = Math.floor(((index + 1) / total) * 100);
     addDebugOutput(`成功获取块 ${index + 1}/${total} (编程猫 OSS)`, debugOutputRef);
     return blob;
-  } catch (error: any) {
-    addDebugOutput(`获取块 ${index + 1} (编程猫 OSS) 失败: ${error.message}`, debugOutputRef);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    addDebugOutput(`获取块 ${index + 1} (编程猫 OSS) 失败: ${msg}`, debugOutputRef);
     throw error;
   }
 }
@@ -59,10 +60,11 @@ async function mergeAndDownload(blobs: Blob[], filename: string, statusRef: VueR
     statusRef.value = '下载完成 (编程猫 OSS)!';
     addDebugOutput(`文件 "${filename}" (编程猫 OSS) 下载已触发。`, debugOutputRef);
     showToast(`文件 "${filename}" (编程猫 OSS) 下载已开始`);
-  } catch (error: any) {
+  } catch (error: unknown) {
     showToast('合并或下载文件时出错');
     statusRef.value = '合并/下载失败 (编程猫 OSS)';
-    addDebugOutput(`合并或下载错误 (编程猫 OSS): ${error.message}`, debugOutputRef);
+    const msg = error instanceof Error ? error.message : String(error);
+    addDebugOutput(`合并或下载错误 (编程猫 OSS): ${msg}`, debugOutputRef);
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
   }
 }
@@ -94,10 +96,11 @@ export async function downloadFiles(args: {
       window.open(urlToDownload, '_blank');
       statusRef.value = '已尝试打开链接...';
       showToast('正在尝试打开或下载标准链接...');
-    } catch (e: any) {
+    } catch (e: unknown) {
       showToast('无法打开链接，请检查链接或浏览器设置');
       statusRef.value = '打开链接失败';
-      addDebugOutput(`直接打开链接失败: ${e.message}`, debugOutputRef);
+      const msg = e instanceof Error ? e.message : String(e);
+      addDebugOutput(`直接打开链接失败: ${msg}`, debugOutputRef);
     } finally {
       isUploadingRef.value = false;
     }
@@ -113,14 +116,45 @@ export async function downloadFiles(args: {
   }
 
   const { filename, chunkIdentifiers } = parsed;
-  const urls = chunkIdentifiers.map(identifier => `${baseDownloadUrl}${identifier.split('?')[0]}`);
+  // Normalize ids for display: convert "id.ext-chunk-N" to unified "id.chunk-N"
+  const normalizedIds = chunkIdentifiers.map(id => id.replace(/\.[^.]+-chunk-(\d+)$/i, '.chunk-$1'));
+  const normalizedManifest = `[${encodeURIComponent(filename)}]${normalizedIds.join(',')}`;
+  if (normalizedIds.join(',') !== chunkIdentifiers.join(',')) {
+    // Update input field so users copy a unified, provider-agnostic manifest
+    sjurlRef.value = normalizedManifest;
+    addDebugOutput(`已规范化清单格式: ${normalizedManifest}`, debugOutputRef);
+  }
+
+  if (chunkIdentifiers.length === 1 && /\.chunk--1$/i.test(chunkIdentifiers[0])) {
+    const idChunk1 = chunkIdentifiers[0].split('?')[0]
+    const filename = parsed.filename || ''
+    const extMatch = filename.match(/\.([^.]+)$/)
+    const ext = extMatch ? extMatch[1] : ''
+    const realId = ext ? idChunk1.replace(/\.chunk--1$/i, `.${ext}`) : idChunk1.replace(/\.chunk--1$/i, '')
+    const singleUrl = `${baseDownloadUrl}${realId}`
+    try {
+      addDebugOutput(`检测到单链清单，直接打开: ${singleUrl}`, debugOutputRef);
+      window.open(singleUrl, '_blank');
+      statusRef.value = '已尝试打开单链接...';
+      showToast('正在尝试打开或下载单链接...');
+    } catch (e: unknown) {
+      showToast('无法打开单链接，请检查链接或浏览器设置');
+      statusRef.value = '打开单链接失败';
+      const msg = e instanceof Error ? e.message : String(e);
+      addDebugOutput(`打开单链接失败: ${msg}`, debugOutputRef);
+    } finally {
+      isUploadingRef.value = false;
+    }
+    return;
+  }
+  const urls = normalizedIds.map(identifier => `${baseDownloadUrl}${identifier.split('?')[0]}`);
   statusRef.value = `准备下载 ${urls.length} 个分块 (编程猫 OSS)...`;
   addDebugOutput(`开始下载 "${filename}" (编程猫 OSS - 共 ${urls.length} 块)...`, debugOutputRef);
   showToast('下载已开始，请稍候');
 
   let downloadedBlobs: Blob[] | undefined;
   try {
-    const results: (Blob | null)[] = new Array(urls.length).fill(null);
+    const results: (Blob | null)[] = Array.from({ length: urls.length }, () => null);
     let inFlight = 0; let nextIndex = 0;
     await new Promise<void>((resolve, reject) => {
       function schedule() {
@@ -144,10 +178,11 @@ export async function downloadFiles(args: {
     statusRef.value = '分块获取完成，正在合并...';
     if (downloadProgressRef) downloadProgressRef.value = 100;
     await mergeAndDownload(downloadedBlobs, filename, statusRef, debugOutputRef);
-  } catch (error: any) {
-    showToast('下载过程中发生错误: ' + error.message);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    showToast('下载过程中发生错误: ' + msg);
     statusRef.value = '下载失败!';
-    addDebugOutput(`下载任务失败: ${error.message}`, debugOutputRef);
+    addDebugOutput(`下载任务失败: ${msg}`, debugOutputRef);
   } finally {
     isUploadingRef.value = false;
   }

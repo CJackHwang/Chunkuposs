@@ -1,8 +1,9 @@
-import { addDebugOutput, saveUploadHistory } from '@/utils/storageHelper';
+import { addDebugOutput, saveUploadHistory, updateLatestHistoryNote } from '@/utils/storageHelper';
 import { showToast } from '@/services/toast';
 import { FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
 import { getDefaultProvider } from '@/providers';
 import type { Ref } from 'vue';
+import { getDavBasePath } from '@/utils/env'
 
 export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputRef, statusRef, sjurlRef, uploadHistoryRef, updateEstimatedCompletionTimeAfterUpload, resetEstimatedCompletionTime }:
   {
@@ -12,12 +13,13 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     debugOutputRef: Ref<string>,
     statusRef: Ref<string>,
     sjurlRef: Ref<string>,
-    uploadHistoryRef: Ref<any[]>,
+    uploadHistoryRef: Ref<Array<{ time: string; link: string; note?: string }>>,
     updateEstimatedCompletionTimeAfterUpload: (start: number, urls: (string|null)[], total: number) => void,
     resetEstimatedCompletionTime: () => void
   }
 ) {
-  const urls = new Array(totalChunks).fill(null);
+  const urls: (string | null)[] = Array.from({ length: totalChunks }, () => null);
+  const chunkSizes: number[] = Array.from({ length: totalChunks }, () => 0);
   const startTime = Date.now();
   const reader = file.stream().getReader();
   let buffer = new Uint8Array(CHUNK_SIZE);
@@ -68,7 +70,8 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
           const { url } = await provider.uploadChunk(chunk, i, { path: FORM_UPLOAD_PATH, timeoutMs: dynamicTimeout });
           const duration = Date.now() - start;
           if (!url) throw new Error('服务器响应无效或缺少URL');
-          urls[i] = url;
+          urls[i] = (url as string) || null;
+          chunkSizes[i] = chunk.size;
           addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${url}`, debugOutputRef);
           const completedCount = urls.filter(u => u !== null).length;
           statusRef.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks} 块完成)`;
@@ -143,7 +146,8 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
   await waitForPendingChunks();
   addDebugOutput('所有块上传尝试已结束.', debugOutputRef);
 
-  const successfulUploads = urls.filter(url => url !== null);
+  const successfulUploads = urls.filter(url => url !== null) as string[];
+  // chunkSizes 已在上传过程中收集，直接用于同步到 WebDAV
   const failedCount = totalChunks - successfulUploads.length;
   addDebugOutput(`分块上传 (编程猫 OSS) 完成检查: 成功 ${successfulUploads.length}/${totalChunks} 块.`, debugOutputRef);
   if (failedCount > 0) {
@@ -154,7 +158,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     return;
   }
   try {
-    const formattedUrls = urls.map(url => url.split('?')[0].split('/').pop()).join(',');
+    const formattedUrls = urls.map(url => (url || '').split('?')[0].split('/').pop()).join(',');
     const finalUrl = `[${encodeURIComponent(file.name)}]${formattedUrls}`;
     sjurlRef.value = finalUrl;
     statusRef.value = '所有分块上传完成 (编程猫 OSS)!';
@@ -163,6 +167,25 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     // 写入历史列表（与单文件上传保持一致行为）
     if (uploadHistoryRef) {
       saveUploadHistory(sjurlRef.value, uploadHistoryRef);
+      // 更新最新备注来源
+      updateLatestHistoryNote('来源：在线上传', uploadHistoryRef);
+    }
+    // 同步到 WebDAV myupload：携带 chunkUrls + chunkLengths，加速服务端解析与 Range 支持
+    try {
+      const base = getDavBasePath().replace(/\/$/, '')
+      const chunkUrls: string[] = [];
+      const chunkLengths: number[] = [];
+      for (let i = 0; i < urls.length; i++) {
+        if (urls[i]) { chunkUrls.push((urls[i] as string)); chunkLengths.push(chunkSizes[i]); }
+      }
+      const resp = await fetch(`${base}/myupload/${encodeURIComponent(file.name)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manifest: finalUrl, chunkUrls, chunkLengths, size: file.size })
+      })
+      addDebugOutput(`WebDAV 映射响应: ${resp.status}`, debugOutputRef)
+    } catch (e) {
+      addDebugOutput(`WebDAV 映射失败: ${(e as Error).message}`, debugOutputRef)
     }
   } catch (error: unknown) {
     const err = error as Error;

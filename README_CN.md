@@ -1,5 +1,5 @@
 
-# Chunkuposs — 分块上传与分享 (v6.0+)
+# Chunkuposs — 分块上传与分享 (v6.1.2)
 
 [![GitHub License](https://img.shields.io/badge/License-GPL%203.0-blue.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5%2B-brightgreen?logo=vue.js)](https://vuejs.org/)
@@ -11,6 +11,7 @@
 中文 | English: [README.md](README.md)
 
 Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使用 TypeScript 实现。DangBei 集成已移除。
+新增 WebDAV 管理器的外置预览容器（DavPreview）：预览卡片作为独立容器渲染在整个管理器下方，不受文件列表滚动影响。
 
 ## 6.0+ 更新要点
 - Provider 注入式服务层完善（`StorageProvider` + `CodemaoProvider`）。
@@ -55,6 +56,7 @@ Chunkuposs 采用 Provider 架构（默认编程猫 CodeMao），核心服务使
 
 ### 脚本说明
 - `npm run dev`：启动 Vite 开发服务器
+- `npm run dev:dav`：启动最小 WebDAV 原型服务器（Node >=20）
 - `npm run build`：类型检查 + 构建（含 PWA）
 - `npm run preview`：预览生产构建
 - `npm run type-check`：`vue-tsc` 类型检查
@@ -89,6 +91,7 @@ Vercel 一键部署：
 - 获取链接：分块格式 `[文件名]块1,块2,...` 或单链接 URL
 - 下载：粘贴分块链接或标准 URL
 - 分享：复制 `?url=...` 链接
+ - 管理器：点击顶部“WebDAV 文件管理器”或访问 `#/dav`，在页面下方的独立预览容器中查看选中文件的链接与图片/音视频预览。
 
 ### 链接格式
 - 单链接（≤1 MB 或手动选择单次上传）：`https://.../path/file.ext`
@@ -160,6 +163,8 @@ flowchart TD
 - `src/config/constants.*`：运行时配置与环境覆盖
 - `src/utils/*`：工具与 localStorage 管理
 - `vite.config.ts`：Vite + PWA 配置
+ - `src/components/WebDavManager.vue`：WebDAV 管理器（文件列表与操作）
+ - `src/components/DavPreview.vue`：WebDAV 外置预览容器（固定在管理器下方）
 
 ## PWA
 - 已配置 manifest（名称/图标/主题）；独立应用显示。
@@ -192,3 +197,16 @@ flowchart TD
 - 为何 >30 MB 强制分块？提高可靠性，避免上游的单次上传限制。
 - 如何新增 Provider？实现 `StorageProvider` 并在 `getDefaultProvider()` 中替换。
 - 为什么使用清单格式？简洁且与 Provider 解耦；应用端负责还原下载 URL。
+### WebDAV 原型环境
+- `DAV_PORT`：服务器端口（默认 `8080`）
+- `DAV_BASE_PATH`：挂载前缀（默认 `/dav`）
+- `DAV_TOKEN`：可选的 Bearer Token 鉴权
+- `DAV_RATE_RPS`：按 IP 的每秒请求数（默认 `20`）
+
+当前原型将 `server/data` 作为本地挂载目录。为避免将数据库文件提交到仓库，已在 `.gitignore` 中忽略 `server/meta.db` 及其 `-wal`/`-shm` 等相关文件（同时忽略 `server/*.db*`）。后续版本会将 DAV 操作映射到 Provider 后端的分块清单与下载链接。
+\n+### 开发说明（优化）
+- 新增环境变量工具 `src/utils/env.ts`，统一读取客户端所需的 DAV 相关变量：
+  - `getDavBasePath()` 返回 `VITE_DAV_BASE_PATH`（默认 `/dav`）
+  - `getDavToken()` 返回 `VITE_DAV_TOKEN`（默认空字符串）
+  建议在客户端代码中使用该工具，避免重复 `(import.meta as any).env` 写法，便于维护。
+- `vite.config.ts` 中的 PWA 插件 `mode` 将根据 `NODE_ENV` 自动切换，避免开发环境下出现生产 SW 语义导致的缓存问题。

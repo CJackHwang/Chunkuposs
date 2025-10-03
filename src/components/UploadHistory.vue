@@ -28,13 +28,9 @@
     </div>
 </template>
 
-<script setup>
-const props = defineProps({
-    history: {
-        type: Array,
-        required: true
-    }
-});
+<script setup lang="ts">
+type HistoryEntry = { time: string; link: string; note?: string };
+defineProps<{ history: HistoryEntry[] }>();
 
 // Add 'select-item' to the list of emitted events
 const emit = defineEmits(['clear-history', 'export-history', 'select-item', 'open-manager']);
@@ -48,7 +44,7 @@ const handleExport = () => {
 };
 
 // Function to handle row click and emit the selected link
-function selectHistoryItem(link) { emit('select-item', link); }
+function selectHistoryItem(link: string) { emit('select-item', link); }
 
 function openManager(){ emit('open-manager') }
 </script>

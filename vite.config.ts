@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa';
 
-const mode = 'production';
+// Derived via process.env.NODE_ENV in PWA plugin; keep this unused var removed
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -18,7 +18,8 @@ export default defineConfig({
       }
     }),
     VitePWA({
-      mode: 'development',
+      // Keep dev SW enabled but derive mode from Vite env
+      mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
       base: '/',
       manifest: {
         name: 'Chunkuposs',
@@ -49,6 +50,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2,ttf}'],
         runtimeCaching: [
+          // Ensure WebDAV API calls are never cached or intercepted by SW
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/dav'),
+            handler: 'NetworkOnly',
+            options: { }
+          },
           // 配置自定义运行时缓存
           {
             urlPattern: ({ url }) =>
@@ -83,6 +90,15 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    // Proxy WebDAV PoC for same-origin during dev
+    proxy: {
+      '/dav': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      }
+    }
+  },
   optimizeDeps: {
     // 显式包含 Vue 3 依赖链
     include: [

@@ -34,9 +34,9 @@
     --md-sys-color-on-surface-light: #171D1C;
     --md-sys-color-surface-variant-light: #DAE5E3;
     --md-sys-color-on-surface-variant-light: #3F4947;
-    --md-sys-color-outline-light: #6F7978;
-    /* <<< 用于表格边框 */
-    --md-sys-color-outline-variant-light: #BFC9C7;
+
+    /* Outline variant used for borders */
+    --md-sys-color-outline-variant-light: #909e9b;
 
     --md-sys-color-surface-dim-light: #D5DBDA;
     --md-sys-color-surface-bright-light: #F4FBFA;
@@ -54,17 +54,11 @@
     --surface-color: var(--md-sys-color-surface-light);
     --background-color: var(--md-sys-color-background-light);
     --divider-color: var(--md-sys-color-outline-light);
-    /* Mapped to outline */
+    /* Divider maps to outline */
     --text-primary: var(--md-sys-color-on-surface-light);
     --text-on-primary: var(--md-sys-color-on-primary-light);
     --error-color: var(--md-sys-color-error-light);
-    /* --success-color: #69F0AE; */
-    /* Consider using Tertiary or custom success role */
-    --success-color: #006E3E;
-    /* Example: M3 Greenish Success */
-    --on-success-color: #FFFFFF;
-    --success-container-color: #89FAAE;
-    --on-success-container-color: #00210F;
+    /* Success role variables removed (unused) */
 
     /* --- Theme-Agnostic Aliases (Light mappings) --- */
     --on-surface: var(--md-sys-color-on-surface-light);
@@ -86,27 +80,18 @@
     --spacing-5: 24px;
 
     /* --- Border Radii --- */
-    --border-radius-sm: 4px;
+    --border-radius-sm: 6px;
     /* Extra Small (Inputs, Checkbox, Debug, Chunk Info, Toast, Footer Link) */
     --border-radius-md: 12px;
     /* Medium (Toggle Container) */
     --border-radius-lg: 16px;
     /* Large (Header, Main, Footer, File Upload) */
-    --border-radius-xl: 8px;
+    --border-radius-xl: 10px;
     /* Small (Table Container) */
     --border-radius-pill: 20px;
     /* Full/Pill (Buttons, based on 40px height) */
 
-    /* --- Shadows (Standard M3 Values) --- */
-    --shadow-level: 0;
-    /* Base level, no shadow */
-    --shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
-    /* M3 Level 1 */
-    --shadow-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
-    /* M3 Level 2 */
-    --shadow-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-    /* M3 Level 3 */
-    /* NOTE: These values are standard M3. The adjustment is in their application below. */
+    /* Shadows removed — flat style */
 
     /* --- Motion --- */
     --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -120,17 +105,13 @@
     /* 8% */
     --focus-opacity: 0.12;
     /* 12% */
-    --pressed-opacity: 0.12;
-    /* 12% */
-    --dragged-opacity: 0.16;
-    /* 16% */
+    /* pressed/dragged opacities removed (unused) */
     /* Calculated state layers */
     --hover-bg: color-mix(in srgb, var(--primary-color) calc(var(--hover-opacity) * 100%), transparent);
-    --active-bg: color-mix(in srgb, var(--primary-color) calc(var(--pressed-opacity) * 100%), transparent);
+    /* active-bg removed (unused) */
+    --focus-bg: color-mix(in srgb, var(--primary-color) calc(var(--focus-opacity) * 100%), transparent);
 
-    /* --- Icon Color --- */
-    --icon-color: var(--text-primary);
-    /* Default icon color */
+    /* icon-color alias removed (unused; use currentColor) */
 }
 
 /* ===== Base Reset & Body ===== */
@@ -158,7 +139,7 @@ main,
 footer {
     border-radius: var(--border-radius-lg);
     /* Large radius for main containers */
-    /* box-shadow: var(--shadow-1); <<< REMOVED default shadow */
+    box-shadow: none;
     border: 1px solid var(--outline-variant);
     /* Rely on border and bg color */
 }
@@ -169,7 +150,7 @@ header {
     /* Use Surface Container */
     color: var(--on-surface);
     padding: var(--spacing-4) var(--spacing-5);
-    /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
+    /* Border unified at general rule */
     margin-bottom: var(--spacing-5);
 
     h2 {
@@ -190,7 +171,7 @@ main {
     /* Keep for potential absolute children */
     z-index: 1;
     /* Keep for stacking context */
-    /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
+    /* Border unified at general rule */
 }
 
 /* ===== File Upload Component ===== */
@@ -200,7 +181,7 @@ main {
     /* Subtle bg for info */
     background: transparent;
     /* Make it blend more, rely on border */
-    border: 1.5px dashed var(--divider-color);
+    border: 1.5px dashed var(--outline-variant);
     /* Keep dashed style */
     border-radius: var(--border-radius-lg);
     /* Large radius */
@@ -243,6 +224,10 @@ main {
     margin-top: var(--spacing-4);
     color: var(--text-primary);
     font-size: 0.9em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .chunk-info {
@@ -288,7 +273,7 @@ main {
     --radio-dot-size: 10px;
     /* Size of the inner dot */
     --active-color: var(--primary-color);
-    --border-color: var(--divider-color);
+    --border-color: var(--outline-variant);
     --hover-bg: var(--hover-bg);
 
     display: inline-flex;
@@ -368,11 +353,9 @@ main {
 
 /* Focus visible style for radio */
 .radio-label input[type="radio"]:focus-visible+.radio-text {
-    /* Apply focus to the text span or label itself */
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
+    /* Unified a11y focus: soft background highlight on label */
+    background-color: var(--hover-bg);
     border-radius: var(--border-radius-pill);
-    /* Match label shape */
 }
 
 
@@ -385,18 +368,20 @@ main {
 .text-field, #sjurl {
     width: 100%;
     height: 56px;
-    border: 1px solid var(--divider-color);
-    border-radius: var(--border-radius-sm);
-    background: var(--surface-container-highest);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--border-radius-lg);
+    /* Unified with header/footer background */
+    background: var(--surface-container);
     padding: var(--spacing-2) var(--spacing-3);
     color: var(--text-primary);
     font-size: 1rem;
     line-height: 1.5;
 }
 .text-field:focus, #sjurl:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 1px;
-    border-color: var(--primary-color);
+    /* Unified a11y focus: soft highlight consistent with selectors */
+    outline: none;
+    border-color: var(--outline-variant);
+    background-color: var(--hover-bg);
 }
 
 /* ===== M3 Style Checkbox (Applied via .chunk-toggle) ===== */
@@ -406,7 +391,7 @@ main {
     /* M3 Checkbox size */
     --checkbox-border-width: 2px;
     --active-color: var(--primary-color);
-    --border-color: var(--divider-color);
+    --border-color: var(--outline-variant);
     --hover-bg: var(--hover-bg);
     --text-color: var(--on-surface-variant);
 
@@ -478,16 +463,16 @@ main {
 
 /* Focus Visible Style */
 .toggle-input:focus-visible+.custom-checkbox {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
+    /* Unified focus: use focus-bg instead of ring */
+    outline: none;
+    box-shadow: none;
+    background-color: var(--focus-bg);
 }
 
 /* Apply focus ring to the label as well for better visibility */
 .chunk-toggle:focus-within {
-    /* background-color: var(--hover-bg); */
-    /* Optional: subtle bg on focus */
-    outline: 2px solid var(--primary-color);
-    outline-offset: 1px;
+    /* Limit focus styling to the checkbox only */
+    outline: none;
 }
 
 
@@ -536,8 +521,8 @@ button {
     /* M3 buttons usually have no border */
     border-radius: var(--border-radius-pill);
     /* Pill shape */
-    box-shadow: var(--shadow-1);
-    /* <<< Keep shadow for buttons */
+    box-shadow: none;
+    /* No shadow for buttons */
     font-size: 0.875rem;
     /* M3 Label Large */
     font-weight: 500;
@@ -561,12 +546,12 @@ button {
 
 button:hover {
     background: var(--primary-hover);
-    box-shadow: var(--shadow-2);
+    box-shadow: none;
     /* Increase shadow on hover */
 }
 
 button:active {
-    box-shadow: var(--shadow-1);
+    box-shadow: none;
     /* Slightly less shadow on press */
 }
 
@@ -607,18 +592,19 @@ button:disabled {
     /* Needed if table-container is direct child */
     flex-direction: column;
     /* Needed if table-container is direct child */
-    box-shadow: var(--shadow-1);
-    /* <<< Keep subtle shadow to lift table */
+    box-shadow: none;
+    /* No shadow; flat table container */
+    border-radius: var(--border-radius-lg);
 }
 
 .table-container {
     max-height: 400px;
     overflow: auto;
     overflow-x: auto;
-    border-radius: var(--border-radius-xl);
+    border-radius: var(--border-radius-lg);
     /* Small radius for table container */
-    border: 1px solid var(--outline);
-    /* <<< 使用更深的 outline 颜色 */
+    border: 1px solid var(--outline-variant);
+    /* Unified border color via outline-variant */
     scrollbar-color: var(--surface-container-high) var(--surface-container-low);
 }
 
@@ -638,7 +624,7 @@ button:disabled {
 }
 
 .upload-history-table th {
-    background: var(--surface-container-low);
+    background: var(--surface-container);
     /* Subtle header bg */
     padding: var(--spacing-3) var(--spacing-4);
     /* 12px 16px */
@@ -716,10 +702,10 @@ button:disabled {
 
 /* ===== Debug Output ===== */
 .debug-output {
-    background: var(--surface-container-low);
+    background: var(--surface-color);
     /* Subtle background */
     border: 1px solid var(--outline-variant);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-lg);
     /* Small radius */
     padding: var(--spacing-3);
     margin: var(--spacing-4) 0;
@@ -751,7 +737,7 @@ footer {
     margin-top: var(--spacing-5);
     padding: var(--spacing-4);
     /* Consistent padding */
-    /* border: 1px solid var(--md-sys-color-outline-variant-light); <<< MOVED to general rule */
+    /* Border unified at general rule */
     /* border-radius is --border-radius-lg from general rule */
 }
 
@@ -884,8 +870,8 @@ footer a:hover {
 
     /* Make table horizontally scrollable */
     #uploadHistory {
-        border-radius: var(--border-radius-xl);
-        /* Keep 8px */
+        border-radius: var(--border-radius-md);
+        /* Match container radius on small screens */
     }
 
     .table-container {
@@ -977,7 +963,7 @@ textarea,
 
 /* [!code --] .m3-toast */
     {
-    /* [!code ++] REMOVED .m3-toast from this list */
+    /* .m3-toast excluded from transitions */
     transition:
         background-color var(--duration-medium) var(--ease-standard),
         color var(--duration-medium) var(--ease-standard),
@@ -990,3 +976,33 @@ textarea,
 /* Exclude transform/opacity from general transition if handled by specific animations (like toast entry/exit) */
 
 /* END OF FILE styles.css */
+/* ===== Section Headings (h3) Standardization ===== */
+h3 {
+    margin: var(--spacing-4) 0 var(--spacing-3);
+    font-size: 1.125rem; /* Between title and label */
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* Ensure the first h3 in main has top spacing aligned with layout */
+main h3:first-of-type {
+    margin-top: var(--spacing-4);
+}
+
+/* ===== Headings h2/h4 Standardization ===== */
+h2 {
+    margin: var(--spacing-4) 0 var(--spacing-3);
+    font-size: 1.375rem; /* Match header title */
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+h4 {
+    margin: var(--spacing-3) 0 var(--spacing-2);
+    font-size: 1rem; /* Smaller subsection */
+    font-weight: 500;
+    color: var(--on-surface-variant);
+    line-height: 1.4;
+}

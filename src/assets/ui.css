@@ -1,0 +1,65 @@
+/* Global UI primitives (Button, Input, Table, Card, Modal) based on M3 variables in styles.css */
+
+.ui-btn {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-pill);
+  padding: 10px var(--spacing-5);
+  cursor: pointer;
+  box-shadow: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin: var(--spacing-1);
+  min-width: 96px;
+  transition: background-color var(--duration-medium) var(--ease-standard),
+    color var(--duration-medium) var(--ease-standard),
+    border-color var(--duration-medium) var(--ease-standard);
+}
+.ui-btn:hover { background-color: var(--primary-hover); }
+.ui-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ui-btn--danger { background: var(--error-color); color: var(--md-sys-color-on-error-light); }
+.ui-btn--danger:hover { background-color: color-mix(in srgb, var(--error-color) 90%, black 10%); }
+.ui-btn--secondary { background: var(--md-sys-color-secondary); color: var(--md-sys-color-on-secondary); }
+
+.ui-input {
+  width: 100%;
+  height: 56px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--border-radius-lg);
+  background: var(--surface-container);
+  padding: var(--spacing-2) var(--spacing-3);
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.ui-input:focus { outline: none; border-color: var(--outline-variant); background-color: var(--hover-bg); }
+
+.ui-card {
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4);
+}
+
+.ui-table { width: 100%; border-collapse: collapse; }
+.ui-table th, .ui-table td { padding: 10px 12px; border-bottom: 1px solid var(--outline-variant); text-align: left; }
+.ui-table th { position: sticky; top: 0; background: var(--surface-container); z-index: 1; }
+.ui-table tr:hover { background: var(--hover-bg); }
+.ui-table tr.selected { background: var(--surface-container-high); }
+
+.ui-modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 10; }
+.ui-modal__card { background: var(--surface-container); color: var(--on-surface); border-radius: var(--border-radius-md); padding: var(--spacing-4); width: min(520px, 90vw); border: 1px solid var(--outline-variant); }
+.ui-modal__actions { display: flex; gap: var(--spacing-2); justify-content: flex-end; margin-top: var(--spacing-3); }
+.ui-table { width: 100%; border-collapse: collapse; }
+.ui-table th, .ui-table td { padding: var(--spacing-3) var(--spacing-4); border-bottom: 1px solid var(--outline-variant); text-align: left; }
+.ui-table thead { background: var(--surface-container); }
+.ui-table th { position: sticky; top: 0; background: var(--surface-container); z-index: 1; }
+.ui-table tbody tr:hover td { background: var(--hover-bg); }

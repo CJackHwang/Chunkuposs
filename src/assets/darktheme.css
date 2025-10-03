@@ -35,8 +35,8 @@
     --md-sys-color-on-surface-dark: #DEE4E3;
     --md-sys-color-surface-variant-dark: #3F4947;
     --md-sys-color-on-surface-variant-dark: #BFC9C7;
-    --md-sys-color-outline-dark: #899391;
-    --md-sys-color-outline-variant-dark: #3F4947;
+
+    --md-sys-color-outline-variant-dark: #53635f;
 
     --md-sys-color-surface-dim-dark: #0F1514;
     --md-sys-color-surface-bright-dark: #353B3A;
@@ -57,12 +57,7 @@
     --text-primary: var(--md-sys-color-on-surface-dark);
     --text-on-primary: var(--md-sys-color-on-primary-dark);
     --error-color: var(--md-sys-color-error-dark);
-    /* --success-color: #69F0AE; */
-    --success-color: #6EDB94;
-    /* Example Dark Success */
-    --on-success-color: #00391B;
-    --success-container-color: #00522A;
-    --on-success-container-color: #89FAAE;
+    /* Success variables removed (unused) */
 
     /* --- Theme-Agnostic Aliases (Dark mappings) --- */
     --on-surface: var(--md-sys-color-on-surface-dark);
@@ -77,19 +72,15 @@
     --surface-container-highest: var(--md-sys-color-surface-container-highest-dark);
 
     /* --- Shadows (Subtler for Dark) --- */
-    /* M3 Dark Shadows are often just darker color fills or omitted */
-    /* Using slightly modified light shadows for some depth */
-    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.34);
-    --shadow-2: 0 3px 6px rgba(0, 0, 0, 0.33), 0 3px 6px rgba(0, 0, 0, 0.37);
-    --shadow-3: 0 6px 12px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
+    /* Shadows removed — flat style across dark theme */
 
     /* --- Interaction States --- */
     /* Use On-Surface or Primary for state layers */
     --hover-bg: color-mix(in srgb, var(--primary-color) calc(var(--hover-opacity) * 100%), transparent);
-    --active-bg: color-mix(in srgb, var(--primary-color) calc(var(--pressed-opacity) * 100%), transparent);
+    /* active-bg removed (unused) */
 
     /* --- Icon Color --- */
-    --icon-color: var(--text-primary);
+    /* icon-color alias removed (unused; icons use currentColor) */
 }
 
 /* ===== Global Dark Theme Adjustments ===== */
@@ -105,16 +96,16 @@
     background: var(--surface-container);
     color: var(--on-surface);
     border-color: var(--outline-variant);
-    box-shadow: var(--shadow-1);
-    /* Keep shadow consistent */
+    box-shadow: none;
+    /* Flat containers; no shadow */
 }
 
 /* ===== Main Content Area ===== */
 .dark-theme main {
     background: var(--surface-color);
     border-color: var(--outline-variant);
-    box-shadow: var(--shadow-1);
-    /* Keep shadow consistent */
+    box-shadow: none;
+    /* Flat containers; no shadow */
 }
 
 /* ===== File Upload Component ===== */
@@ -122,7 +113,7 @@
     --highlight-color: var(--primary-color);
     --info-bg: var(--surface-container-low);
     background: transparent;
-    border-color: var(--divider-color);
+    border-color: var(--outline-variant);
     color: var(--on-surface-variant);
 }
 
@@ -143,38 +134,38 @@
 
 /* ===== URL Input Field ===== */
 .dark-theme #sjurl {
-    border-color: var(--divider-color);
-    background: var(--surface-container-highest);
+    border-color: var(--outline-variant);
+    /* Match list header background (dark theme) */
+    background: var(--surface-container);
     color: var(--text-primary);
 }
 
 .dark-theme #sjurl:focus {
-    outline-color: var(--primary-color);
-    border-color: var(--primary-color);
+    outline: none;
+    border-color: var(--outline-variant);
+    background-color: var(--hover-bg);
 }
 
 /* Reusable text field in dark theme */
 .dark-theme .text-field {
-    border-color: var(--divider-color);
-    background: var(--surface-container-highest);
+    border-color: var(--outline-variant);
+    /* Match list header background (dark theme) */
+    background: var(--surface-container);
     color: var(--text-primary);
 }
 .dark-theme .text-field:focus {
-    outline-color: var(--primary-color);
-    border-color: var(--primary-color);
+    outline: none;
+    border-color: var(--outline-variant);
+    background-color: var(--hover-bg);
 }
 
 /* Ensure #sjurl matches .text-field in dark theme */
-.dark-theme #sjurl {
-    border-color: var(--divider-color);
-    background: var(--surface-container-highest);
-    color: var(--text-primary);
-}
+/* Duplicate removed: #sjurl already styled above */
 
 /* ===== Upload Mode Selector (Radio Buttons) Dark Theme ===== */
 .dark-theme .radio-label {
     --active-color: var(--primary-color);
-    --border-color: var(--divider-color);
+    --border-color: var(--outline-variant);
     --hover-bg: var(--hover-bg);
     color: var(--on-surface-variant);
     background-color: transparent;
@@ -199,14 +190,14 @@
 }
 
 .dark-theme .radio-label input[type="radio"]:focus-visible+.radio-text {
-    outline-color: var(--primary-color);
+    background-color: var(--hover-bg);
 }
 
 
 /* ===== M3 Style Checkbox Dark Theme ===== */
 .dark-theme .chunk-toggle {
     --active-color: var(--primary-color);
-    --border-color: var(--divider-color);
+    --border-color: var(--outline-variant);
     --hover-bg: var(--hover-bg);
     --text-color: var(--on-surface-variant);
     color: var(--text-color);
@@ -219,7 +210,9 @@
 }
 
 .dark-theme .chunk-toggle:focus-within {
-    outline-color: var(--primary-color);
+    /* Dark theme: use highlight background without border */
+    outline: none;
+    background-color: var(--hover-bg);
 }
 
 .dark-theme .custom-checkbox {
@@ -238,7 +231,8 @@
 }
 
 .dark-theme .toggle-input:focus-visible+.custom-checkbox {
-    outline-color: var(--primary-color);
+    outline: none;
+    background-color: var(--focus-bg);
 }
 
 .dark-theme .toggle-input:disabled+.custom-checkbox {
@@ -261,16 +255,16 @@
 .dark-theme button {
     background: var(--primary-color);
     color: var(--text-on-primary);
-    box-shadow: var(--shadow-1);
+    box-shadow: none;
 }
 
 .dark-theme button:hover {
     background: var(--primary-hover);
-    box-shadow: var(--shadow-2);
+    box-shadow: none;
 }
 
 .dark-theme button:active {
-    box-shadow: var(--shadow-1);
+    box-shadow: none;
 }
 
 .dark-theme button:disabled {
@@ -283,15 +277,15 @@
 .dark-theme #uploadHistory {
     background: var(--surface-container-low);
     /* Slightly elevated table bg */
-    border-color: var(--outline);
+    border-color: var(--outline-variant);
     /* <<< 使用 outline 颜色 */
-    box-shadow: var(--shadow-1);
-    /* Add subtle shadow */
+    box-shadow: none;
+    /* Flat containers; no shadow */
 }
 
 .dark-theme .table-container {
     scrollbar-color: var(--surface-container-high) var(--surface-container-low);
-    border-color: var(--divider-color);
+    border-color: var(--outline-variant);
 }
 
 .dark-theme .upload-history-table th {
@@ -323,10 +317,10 @@
 
 /* ===== Debug Output ===== */
 .dark-theme .debug-output {
-    background: var(--surface-container-lowest);
-    /* Darkest container */
+    background: var(--surface-container-low);
+    /* Match table body bg */
     border-color: var(--outline-variant);
-    scrollbar-color: var(--surface-container-high) var(--surface-container-lowest);
+    scrollbar-color: var(--surface-container-high) var(--surface-container-low);
 }
 
 .dark-theme .debug-output pre {
@@ -337,8 +331,8 @@
 .dark-theme footer {
     background: var(--surface-container);
     border-color: var(--outline-variant);
-    box-shadow: var(--shadow-1);
-    /* Keep shadow consistent */
+    box-shadow: none;
+    /* Flat containers; no shadow */
 }
 
 .dark-theme footer p {
@@ -363,10 +357,8 @@
 .dark-theme .m3-toast {
     background: var(--surface-container-highest) !important;
     color: var(--on-surface) !important;
-    border-color: var(--outline) !important;
-    /* Slightly stronger outline */
-    box-shadow: var(--shadow-3) !important;
-    /* Use a more prominent shadow in dark theme */
+    border-color: var(--outline-variant) !important;
+    box-shadow: none !important;
 }
 
 .dark-theme .m3-toast a {
