@@ -96,8 +96,8 @@
     </main>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 
 import { showToast } from '@/services/toast'
 import ThemeToggle from './ThemeToggle.vue'
@@ -121,18 +121,18 @@ import {
     MIN_CHUNK_SIZE,
     THIRTY_MB_THRESHOLD
 } from '@/config/constants';
-const file = ref(null);
+const file = ref<File | null>(null);
 const noteInputVisible = ref(false);
 const noteInput = ref('');
 const chunkSize = ref(0);
 const chunkSizeVisible = ref(false);
 const fileInfo = ref('');
-const chunkValue = ref(0);
+const chunkValue = ref<string>('');
 const totalChunks = ref(0);
 const sjurl = ref('');
 const status = ref('');
 const debugOutput = ref('');
-const uploadHistory = ref([]);
+const uploadHistory = ref<Array<{ time: string; link: string; note?: string }>>([]);
 const downloadProgress = ref(0); // 下载进度（0-100）
 const uploadMode = ref('codemao'); // Default to 'codemao' since 'dangbei' is hidden
 const isLargeFileSupport = ref(true); // Default to true for large file support in codemao mode
@@ -147,9 +147,9 @@ onMounted(() => {
     loadUploadHistory(uploadHistory); // Ensure history is loaded on mount
 
     // 从管理器接收填入链接事件
-    window.addEventListener('fcf:fill-link', (e) => {
+window.addEventListener('fcf:fill-link', (e: Event) => {
         try {
-            const detail = e && e.detail ? e.detail : (e instanceof CustomEvent ? e.detail : null);
+            const detail = (e instanceof CustomEvent ? (e as CustomEvent<{ link?: string }>).detail : null);
             const link = detail && detail.link ? detail.link : undefined;
             if (link) {
                 sjurl.value = link;
@@ -166,14 +166,15 @@ onUnmounted(() => {
     noteInputVisible.value = false; noteInput.value = '';
 });
 
-function updateFileInfo(event) {
-    const selectedFile = event.target.files[0];
+function updateFileInfo(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const selectedFile = (input && input.files && input.files[0]) || null;
     if (!selectedFile) {
         // Reset if no file is selected or selection is cancelled
         file.value = null;
         fileInfo.value = '';
         chunkSizeVisible.value = false;
-        chunkValue.value = 0;
+        chunkValue.value = '';
         totalChunks.value = 0;
         // uploadMode.value = 'codemao'; // Keep the selected mode
         // isLargeFileSupport.value = true; // Reset large file support? Or keep user preference? Let's keep it.
@@ -184,24 +185,24 @@ function updateFileInfo(event) {
         return;
     }
 
-    file.value = selectedFile;
+    file.value = selectedFile as unknown as File;
     // 显示备注输入框；默认备注为空（保存时默认使用“文件大小 MB”）
     noteInputVisible.value = true;
     noteInput.value = '';
     chunkSizeVisible.value = true; // Show chunk info when a file is selected
 
-    const fileSize = file.value.size;
-    const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
-    fileInfo.value = `【 ${file.value.name} 】${fileSizeMB} MB`;
+    const fileSize = (file.value as File).size;
+    const fileSizeMB = ((fileSize) / (1024 * 1024)).toFixed(2);
+    fileInfo.value = `【 ${(file.value as File).name} 】${fileSizeMB} MB`;
 
     // Calculate chunk size (at least half the file size, capped between MIN and MAX)
-    let calculatedChunkSize = Math.ceil(file.value.size / 2); // Start with half size
+    let calculatedChunkSize = Math.ceil(((file.value as File).size) / 2); // Start with half size
     calculatedChunkSize = Math.max(calculatedChunkSize, MIN_CHUNK_SIZE); // Ensure at least MIN
     calculatedChunkSize = Math.min(calculatedChunkSize, MAX_CHUNK_SIZE); // Ensure at most MAX
     chunkSize.value = calculatedChunkSize;
 
-    chunkValue.value = (chunkSize.value / (1024 * 1024)).toFixed(2);
-    totalChunks.value = Math.ceil(fileSize / chunkSize.value);
+    chunkValue.value = ((chunkSize.value) / (1024 * 1024)).toFixed(2);
+    totalChunks.value = Math.ceil(fileSize / (chunkSize.value || 1));
 
     // Logic for chunk size calculation remains, but mode selection is separate
     if (fileSize <= MIN_CHUNK_SIZE) {
@@ -231,7 +232,7 @@ function updateFileInfo(event) {
 // Watch for uploadMode changes to potentially re-evaluate checkbox state
 watch(uploadMode, (newMode) => {
     if (file.value) {
-        const fileSize = file.value.size;
+    const fileSize = (file.value as File).size;
         if (newMode === 'codemao' && fileSize > THIRTY_MB_THRESHOLD) {
             isLargeFileSupport.value = true;
             isChunkCheckboxDisabled.value = true;
@@ -257,13 +258,13 @@ async function uploadFile() {
     resetEstimatedCompletionTime(); // Reset estimator
 
     showToast('开始上传...');
-    addDebugOutput(`开始上传文件: ${file.value.name} (模式: ${uploadMode.value})`, debugOutput);
+    addDebugOutput(`开始上传文件: ${(file.value as File).name} (模式: ${uploadMode.value})`, debugOutput);
     isUploading.value = true; // Disable buttons
 
     try {
         if (uploadMode.value === 'codemao') {
             // 文件大于1MB且用户勾选了“大文件支持”（或文件大于30MB被强制分块）
-            if (isLargeFileSupport.value && file.value.size > MIN_CHUNK_SIZE) {
+            if (isLargeFileSupport.value && (file.value as File).size > MIN_CHUNK_SIZE) {
                 addDebugOutput(`使用【编程猫 OSS】模式 (分块上传) 上传 (总块数: ${totalChunks.value})...`, debugOutput);
                 await serviceUploadChunks({
                     file: file.value,
@@ -278,7 +279,7 @@ async function uploadFile() {
                 });
                 // 将备注保存到历史首条（刚刚写入的一条）
                 {
-                    const sizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+                    const sizeMB = (((file.value as File).size) / (1024 * 1024)).toFixed(2);
                     const noteToSave = (noteInput.value || '').trim() || `${sizeMB} MB`;
                     updateLatestHistoryNote(noteToSave, uploadHistory);
                 }
@@ -288,7 +289,7 @@ async function uploadFile() {
                 // 之前的调试日志已通过updateFileInfo中的修改变得多余
                 await uploadSingleFile(); // 单文件上传逻辑
                 {
-                    const sizeMB = (file.value.size / (1024 * 1024)).toFixed(2);
+                    const sizeMB = (((file.value as File).size) / (1024 * 1024)).toFixed(2);
                     const noteToSave = (noteInput.value || '').trim() || `${sizeMB} MB`;
                     updateLatestHistoryNote(noteToSave, uploadHistory);
                 }
@@ -298,16 +299,19 @@ async function uploadFile() {
         // Error handling is mostly within specific upload functions
         status.value = "上传失败 (请查看调试日志)";
         showToast("上传过程中发生意外错误");
-        addDebugOutput(`上传任务最终失败: ${error?.message || error}`, debugOutput);
+        const msg = error instanceof Error ? error.message : String(error);
+        addDebugOutput(`上传任务最终失败: ${msg}`, debugOutput);
         resetEstimatedCompletionTime(); // Reset timer on failure
     } finally {
         isUploading.value = false; // Re-enable buttons
-        console.log("Upload function finished.");
+        // 使用调试输出替代控制台日志，保持用户可见性一致
+        addDebugOutput("上传函数执行已结束", debugOutput);
     }
 }
 
 async function uploadSingleFile() {
-    await serviceUploadSingleFile(file.value, sjurl, status, uploadHistory, debugOutput);
+    if (!file.value) { showToast('未选择文件'); return }
+    await serviceUploadSingleFile(file.value as File, sjurl, status, uploadHistory, debugOutput);
     // 与历史行为保持一致：成功后写入上传历史
     if (sjurl.value) {
         saveUploadHistory(sjurl.value, uploadHistory);
@@ -375,7 +379,7 @@ function exportHistory() {
     }
     // Format: Timestamp - Link (more readable)
     const historyText = uploadHistory.value
-        .map(entry => `${entry.timestamp} - ${entry.link}`)
+        .map(entry => `${entry.time} - ${entry.link}`)
         .join('\n');
     helpers.downloadFile('upload_history.txt', historyText);
     addDebugOutput("上传历史已导出。", debugOutput);
@@ -423,7 +427,7 @@ function handleClear() {
 }
 
 // Handler for the 'select-item' event from UploadHistory
-function handleHistoryItemSelect(selectedLink) {
+function handleHistoryItemSelect(selectedLink: string) {
     if (selectedLink) {
         sjurl.value = selectedLink; // Update the input field's bound ref
         showToast('历史记录链接已填入输入框');
@@ -459,8 +463,9 @@ function checkUrlParams() {
                 try {
                     filename = decodeURIComponent(chunkMatches[1]);
                     addDebugOutput(`从分块链接中解析文件名: ${filename}`, debugOutput);
-                } catch (decodeError) {
-                    addDebugOutput(`解析分块链接中的文件名失败: ${decodeError.message}`, debugOutput);
+                } catch (decodeError: unknown) {
+                    const msg = decodeError instanceof Error ? decodeError.message : String(decodeError);
+                    addDebugOutput(`解析分块链接中的文件名失败: ${msg}`, debugOutput);
                     filename = '解码失败的文件';
                 }
             }
@@ -479,8 +484,9 @@ function checkUrlParams() {
                         addDebugOutput(`无法从标准 URL 路径中提取文件名: ${pathname}`, debugOutput);
                         filename = '未知文件名 (URL路径)';
                     }
-                } catch (urlParseError) {
-                    addDebugOutput(`解析标准 URL 失败: ${urlParseError.message}`, debugOutput);
+                } catch (urlParseError: unknown) {
+                    const msg = urlParseError instanceof Error ? urlParseError.message : String(urlParseError);
+                    addDebugOutput(`解析标准 URL 失败: ${msg}`, debugOutput);
                     filename = '无效URL格式';
                 }
             }
@@ -505,8 +511,9 @@ function checkUrlParams() {
                 const cleanUrl = window.location.pathname + window.location.hash;
                 window.history.replaceState({}, document.title, cleanUrl);
             }
-        } catch (error) {
-            addDebugOutput(`解析分享链接参数失败: ${error.message}`, debugOutput);
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : String(error);
+            addDebugOutput(`解析分享链接参数失败: ${msg}`, debugOutput);
             showToast('分享链接格式无效');
         }
     }
@@ -542,9 +549,10 @@ function handleShare() {
                 console.error('复制失败:', err);
             }
         );
-    } catch (error) {
+    } catch (error: unknown) {
         showToast('生成分享链接时出错');
-        addDebugOutput(`生成分享链接错误: ${error.message}`, debugOutput);
+        const msg = error instanceof Error ? error.message : String(error);
+        addDebugOutput(`生成分享链接错误: ${msg}`, debugOutput);
     }
 }
 

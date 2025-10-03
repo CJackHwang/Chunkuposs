@@ -214,3 +214,10 @@ CJackHwang · [GitHub](https://github.com/CJackHwang) · [Tech Blog](http://www.
 - `DAV_RATE_RPS`: per-IP requests per second (default `20`)
 
 Server mounts local `server/data` directory for prototype. Database files under `server/` (e.g. `meta.db` and its `-wal`/`-shm`) are ignored via `.gitignore`. Future versions will map DAV ops to provider-backed chunk manifests.
+
+### Dev Notes
+- Centralized env helper added at `src/utils/env.ts`:
+  - `getDavBasePath()` returns `VITE_DAV_BASE_PATH` (defaults to `/dav`).
+  - `getDavToken()` returns `VITE_DAV_TOKEN` (defaults to empty).
+  Use this instead of `(import.meta as any).env` in client code for consistency.
+- PWA plugin `mode` now follows `NODE_ENV` automatically to avoid accidental production SW semantics in dev.

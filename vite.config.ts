@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa';
 
-const mode = 'production';
+// Derived via process.env.NODE_ENV in PWA plugin; keep this unused var removed
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -18,7 +18,8 @@ export default defineConfig({
       }
     }),
     VitePWA({
-      mode: 'development',
+      // Keep dev SW enabled but derive mode from Vite env
+      mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
       base: '/',
       manifest: {
         name: 'Chunkuposs',

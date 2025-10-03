@@ -43,31 +43,17 @@
     </button>
 </template>
 
-<script>
-export default {
-    name: 'ThemeToggle',
-    data() {
-        return {
-            isDarkMode: false
-        }
-    },
-    mounted() {
-        const savedTheme = localStorage.getItem('theme')
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        this.isDarkMode = savedTheme ? savedTheme === 'dark' : systemDark
-        this.applyTheme()
-    },
-    methods: {
-        toggleTheme() {
-            this.isDarkMode = !this.isDarkMode
-            this.applyTheme()
-            localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light')
-        },
-        applyTheme() {
-            document.documentElement.classList.toggle('dark-theme', this.isDarkMode)
-        }
-    }
-}
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+const isDarkMode = ref(false)
+function applyTheme() { document.documentElement.classList.toggle('dark-theme', isDarkMode.value) }
+function toggleTheme(){ isDarkMode.value = !isDarkMode.value; applyTheme(); localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light') }
+onMounted(()=>{
+  const savedTheme = localStorage.getItem('theme')
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  isDarkMode.value = savedTheme ? savedTheme === 'dark' : systemDark
+  applyTheme()
+})
 </script>
 
 <style scoped>

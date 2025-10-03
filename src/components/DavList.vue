@@ -36,15 +36,16 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({ items: { type: Array, default: () => [] }, selected: { type: Object }, selectedSet: { type: Object } })
+<script setup lang="ts">
+type DavItem = { href: string; displayname: string; isCollection: boolean; size: string; mtime: string };
+const props = defineProps<{ items: DavItem[]; selected?: DavItem; selectedSet?: Set<string> }>()
 defineEmits(['select','open','toggle'])
 
-function isChecked(item){
+function isChecked(item: DavItem){
   return props.selectedSet && props.selectedSet.has && props.selectedSet.has(item.href)
 }
 
-function formatSize(s){
+function formatSize(s: string){
   const n = Number(s)
   if (!isFinite(n) || n <= 0) return '0'
   if (n < 1024) return `${n} B`

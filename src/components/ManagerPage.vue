@@ -70,19 +70,20 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { confirmDanger } from '@/utils/helpers'
-defineProps({ history: { type: Array, required: true } });
+type HistoryEntry = { time: string; link: string; note?: string };
+defineProps<{ history: HistoryEntry[] }>();
 const emit = defineEmits(['back', 'update', 'remove', 'add']);
 
-const editId = ref(null)
+const editId = ref<string|null>(null)
 const editTime = ref('')
 const editLink = ref('')
 const editNote = ref('')
 const adding = ref(false)
 
-function startEdit(entry){
+function startEdit(entry: HistoryEntry){
   if (adding.value || editId.value !== null) return
   editId.value = entry.time
   editTime.value = entry.time
@@ -98,7 +99,7 @@ function cancel(){
   adding.value = false
 }
 
-function save(entry){
+function save(entry: HistoryEntry){
   // 如果有变化才保存
   const changed = (editTime.value !== entry.time) || (editLink.value !== entry.link) || (editNote.value !== (entry.note || ''))
   if (changed) {
@@ -129,7 +130,7 @@ function saveAdd(){
   cancel()
 }
 
-function handleRemove(link){
+function handleRemove(link: string){
   if (!confirmDanger('确定要删除该记录吗？此操作不可撤销')) return
   emit('remove', link)
 }

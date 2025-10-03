@@ -3,16 +3,16 @@ import { showToast } from '@/services/toast';
 import { getDefaultProvider } from '@/providers';
 import type { Ref } from 'vue';
 import { FORM_UPLOAD_PATH } from '@/config/constants';
+import { getDavBasePath } from '@/utils/env'
 
 // 单文件上传（保留原行为）
 export async function uploadSingleFile(
   file: File,
   sjurlRef: Ref<string>,
   statusRef: Ref<string>,
-  uploadHistoryRef: Ref<any[]>,
+  uploadHistoryRef: Ref<Array<{ time: string; link: string; note?: string }>>, 
   debugOutputRef: Ref<string>
 ) {
-  const startTime = Date.now();
   statusRef.value = '正在上传 (单链接模式)...';
   const formData = new FormData();
   formData.append('file', file, file.name);
@@ -30,7 +30,7 @@ export async function uploadSingleFile(
       addDebugOutput(`单链接模式上传成功（统一清单）: ${manifestSingle}`, debugOutputRef);
       // 同步到 WebDAV myupload，统一清单格式：[filename]id.chunk--1
       try {
-        const base = (import.meta as any).env?.VITE_DAV_BASE_PATH || '/dav';
+        const base = getDavBasePath();
         const id = url.split('?')[0].split('/').pop() || '';
         const idBase = id.replace(/\.[^./]+$/, '');
         const manifestSingle = `[${encodeURIComponent(file.name)}]${idBase}.chunk--1`;

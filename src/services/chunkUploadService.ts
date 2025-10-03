@@ -3,6 +3,7 @@ import { showToast } from '@/services/toast';
 import { FORM_UPLOAD_PATH, REQUEST_RATE_LIMIT, CONCURRENT_LIMIT } from '@/config/constants';
 import { getDefaultProvider } from '@/providers';
 import type { Ref } from 'vue';
+import { getDavBasePath } from '@/utils/env'
 
 export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputRef, statusRef, sjurlRef, uploadHistoryRef, updateEstimatedCompletionTimeAfterUpload, resetEstimatedCompletionTime }:
   {
@@ -12,12 +13,12 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     debugOutputRef: Ref<string>,
     statusRef: Ref<string>,
     sjurlRef: Ref<string>,
-    uploadHistoryRef: Ref<any[]>,
+    uploadHistoryRef: Ref<Array<{ time: string; link: string; note?: string }>>,
     updateEstimatedCompletionTimeAfterUpload: (start: number, urls: (string|null)[], total: number) => void,
     resetEstimatedCompletionTime: () => void
   }
 ) {
-  const urls = new Array(totalChunks).fill(null);
+  const urls: (string | null)[] = Array.from({ length: totalChunks }, () => null);
   const startTime = Date.now();
   const reader = file.stream().getReader();
   let buffer = new Uint8Array(CHUNK_SIZE);
@@ -68,7 +69,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
           const { url } = await provider.uploadChunk(chunk, i, { path: FORM_UPLOAD_PATH, timeoutMs: dynamicTimeout });
           const duration = Date.now() - start;
           if (!url) throw new Error('服务器响应无效或缺少URL');
-          urls[i] = url;
+          urls[i] = (url as string) || null;
           addDebugOutput(`块 ${i} 上传成功 | 耗时: ${duration}ms | URL: ${url}`, debugOutputRef);
           const completedCount = urls.filter(u => u !== null).length;
           statusRef.value = `上传中 (编程猫 OSS)... (${completedCount}/${totalChunks} 块完成)`;
@@ -154,7 +155,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     return;
   }
   try {
-    const formattedUrls = urls.map(url => url.split('?')[0].split('/').pop()).join(',');
+    const formattedUrls = urls.map(url => (url || '').split('?')[0].split('/').pop()).join(',');
     const finalUrl = `[${encodeURIComponent(file.name)}]${formattedUrls}`;
     sjurlRef.value = finalUrl;
     statusRef.value = '所有分块上传完成 (编程猫 OSS)!';
@@ -168,7 +169,7 @@ export async function uploadChunks({ file, CHUNK_SIZE, totalChunks, debugOutputR
     }
     // 同步到 WebDAV myupload：PUT 清单到 /dav/myupload/<文件名>
     try {
-      const base = (import.meta.env.VITE_DAV_BASE_PATH || '/dav').replace(/\/$/, '')
+      const base = getDavBasePath().replace(/\/$/, '')
       const resp = await fetch(`${base}/myupload/${encodeURIComponent(file.name)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'text/plain' },

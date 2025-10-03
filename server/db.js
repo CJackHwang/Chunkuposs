@@ -1,5 +1,4 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 
@@ -29,7 +28,7 @@ function sqliteExec(sql) {
   try {
     const out = execFileSync('sqlite3', [fileURLToPath(DB_FILE), sql], { encoding: 'utf-8' });
     return out;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -60,7 +59,7 @@ export function getEntry(store, p) {
     if (!out) return undefined;
     const row = out.trim().split('|');
     if (!row[0]) return undefined;
-    const [path, type, name, size, mtime, singleUrl, manifest, chunkUrls, chunkLengths] = row;
+    const [_path, type, name, size, mtime, singleUrl, manifest, chunkUrls, chunkLengths] = row;
     return { type, name, size: size? Number(size): undefined, mtime, singleUrl: singleUrl||undefined, manifest: manifest||undefined, chunkUrls: chunkUrls? chunkUrls.split(','): undefined, chunkLengths: chunkLengths? chunkLengths.split(',').map(n=>Number(n)): undefined };
   }
   return undefined;

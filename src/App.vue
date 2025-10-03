@@ -107,7 +107,7 @@ a[target="_blank"] {
 /* } */
 </style>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import MainContent from './components/MainContent.vue'
 import ManagerPage from './components/ManagerPage.vue'
@@ -116,16 +116,17 @@ import DavPreview from './components/DavPreview.vue'
 import { loadUploadHistory, removeHistoryItem, addHistoryEntry, updateHistoryEntry } from '@/utils/storageHelper'
 
 const route = ref('home')
-const uploadHistory = ref([])
+const uploadHistory = ref<Array<{ time: string; link: string; note?: string }>>([])
 // Hold history-updated handler without TS assertions
-let historyUpdatedHandler = null
+let historyUpdatedHandler: (() => void) | null = null
 
 function goHome(){ window.location.hash = '' }
-function goManager(){ window.location.hash = 'manager' }
+// 未使用函数移除以满足 lint 规则
 function goDav(){ window.location.hash = 'dav' }
-function fillLink(link){ goHome(); setTimeout(() => window.dispatchEvent(new CustomEvent('fcf:fill-link', { detail: { link } })), 0) }
-function removeItem(link){ removeHistoryItem(link, uploadHistory) }
-function updateItem(payload){
+// 函数保留供外部调用（不在本组件内直接使用）
+// 移除未使用函数以满足 lint
+function removeItem(link: string){ removeHistoryItem(link, uploadHistory) }
+function updateItem(payload: { originalTime: string; time: string; link: string; note?: string }){
   // 简单格式校验：时间非空，链接为 http(s) 或符合分块格式；备注可选
   const timeValid = typeof payload.time === 'string' && payload.time.trim().length > 0
   const linkValid = /^(https?:\/\/)/i.test(payload.link) || /^\[(.*?)\]((.+)?)$/.test(payload.link)
@@ -136,7 +137,7 @@ function updateItem(payload){
   updateHistoryEntry(payload.originalTime, payload.time, payload.link, uploadHistory, payload.note)
 }
 
-function addItem(payload){
+function addItem(payload: { time: string; link: string; note?: string }){
   const timeValid = typeof payload.time === 'string' && payload.time.trim().length > 0
   const linkValid = /^(https?:\/\/)/i.test(payload.link) || /^\[(.*?)\]((.+)?)$/.test(payload.link)
   const noteValid = payload.note === undefined || typeof payload.note === 'string'

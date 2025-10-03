@@ -1,7 +1,7 @@
 // Provider registry with env-driven config; default: Codemao
 import { getConfigFromEnv as getCodemaoConfig, createProvider as createCodemaoProvider } from './providers/codemao.js';
 
-const MB = 1024 * 1024;
+// const MB = 1024 * 1024; // unused
 
 function env(name, def) { const v = process.env[name]; return (v === undefined || v === '') ? def : v; }
 

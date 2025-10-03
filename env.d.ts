@@ -1,14 +1,9 @@
 /// <reference types="vite/client" />
-/// <reference path="./src/types/shims.d.ts" />
-/// <reference path="./src/types/vendor.d.ts" />
-declare module '@/config/constants' {
-  export const UPLOAD_URL: string;
-  export const REQUEST_RATE_LIMIT: number;
-  export const CONCURRENT_LIMIT: number;
-  export const MAX_CHUNK_SIZE: number;
-  export const MIN_CHUNK_SIZE: number;
-  export const THIRTY_MB_THRESHOLD: number;
-  export const BASE_DOWNLOAD_URL: string;
-  export const FORM_UPLOAD_PATH: string;
-  export const DOWNLOAD_CONCURRENT_LIMIT: number;
+// Use ESM-style imports instead of triple-slash path refs for shims/vendor
+import './src/types/shims.d.ts'
+import './src/types/vendor.d.ts'
+
+declare module '@/utils/env' {
+  export function getDavBasePath(): string;
+  export function getDavToken(): string;
 }

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { PORT, BASE_PATH, RATE_RPS } from './config.js';
 import { loadStore, saveStore, listChildren, makeDir, setFile, getEntry, removeEntry, moveEntry, utils } from './db.js';
-import { uploadSingle, uploadChunks, uploadChunk, buildChunkManifest, getDownloadBase, decideChunking, splitBuffers, computeChunkSizeBytes, MAX_CHUNK_MB } from './provider.js';
+import { uploadSingle, uploadChunk, buildChunkManifest, getDownloadBase, computeChunkSizeBytes, MAX_CHUNK_MB } from './provider.js';
 import { contentTypeByName } from './mime.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -290,7 +290,7 @@ async function handlePut(store, vpath, req, res) {
     saveStore(store);
     const payload = { name: filename, size: fileInfo.size || 0, manifest: fileInfo.manifest, singleUrl: fileInfo.singleUrl, kind: (fileInfo.singleUrl ? 'single' : 'manifest') };
     send(res, 201, { 'Content-Type': 'application/json' }, JSON.stringify(payload));
-  } catch (e) {
+  } catch {
     send(res, 500, {}, 'Provider Upload Error');
   }
 }
@@ -303,7 +303,6 @@ async function handleGet(store, vpath, req, res) {
   const etag = makeETag(entry);
   const range = (req.headers['range'] || '').toString();
   const isRange = range.startsWith('bytes=');
-  const total = entry.size || undefined;
   // Range support for singleUrl; for chunked, map global range across chunks
   if (isRange && !entry.singleUrl && !(entry.chunkUrls && entry.chunkLengths)) {
     send(res, 416, {}, 'Range Not Supported');
@@ -409,7 +408,7 @@ async function handleGet(store, vpath, req, res) {
       }
       const urls = entry.chunkUrls.slice();
       const concurrency = 4;
-      const results = new Array(urls.length).fill(null);
+      const results = Array.from({ length: urls.length }, () => null);
       let next = 0; let started = 0;
       async function startOne(i){
         const r = await fetch(urls[i]);
@@ -442,7 +441,7 @@ async function handleGet(store, vpath, req, res) {
     } else {
       send(res, 404, {}, 'No Data');
     }
-  } catch (e) {
+  } catch {
     if (res.headersSent) {
       try { res.end(); } catch { /* noop */ }
     } else {
@@ -533,13 +532,13 @@ function start() {
       }
 
       send(res, 405, {}, 'Method Not Allowed');
-    } catch (e) {
+    } catch {
       send(res, 500, {}, 'Server Error');
     }
   });
 
   server.listen(PORT, () => {
-    // eslint-disable-next-line no-console
+     
     console.log(`WebDAV Gateway listening on http://localhost:${PORT}${BASE_PATH}`);
   });
 }

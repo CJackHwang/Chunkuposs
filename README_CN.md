@@ -204,3 +204,9 @@ flowchart TD
 - `DAV_RATE_RPS`：按 IP 的每秒请求数（默认 `20`）
 
 当前原型将 `server/data` 作为本地挂载目录。为避免将数据库文件提交到仓库，已在 `.gitignore` 中忽略 `server/meta.db` 及其 `-wal`/`-shm` 等相关文件（同时忽略 `server/*.db*`）。后续版本会将 DAV 操作映射到 Provider 后端的分块清单与下载链接。
+\n+### 开发说明（优化）
+- 新增环境变量工具 `src/utils/env.ts`，统一读取客户端所需的 DAV 相关变量：
+  - `getDavBasePath()` 返回 `VITE_DAV_BASE_PATH`（默认 `/dav`）
+  - `getDavToken()` 返回 `VITE_DAV_TOKEN`（默认空字符串）
+  建议在客户端代码中使用该工具，避免重复 `(import.meta as any).env` 写法，便于维护。
+- `vite.config.ts` 中的 PWA 插件 `mode` 将根据 `NODE_ENV` 自动切换，避免开发环境下出现生产 SW 语义导致的缓存问题。

@@ -55,13 +55,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { showToast } from '../services/toast'
 import { addHistoryDirect, removeHistoryDirect } from '../utils/storageHelper'
-import type { DavUploadResponse, DavDeleteResponse } from '../types/dav'
+import { getDavBasePath, getDavToken } from '@/utils/env'
+// Remove unused types
 import DavList from './DavList.vue'
 
 type DavItem = { href: string; displayname: string; type: string; size: string; mtime: string; isCollection: boolean }
 
-const BASE: string = (import.meta as any).env?.VITE_DAV_BASE_PATH || '/dav'
-const DAV_TOKEN: string = (import.meta as any).env?.VITE_DAV_TOKEN || ''
+const BASE: string = getDavBasePath()
+const DAV_TOKEN: string = getDavToken()
 const items = ref<DavItem[]>([])
 const selectedItem = ref<DavItem | undefined>(undefined)
 const selectedSet = ref<Set<string>>(new Set<string>())
@@ -96,8 +97,8 @@ async function confirmMove(){
   for (const href of Array.from(selectedSet.value)){
     const name = decodeURIComponent(href.split('/').pop() || '')
     const dest = BASE + base + encodeURIComponent(name)
-    const headers = { 'Destination': dest, ...(DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) }
-    const r = await fetch(href, { method: 'MOVE', headers })
+  const headers: HeadersInit = { 'Destination': dest, ...(DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) }
+  const r = await fetch(href, { method: 'MOVE', headers })
     if (r.status !== 201) { alert('移动失败: ' + r.status); break }
   }
   selectedSet.value.clear()
@@ -117,7 +118,7 @@ const lastCount = ref<number>(0)
 async function refresh(){
   const p = toPath(currentPath.value)
   const url = BASE + p
-  const headers: Record<string, string> = { Depth: '1', ...(DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) }
+  const headers: HeadersInit = { Depth: '1', ...(DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) }
   const res = await fetch(url, { method: 'PROPFIND', headers })
   if (res.status !== 207) { console.warn('PROPFIND 非 207 状态:', res.status); alert('PROPFIND 失败: ' + res.status); return }
   const text = await res.text()
@@ -227,49 +228,17 @@ async function mkcolPrompt(){
   if (!name) return
   const p = toPath(currentPath.value)
   const url = BASE + (p.endsWith('/')? p : p + '/') + encodeURIComponent(name) + '/'
-  const res = await fetch(url, { method: 'MKCOL', headers: (DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) as any })
+  const res = await fetch(url, { method: 'MKCOL', headers: (DAV_TOKEN ? ({ Authorization: `Bearer ${DAV_TOKEN}` } as HeadersInit) : ({} as HeadersInit)) })
   if (res.status === 201) refresh(); else alert('MKCOL 失败: ' + res.status)
 }
 
-async function renamePrompt(){
-  if (!selectedItem.value) return
-  const newName = prompt('新名称（可含路径）', selectedItem.value.displayname)
-  if (!newName) return
-  const dest = BASE + (currentPath.value.endsWith('/')? currentPath.value : currentPath.value + '/') + encodeURIComponent(newName)
-  const moveHeaders: Record<string, string> = { 'Destination': dest, ...(DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) }
-  const res = await fetch(selectedItem.value.href, { method: 'MOVE', headers: moveHeaders as any })
-  if (res.status === 201) refresh(); else alert('MOVE 失败: ' + res.status)
-}
-
-async function removeSelected(){
-  if (!selectedItem.value) return
-  if (!confirm('确认删除选中项？')) return
-  const res = await fetch(selectedItem.value.href, { method: 'DELETE', headers: (DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) as any })
-  if (res.status === 200) {
-    try {
-      const data = await res.json()
-      if (data?.link && selectedItem.value.href.startsWith(BASE + '/myupload/')) {
-        removeHistoryDirect(data.link)
-      }
-    } catch { /* ignore */ }
-    refresh()
-  } else if (res.status === 204) {
-    // 回退：按文件名移除清单
-    if (selectedItem.value.href.startsWith(BASE + '/myupload/')) {
-      const name = decodeURIComponent(selectedItem.value.displayname)
-      removeHistoryByFilename(name)
-    }
-    refresh()
-  } else {
-    alert('DELETE 失败: ' + res.status)
-  }
-}
+// 已移除未使用的重命名与单项删除方法（保留批量删除及移动功能）
 
 async function removeBatch(){
   if (selectedSet.value.size === 0) return
   if (!confirm(`确认删除选中的 ${selectedSet.value.size} 项？`)) return
   for (const href of Array.from(selectedSet.value)) {
-    const res = await fetch(href, { method: 'DELETE', headers: (DAV_TOKEN ? { Authorization: `Bearer ${DAV_TOKEN}` } : {}) as any })
+    const res = await fetch(href, { method: 'DELETE', headers: (DAV_TOKEN ? ({ Authorization: `Bearer ${DAV_TOKEN}` } as HeadersInit) : ({} as HeadersInit)) })
     if (res.status !== 200 && res.status !== 204) { alert('批量删除失败: ' + res.status); break }
     // 精准反向移除：读取服务端返回的 link（manifest/single）
     if (res.status === 200 && href.startsWith(BASE + '/myupload/')) {
@@ -289,10 +258,10 @@ async function removeBatch(){
 function removeHistoryByFilename(fileName: string) {
   try {
     const raw = localStorage.getItem('uploadHistory') || '[]'
-    const history: any[] = JSON.parse(raw)
+    const history: Array<{ link?: string }> = JSON.parse(raw)
     if (!Array.isArray(history)) return
     const enc = encodeURIComponent(fileName)
-    const next = history.filter((e: any) => {
+    const next = history.filter((e) => {
       if (typeof e?.link !== 'string') return true
       // 清单格式以 [filename] 开头，匹配则移除
       if (e.link.startsWith(`[${enc}]`)) return false

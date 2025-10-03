@@ -19,21 +19,22 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-const item = ref(null)
+type DavItem = { href: string; displayname: string; isCollection: boolean };
+const item = ref<DavItem | null>(null)
 
-function extOf(name){
+function extOf(name: string){
   const i = (name || '').lastIndexOf('.')
   return i >= 0 ? name.slice(i+1).toLowerCase() : ''
 }
-function isImage(name){ return ['png','jpg','jpeg','gif','svg','webp'].includes(extOf(name)) }
-function isAudio(name){ return ['mp3','m4a','aac','wav','ogg','opus','flac'].includes(extOf(name)) }
-function isVideo(name){ return ['mp4','mov','webm'].includes(extOf(name)) }
+function isImage(name: string){ return ['png','jpg','jpeg','gif','svg','webp'].includes(extOf(name)) }
+function isAudio(name: string){ return ['mp3','m4a','aac','wav','ogg','opus','flac'].includes(extOf(name)) }
+function isVideo(name: string){ return ['mp4','mov','webm'].includes(extOf(name)) }
 
-function onSelected(e){ item.value = e.detail }
-onMounted(() => window.addEventListener('fcf:dav-selected', onSelected))
-onUnmounted(() => window.removeEventListener('fcf:dav-selected', onSelected))
+function onSelected(e: Event){ const ce = e as CustomEvent<DavItem>; item.value = ce.detail }
+onMounted(() => window.addEventListener('fcf:dav-selected', onSelected as EventListener))
+onUnmounted(() => window.removeEventListener('fcf:dav-selected', onSelected as EventListener))
 </script>
 
 <style scoped>
